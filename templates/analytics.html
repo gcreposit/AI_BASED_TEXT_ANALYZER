@@ -1,0 +1,556 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - Multilingual Topic Clustering{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-chart-line text-primary me-2"></i>
+                System Analytics Dashboard
+            </h2>
+            <button class="btn btn-outline-primary" onclick="refreshAllData()">
+                <i class="fas fa-sync-alt me-1"></i>Refresh Data
+            </button>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card bg-primary text-white">
+                    <div class="stat-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalTopics">-</h3>
+                        <p>Total Topics</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="stat-card bg-success text-white">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-text"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalTexts">-</h3>
+                        <p>Processed Texts</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="stat-card bg-info text-white">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="avgProcessingTime">-</h3>
+                        <p>Avg Processing (ms)</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="stat-card bg-warning text-white">
+                    <div class="stat-icon">
+                        <i class="fas fa-language"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="languageCount">-</h3>
+                        <p>Languages Detected</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Language Distribution</h5>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleChartType('language')">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="languageChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Processing Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="performanceChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Tables Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Topics</h5>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary active" onclick="filterTopics('all')">All</button>
+                            <button class="btn btn-outline-secondary" onclick="filterTopics('hindi')">Hindi</button>
+                            <button class="btn btn-outline-secondary" onclick="filterTopics('english')">English</button>
+                            <button class="btn btn-outline-secondary" onclick="filterTopics('hinglish')">Hinglish</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="recentTopicsTable" class="table-responsive">
+                            <div class="text-center p-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">System Health</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="systemHealth">
+                            <div class="text-center">
+                                <div class="spinner-border text-info" role="status"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Analysis -->
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-search me-2"></i>
+                            Topic Search & Analysis
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="searchQuery"
+                                           placeholder="Search topics by text similarity...">
+                                    <button class="btn btn-outline-secondary" onclick="searchTopics()">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text">Threshold:</span>
+                                    <input type="range" class="form-range" id="searchThreshold"
+                                           min="0.1" max="1.0" step="0.1" value="0.6">
+                                    <span class="input-group-text" id="thresholdValue">0.6</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="searchResults"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let languageChart = null;
+let performanceChart = null;
+let chartTypes = {
+    language: 'doughnut'
+};
+
+// Load analytics data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadAnalytics();
+    loadRecentTopics();
+    loadSystemHealth();
+
+    // Setup threshold slider
+    const thresholdSlider = document.getElementById('searchThreshold');
+    const thresholdValue = document.getElementById('thresholdValue');
+
+    thresholdSlider.addEventListener('input', function() {
+        thresholdValue.textContent = this.value;
+    });
+
+    // Auto-refresh every 30 seconds
+    setInterval(function() {
+        loadAnalytics();
+        loadSystemHealth();
+    }, 30000);
+});
+
+async function loadAnalytics() {
+    try {
+        const response = await fetch('/api/stats');
+        const stats = await response.json();
+
+        // Update stat cards
+        document.getElementById('totalTopics').textContent = formatNumber(stats.total_topics);
+        document.getElementById('totalTexts').textContent = formatNumber(stats.total_texts);
+        document.getElementById('avgProcessingTime').textContent =
+            Math.round(stats.processing_performance.avg_processing_time_ms || 0);
+        document.getElementById('languageCount').textContent =
+            Object.keys(stats.language_distribution).length;
+
+        // Update charts
+        updateLanguageChart(stats.language_distribution);
+        updatePerformanceChart(stats.processing_performance);
+
+    } catch (error) {
+        console.error('Failed to load analytics:', error);
+        showToast('Failed to load analytics data', 'danger');
+    }
+}
+
+function updateLanguageChart(languageData) {
+    const ctx = document.getElementById('languageChart').getContext('2d');
+
+    if (languageChart) {
+        languageChart.destroy();
+    }
+
+    const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'];
+    const labels = Object.keys(languageData);
+    const data = Object.values(languageData);
+
+    const config = {
+        type: chartTypes.language,
+        data: {
+            labels: labels.map(label => label.charAt(0).toUpperCase() + label.slice(1)),
+            datasets: [{
+                data: data,
+                backgroundColor: colors.slice(0, labels.length),
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return `${context.label}: ${context.parsed} (${percentage}%)`;
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    languageChart = new Chart(ctx, config);
+}
+
+function updatePerformanceChart(performanceData) {
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+
+    if (performanceChart) {
+        performanceChart.destroy();
+    }
+
+    // Generate sample performance data (in a real app, this would come from the API)
+    const hours = [];
+    const processingTimes = [];
+    const throughput = [];
+
+    for (let i = 23; i >= 0; i--) {
+        const hour = new Date();
+        hour.setHours(hour.getHours() - i);
+        hours.push(hour.getHours() + ':00');
+
+        // Simulate data
+        processingTimes.push(Math.random() * 50 + 40); // 40-90ms
+        throughput.push(Math.random() * 100 + 50);    // 50-150 texts/hour
+    }
+
+    performanceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: hours,
+            datasets: [{
+                label: 'Avg Processing Time (ms)',
+                data: processingTimes,
+                borderColor: '#36A2EB',
+                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y'
+            }, {
+                label: 'Throughput (texts/hour)',
+                data: throughput,
+                borderColor: '#FF6384',
+                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Processing Time (ms)'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Throughput (texts/hour)'
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                    },
+                }
+            }
+        }
+    });
+}
+
+async function loadRecentTopics(language = 'all') {
+    try {
+        const url = language === 'all' ? '/api/topics?limit=10' : `/api/topics?limit=10&language=${language}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const container = document.getElementById('recentTopicsTable');
+
+        if (data.topics && data.topics.length > 0) {
+            const tableHTML = `
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Topic Title</th>
+                            <th>Language</th>
+                            <th>Texts</th>
+                            <th>Confidence</th>
+                            <th>Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.topics.map(topic => `
+                            <tr>
+                                <td>
+                                    <strong>${topic.title}</strong>
+                                    <br><small class="text-muted">${topic.id}</small>
+                                </td>
+                                <td>
+                                    <span class="badge ${getLanguageBadgeClass(topic.primary_language)}">
+                                        ${topic.primary_language}
+                                    </span>
+                                </td>
+                                <td><span class="badge bg-info">${topic.content_count}</span></td>
+                                <td>
+                                    <div class="progress" style="height: 15px; width: 60px;">
+                                        <div class="progress-bar" style="width: ${topic.confidence_score * 100}%">
+                                        </div>
+                                    </div>
+                                    <small>${(topic.confidence_score * 100).toFixed(0)}%</small>
+                                </td>
+                                <td>
+                                    <small>${formatDateTime(topic.updated_at)}</small>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            container.innerHTML = tableHTML;
+        } else {
+            container.innerHTML = '<div class="text-center p-4"><p class="text-muted">No topics found</p></div>';
+        }
+
+    } catch (error) {
+        console.error('Failed to load recent topics:', error);
+        document.getElementById('recentTopicsTable').innerHTML =
+            '<div class="text-center p-4"><p class="text-danger">Failed to load topics</p></div>';
+    }
+}
+
+async function loadSystemHealth() {
+    try {
+        const response = await fetch('/health');
+        const health = await response.json();
+
+        const container = document.getElementById('systemHealth');
+        const overallStatus = health.status === 'healthy' ? 'success' :
+                            health.status === 'degraded' ? 'warning' : 'danger';
+
+        const html = `
+            <div class="mb-3">
+                <h6>Overall Status</h6>
+                <span class="badge bg-${overallStatus} fs-6">${health.status.toUpperCase()}</span>
+            </div>
+            <div class="row g-2">
+                ${Object.entries(health.services || {}).map(([service, status]) => `
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small>${service.replace('_', ' ')}</small>
+                            <span class="badge ${getServiceStatusBadge(status)} badge-sm">
+                                ${getServiceStatusText(status)}
+                            </span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="mt-3">
+                <small class="text-muted">Last updated: ${formatTime(health.timestamp)}</small>
+            </div>
+        `;
+
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error('Failed to load system health:', error);
+        document.getElementById('systemHealth').innerHTML =
+            '<div class="text-danger">Health check failed</div>';
+    }
+}
+
+async function searchTopics() {
+    const query = document.getElementById('searchQuery').value.trim();
+    const threshold = document.getElementById('searchThreshold').value;
+
+    if (!query) {
+        showToast('Please enter a search query', 'warning');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/search?query=${encodeURIComponent(query)}&threshold=${threshold}&limit=10`);
+        const result = await response.json();
+
+        const container = document.getElementById('searchResults');
+
+        if (result.results && result.results.length > 0) {
+            const html = `
+                <div class="alert alert-info">
+                    Found ${result.total_results} results for "${query}" (threshold: ${threshold})
+                </div>
+                <div class="row g-3">
+                    ${result.results.map(item => `
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">${item.meta_data.topic_title || 'Untitled'}</h6>
+                                    <p class="card-text small">${item.document.substring(0, 150)}...</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge bg-primary">${(item.similarity * 100).toFixed(1)}% match</span>
+                                        <small class="text-muted">${item.meta_data.primary_language || 'unknown'}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = '<div class="alert alert-info">No results found for your search query.</div>';
+        }
+    } catch (error) {
+        console.error('Failed to search topics:', error);
+        document.getElementById('searchResults').innerHTML =
+            '<div class="alert alert-danger">Failed to search topics. Please try again later.</div>';
+    }
+}
+
+function getLanguageBadgeClass(language) {
+    const classes = {
+        'hindi': 'bg-danger',
+        'english': 'bg-info',
+        'hinglish': 'bg-warning',
+        'other': 'bg-secondary'
+    };
+    return classes[language.toLowerCase()] || 'bg-secondary';
+}
+
+function formatDateTime(datetime) {
+    const date = new Date(datetime);
+    return date.toLocaleString();
+}
+
+function getServiceStatusBadge(status) {
+    const statusClasses = {
+        'healthy': 'bg-success',
+        'degraded': 'bg-warning',
+        'unhealthy': 'bg-danger'
+    };
+    return statusClasses[status] || 'bg-secondary';
+}
+
+function getServiceStatusText(status) {
+    const statusText = {
+        'healthy': 'Healthy',
+        'degraded': 'Degraded',
+        'unhealthy': 'Unhealthy'
+    };
+    return statusText[status] || 'Unknown';
+}
+
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString();
+}
+
+function showToast(message, type) {
+    const toast = new bootstrap.Toast(document.getElementById('toast'));
+    document.getElementById('toastMessage').textContent = message;
+    document.getElementById('toast').className = `toast bg-${type} text-white`;
+    toast.show();
+}
+
+function refreshAllData() {
+    loadAnalytics();
+    loadRecentTopics();
+    loadSystemHealth();
+    showToast('Data refreshed successfully!', 'success');
+}
+
+</script>
+{% endblock %}

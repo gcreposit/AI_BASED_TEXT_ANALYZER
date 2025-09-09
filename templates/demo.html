@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+
+{% block title %}Interactive Demo - Multilingual Topic Clustering{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <h2 class="mb-4">
+            <i class="fas fa-play-circle text-primary me-2"></i>
+            Interactive Demo
+        </h2>
+        <p class="text-muted mb-4">
+            Test the multilingual topic clustering system with your own text. The system will analyze the content,
+            extract entities, and either assign it to an existing topic or create a new one.
+        </p>
+        
+        <!-- Input Form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>Text Input
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="clusteringForm">
+                    <div class="mb-3">
+                        <label for="inputText" class="form-label">
+                            <i class="fas fa-file-text me-1"></i>Text Content
+                        </label>
+                        <textarea 
+                            class="form-control" 
+                            id="inputText" 
+                            rows="5" 
+                            placeholder="Enter your text in Hindi, English, or Hinglish...&#10;&#10;Example:&#10;लखनऊ के गोमती नगर थाने में पुलिस कदाचार की शिकायत दर्ज की गई। राम शर्मा नाम के व्यक्ति पर अत्याचार हुआ।"
+                            required>
+                        </textarea>
+                        <div class="form-text">
+                            Supports Hindi (Devanagari), English, and Hinglish (code-mixed) text. 
+                            Minimum 3 characters, maximum 10,000 characters.
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="sourceType" class="form-label">
+                                <i class="fas fa-tag me-1"></i>Source Type
+                            </label>
+                            <select class="form-select" id="sourceType">
+                                <option value="social_media">Social Media</option>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="news">News Article</option>
+                                <option value="blog">Blog Post</option>
+                                <option value="email">Email</option>
+                                <option value="forum">Forum</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="userId" class="form-label">
+                                <i class="fas fa-user me-1"></i>User ID (Optional)
+                            </label>
+                            <input type="text" class="form-control" id="userId" placeholder="user123">
+                            <div class="form-text">For analytics and tracking purposes</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary" id="processBtn">
+                            <i class="fas fa-cog me-2"></i>
+                            Process Text
+                        </button>
+                        <button type="button" class="btn btn-secondary ms-2" id="clearBtn">
+                            <i class="fas fa-eraser me-2"></i>
+                            Clear Form
+                        </button>
+                        <button type="button" class="btn btn-outline-info ms-2" onclick="loadRandomExample()">
+                            <i class="fas fa-random me-2"></i>
+                            Random Example
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="card" style="display: none;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar text-success me-2"></i>
+                    Processing Results
+                </h5>
+                <button class="btn btn-outline-secondary btn-sm" onclick="exportResults()">
+                    <i class="fas fa-download me-1"></i>Export JSON
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="processingResults"></div>
+            </div>
+        </div>
+
+        <!-- Sample Texts Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Sample Texts (Click to Try)
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3" id="sampleTexts">
+                    <div class="col-md-6">
+                        <div class="sample-text-card" onclick="fillSampleText(this)">
+                            <div class="sample-header">
+                                <span class="badge bg-danger me-2">Hindi</span>
+                                <strong>Police Complaint</strong>
+                            </div>
+                            <p class="sample-content">
+                                लखनऊ के गोमती नगर थाने में पुलिस कदाचार की शिकायत दर्ज की गई। राम शर्मा नाम के व्यक्ति पर अत्याचार हुआ। #यूपीपुलिस #न्याय
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="sample-text-card" onclick="fillSampleText(this)">
+                            <div class="sample-header">
+                                <span class="badge bg-warning me-2">Hinglish</span>
+                                <strong>Traffic Issue</strong>
+                            </div>
+                            <p class="sample-content">
+                                Traffic jam ke wajah se office late pahunch gaya. Noida expressway par accident hua hai. Police ko inform karna chahiye. #NoidaTraffic #Delhi
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="sample-text-card" onclick="fillSampleText(this)">
+                            <div class="sample-header">
+                                <span class="badge bg-info me-2">English</span>
+                                <strong>Government Policy</strong>
+                            </div>
+                            <p class="sample-content">
+                                The new education policy announced by the government has received mixed reactions from teachers and parents across Uttar Pradesh districts.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="sample-text-card" onclick="fillSampleText(this)">
+                            <div class="sample-header">
+                                <span class="badge bg-success me-2">Hindi</span>
+                                <strong>Social Issue</strong>
+                            </div>
+                            <p class="sample-content">
+                                आगरा में जातिगत भेदभाव के मामले में दलित परिवार ने शिकायत दर्ज कराई है। सामाजिक न्याय विभाग की जांच चल रही है।
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Statistics -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>Real-time Statistics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <h4 class="text-primary" id="totalProcessed">0</h4>
+                            <small class="text-muted">Texts Processed</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <h4 class="text-success" id="avgProcessingTime">0</h4>
+                            <small class="text-muted">Avg Time (ms)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <h4 class="text-info" id="languageDetected">-</h4>
+                            <small class="text-muted">Last Language</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-box">
+                            <h4 class="text-warning" id="lastAction">-</h4>
+                            <small class="text-muted">Last Action</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export Results</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="exportContent" class="bg-light p-3" style="max-height: 400px; overflow-y: auto;"></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="downloadJson()">
+                    <i class="fas fa-download me-1"></i>Download JSON
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let processing = false;
+let lastResult = null;
+let processingStats = {
+    totalProcessed: 0,
+    totalTime: 0,
+    lastLanguage: '-',
+    lastAction: '-'
+};
+
+document.getElementById('clusteringForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (processing) return;
+    
+    const formData = {
+        text: document.getElementById('inputText').value,
+        source_type: document.getElementById('sourceType').value,
+        user_id: document.getElementById('userId').value || null
+    };
+    
+    if (!formData.text.trim()) {
+        showToast('Please enter some text to process', 'warning');
+        return;
+    }
+    
+    if (formData.text.length < 3) {
+        showToast('Text must be at least 3 characters long', 'warning');
+        return;
+    }
+    
+    processing = true;
+    updateProcessButton(true);
+    
+    try {
+        const startTime = Date.now();
+        const response = await fetch('/api/process-text', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        const endTime = Date.now();
+        
+        if (response.ok) {
+            lastResult = result;
+            displayResults(result);
+            updateStats(result, endTime - startTime);
+            showToast('Text processed successfully!', 'success');
+        } else {
+            throw new Error(result.detail || 'Processing failed');
+        }
+        
+    } catch (error) {
+        showToast('Error: ' + error.message, 'danger');
+        console.error('Processing error:', error);
+    } finally {
+        processing = false;
+        updateProcessButton(false);
+    }
+});
+
+function updateProcessButton(isProcessing) {
+    const processBtn = document.getElementById('processBtn');
+    if (isProcessing) {
+        processBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        processBtn.disabled = true;
+    } else {
+        processBtn.innerHTML = '<i class="fas fa-cog me-2"></i>Process Text';
+        processBtn.disabled = false;
+    }
+}
+
+function displayResults(result) {
+    const resultsDiv = document.getElementById('processingResults');
+    
+    const confidenceBadge = getConfidenceBadge(result.confidence);
+    const actionBadge = getActionBadge(result.action);
+    
+    const html = `
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="result-card">
+                    <h6><i class="fas fa-info-circle text-primary me-2"></i>Basic Information</h6>
+                    <table class="table table-sm table-borderless">
+                        <tr>
+                            <td><strong>Action:</strong></td>
+                            <td>${actionBadge}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Language:</strong></td>
+                            <td>
+                                ${result.detected_language} 
+                                <span class="text-muted">(${(result.language_confidence * 100).toFixed(1)}%)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Confidence:</strong></td>
+                            <td>${confidenceBadge}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Similarity:</strong></td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar" style="width: ${result.similarity_score * 100}%">
+                                        ${(result.similarity_score * 100).toFixed(1)}%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Processing Time:</strong></td>
+                            <td><span class="badge bg-info">${result.processing_time_ms}ms</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="result-card">
+                    <h6><i class="fas fa-tag text-success me-2"></i>Topic Information</h6>
+                    <div class="mb-2">
+                        <strong>Title:</strong> 
+                        <span class="topic-title">${result.topic_title || 'N/A'}</span>
+                    </div>
+                    <div class="mb-2">
+                        <strong>ID:</strong> 
+                                                <code class="text-muted">${result.topic_id || 'N/A'}</code>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Category:</strong>
+                        <span class="badge bg-primary">${result.topic_category || 'Uncategorized'}</span>
+                    </div>
+                    <div class="mb-2">
+                        <strong>Keywords:</strong>
+                        <ul class="list-inline">
+                            ${result.keywords ? result.keywords.map(keyword => `<li class="list-inline-item badge bg-secondary">${keyword}</li>`).join('') : 'No keywords found'}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    resultsDiv.innerHTML = html;
+    document.getElementById('resultsSection').style.display = 'block';
+}
+
+function getConfidenceBadge(confidence) {
+    if (confidence >= 0.8) {
+        return `<span class="badge bg-success">${(confidence * 100).toFixed(1)}%</span>`;
+    } else if (confidence >= 0.5) {
+        return `<span class="badge bg-warning">${(confidence * 100).toFixed(1)}%</span>`;
+    } else {
+        return `<span class="badge bg-danger">${(confidence * 100).toFixed(1)}%</span>`;
+    }
+}
+
+function getActionBadge(action) {
+    if (action === 'create') {
+        return `<span class="badge bg-success">New Topic</span>`;
+    } else if (action === 'update') {
+        return `<span class="badge bg-info">Updated Topic</span>`;
+    } else {
+        return `<span class="badge bg-warning">Uncategorized</span>`;
+    }
+}
+
+function updateStats(result, processingTime) {
+    processingStats.totalProcessed += 1;
+    processingStats.totalTime += processingTime;
+    processingStats.lastLanguage = result.detected_language;
+    processingStats.lastAction = result.action;
+
+    document.getElementById('totalProcessed').textContent = processingStats.totalProcessed;
+    document.getElementById('avgProcessingTime').textContent = (processingStats.totalTime / processingStats.totalProcessed).toFixed(2);
+    document.getElementById('languageDetected').textContent = processingStats.lastLanguage;
+    document.getElementById('lastAction').textContent = processingStats.lastAction;
+}
+
+function showToast(message, type) {
+    const toast = new bootstrap.Toast(document.getElementById('toast'));
+    document.getElementById('toastMessage').textContent = message;
+    document.getElementById('toast').className = `toast bg-${type} text-white`;
+    toast.show();
+}
+
+function exportResults() {
+    const modalContent = document.getElementById('exportContent');
+    modalContent.textContent = JSON.stringify(lastResult, null, 2);
+    new bootstrap.Modal(document.getElementById('exportModal')).show();
+}
+
+function downloadJson() {
+    const jsonData = JSON.stringify(lastResult, null, 2);
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'processing_results.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function fillSampleText(element) {
+    const sampleText = element.querySelector('.sample-content').textContent;
+    document.getElementById('inputText').value = sampleText;
+}
+
+function loadRandomExample() {
+    const randomIndex = Math.floor(Math.random() * sampleTexts.length);
+    const randomSample = sampleTexts[randomIndex];
+    document.getElementById('inputText').value = randomSample.text;
+}
+
+const sampleTexts = [
+    {
+        text: "लखनऊ के गोमती नगर थाने में पुलिस कदाचार की शिकायत दर्ज की गई। राम शर्मा नाम के व्यक्ति पर अत्याचार हुआ। #यूपीपुलिस #न्याय",
+        language: "Hindi"
+    },
+    {
+        text: "Traffic jam ke wajah se office late pahunch gaya. Noida expressway par accident hua hai. Police ko inform karna chahiye. #NoidaTraffic #Delhi",
+        language: "Hinglish"
+    },
+    {
+        text: "The new education policy announced by the government has received mixed reactions from teachers and parents across Uttar Pradesh districts.",
+        language: "English"
+    },
+    {
+        text: "आगरा में जातिगत भेदभाव के मामले में दलित परिवार ने शिकायत दर्ज कराई है। सामाजिक न्याय विभाग की जांच चल रही है।",
+        language: "Hindi"
+    }
+];
+</script>
+{% endblock %}

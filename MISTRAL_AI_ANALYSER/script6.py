@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Hindi Text Extractor using Claude 3.7 Sonnet Reasoning Gemma3 12B on Apple Silicon (MLX)
+Hindi Text Extractor using Meta-Llama-3.1-8B-Claude-GGUF with llama-cpp-python library
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ import textwrap
 from typing import Dict, Any, List
 import re as stdre
 
-from huggingface_hub import snapshot_download
+from llama_cpp import Llama
 
 from script import DISTRICT_VARIANTS
 
@@ -22,9 +22,6 @@ try:
     import regex as re
 except Exception:
     re = stdre
-
-# Apple MLX LLM loader/generator
-from mlx_lm import load, generate
 
 # --------------------------- Heuristics & Dictionaries ---------------------------
 
@@ -45,7 +42,7 @@ THANA_PATTERNS = [
     r"(?:थाना|कोतवाली|Kotwali|Thana|PS)\s+([^\s,।:-]+(?:\s+[^\s,।:-]+)?)"
 ]
 
-# --------------------------- LLM Prompting (Claude 3.7 Sonnet Reasoning) ---------------------------
+# --------------------------- LLM Prompting (Meta-Llama) ---------------------------
 
 JSON_SCHEMA = {
     "person_names": [],
@@ -62,6 +59,7 @@ JSON_SCHEMA = {
     "sentiment": {"label": "neutral", "confidence": 0.5},
     "contextual_understanding": ""
 }
+
 
 def dedupe(seq: List[str]) -> List[str]:
     seen = set()
@@ -181,14 +179,48 @@ def merge_results(llm_json: Dict[str, Any], regex_boost: Dict[str, Any]) -> Dict
     return out
 
 
-def run_claude_infer(model_id: str, prompt: str, max_tokens: int = 1024, temp: float = 0.2) -> str:
-    local_path = snapshot_download(repo_id=model_id, local_files_only=False)
-    model, tokenizer = load(local_path)
-    out = generate(model, tokenizer, prompt=prompt, max_tokens=max_tokens, verbose=False)
-    return out
+def run_llamacpp_infer(model_path: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.2) -> str:
+    """
+    Run inference using llama-cpp-python library
+    """
+    try:
+        # Initialize the Llama model with optimizations
+        llm = Llama.from_pretrained(
+            repo_id="bartowski/Meta-Llama-3.1-8B-Claude-GGUF",
+            filename="Meta-Llama-3.1-8B-Claude-IQ2_M.gguf",
+            verbose=False,
+            n_ctx=4096,  # Increased context window
+            n_threads=None,  # Use all available threads
+            n_gpu_layers=-1,  # Use GPU if available (Metal on Mac)
+            flash_attn=True,  # Enable flash attention for speed
+        )
+
+        # Create chat completion
+        response = llm.create_chat_completion(
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            max_tokens=max_tokens,
+            temperature=temperature,
+            stop=["</s>", "[/INST]"],  # Stop tokens for Llama
+        )
+
+        # Extract the response content
+        if response and "choices" in response and len(response["choices"]) > 0:
+            return response["choices"][0]["message"]["content"]
+        else:
+            return ""
+
+    except Exception as e:
+        print(f"Error during llama-cpp inference: {e}", file=sys.stderr)
+        return ""
 
 
-def extract(text: str, model_id: str) -> Dict[str, Any]:
+def extract(text: str, model_path: str, max_tokens: int = 768, temperature: float = 0.2) -> Dict[str, Any]:
+    # Prepare the regex-based boosts
     regex_boost = {
         "hashtags": find_hashtags(text),
         "mention_ids": find_mentions(text),
@@ -198,22 +230,28 @@ def extract(text: str, model_id: str) -> Dict[str, Any]:
         "religion_names": find_keywords(text, RELIGIONS),
     }
 
+    # Prepare the prompt for the LLM
     prompt = build_inst_prompt(text)
-    raw = run_claude_infer(model_id, prompt)
+
+    # Run inference using llama-cpp-python
+    raw = run_llamacpp_infer(model_path, prompt, max_tokens, temperature)
+
+    # Parse the raw response into JSON
     llm_json = safe_json_parse(raw)
 
+    # Merge the results from regex and LLM-based extractions
     final = merge_results(llm_json, regex_boost)
     return final
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Hindi Text -> Structured Extraction via Claude 3.7 Sonnet Reasoning Gemma3 12B")
+        description="Hindi Text -> Structured Extraction via Meta-Llama-3.1-8B-Claude-GGUF with llama-cpp-python")
     parser.add_argument("--text", type=str, help="Direct Hindi text to analyze")
     parser.add_argument("--file", type=str, help="Path to a UTF-8 text file to analyze")
     parser.add_argument("--out", type=str, default="", help="Write result JSON to this path")
-    parser.add_argument("--model", type=str, default="reedmayhew/claude-3.7-sonnet-reasoning-gemma3-12B",
-                        help="HF repo id of Claude 3.7 Sonnet Reasoning Gemma3 12B model")
+    parser.add_argument("--model", type=str, default="bartowski/Meta-Llama-3.1-8B-Claude-GGUF",
+                        help="Path or model name in Hugging Face hub")
     parser.add_argument("--max_tokens", type=int, default=768, help="Max new tokens for the LLM response")
     parser.add_argument("--temp", type=float, default=0.2, help="Sampling temperature")
 
@@ -235,7 +273,7 @@ def main():
     text = stdre.sub(r"[ \t]+", " ", text).strip()
 
     try:
-        result = extract(text, args.model)
+        result = extract(text, args.model, args.max_tokens, args.temp)
     except KeyboardInterrupt:
         print("Cancelled by user.", file=sys.stderr)
         sys.exit(130)
@@ -254,3 +292,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# Installation and usage:
+# pip install llama-cpp-python
+# python script6.py --file input.txt --out result.json
