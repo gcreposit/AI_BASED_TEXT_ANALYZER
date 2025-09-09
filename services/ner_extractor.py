@@ -46,24 +46,31 @@ class MistralNERExtractor:
     """
 
     def __init__(self, model_id: str = None, model_path: Optional[str] = None, cache_dir: Optional[str] = None):
-        # Support both model_id and direct model_path
-        if model_path:
-            self.model_path = model_path
-            self.model_id = model_path.split('/')[-1]  # Extract model name from path
-        else:
-            # Default to your specific model
-            self.model_id = "mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit"
-            self.model_path = "/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit"
-            logger.info(f"Using default model path: {self.model_path}")
-
+        # 1. Resolve model id
+        # self.model_id = model_id or "dphn/Dolphin-Mistral-24B-Venice-Edition"
+        self.model_id = model_id or "mistralai/Mistral-7B-Instruct-v0.3"
+        # self.model_id = model_id or "mistralai/Mixtral-8x22B-Instruct-v0.1"
+        # self.model_id = model_id or "mistralai/Mixtral-8x7B-Instruct-v0.1"
+        # self.model_id = model_id or "mistralai/Mixtral-8x7B-v0.1"
+        # self.model_id = model_id or "mistralai/Mistral-Small-3.2-24B-Instruct-2506"
+        # self.model_id = model_id or "dphn/Dolphin-Mistral-24B-Venice-Edition"
         self.cache_dir = cache_dir or os.path.expanduser("~/.cache/mistral_ner")
+
+        # 2. Resolve model path
+        if model_path:
+            if not os.path.exists(model_path):
+                raise FileNotFoundError(f"Provided model path does not exist: {model_path}")
+            self.model_path = model_path
+            logger.info(f"Using provided model path: {self.model_path}")
+        else:
+            # Ensure cache dir exists
+            os.makedirs(self.cache_dir, exist_ok=True)
+            self.model_path = self._get_or_download_model()
+
+        # Initialize placeholders
         self.model = None
         self.tokenizer = None
         self._model_loaded = False
-
-        # Ensure cache directory exists (only if we're not using direct path)
-        if not self.model_path:
-            os.makedirs(self.cache_dir, exist_ok=True)
 
         # Domain-specific vocabularies and patterns
         self.religions = [
@@ -103,6 +110,26 @@ class MistralNERExtractor:
 
         # Load model during initialization for efficiency
         self._load_model()
+
+    def _get_or_download_model(self) -> str:
+        """
+        Check if model exists locally in cache.
+        If not, download from Hugging Face Hub and return local path.
+        """
+        logger.info(f"Checking local cache for model {self.model_id} ...")
+
+        # Use HuggingFace cache
+        try:
+            local_path = snapshot_download(
+                repo_id=self.model_id,
+                cache_dir=self.cache_dir,
+                local_files_only=False  # Falls back to local if already cached
+            )
+            logger.info(f"Model available at: {local_path}")
+            return local_path
+        except Exception as e:
+            logger.error(f"Failed to download or find model: {e}")
+            raise
 
     def _get_model_cache_path(self) -> str:
         """Get the local cache path for the model"""

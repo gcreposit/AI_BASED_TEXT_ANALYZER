@@ -4209,3 +4209,1456 @@ cannot import name 'split_torch_state_dict_into_shards' from 'huggingface_hub' (
 2025-09-08 23:08:51,329 - api.main - INFO - 🔄 Shutting down services...
 2025-09-08 23:08:51,331 - database.connection - INFO - Database connections closed
 2025-09-08 23:08:51,331 - api.main - INFO - 👋 Application shutdown complete
+2025-09-09 14:19:06,897 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 14:19:06,897 - __main__ - INFO - Configuration validated successfully
+2025-09-09 14:19:06,897 - __main__ - INFO - Environment: development
+2025-09-09 14:19:06,897 - __main__ - INFO - Debug mode: False
+2025-09-09 14:19:06,902 - __main__ - ERROR - Application failed to start: No module named 'sqlalchemy'
+2025-09-09 14:19:49,935 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 14:19:49,935 - __main__ - INFO - Configuration validated successfully
+2025-09-09 14:19:49,935 - __main__ - INFO - Environment: development
+2025-09-09 14:19:49,935 - __main__ - INFO - Debug mode: False
+2025-09-09 14:19:50,349 - database.connection - ERROR - Failed to initialize database engine: No module named 'mysql'
+2025-09-09 14:19:50,349 - database.connection - ERROR - Failed to initialize database manager: No module named 'mysql'
+2025-09-09 14:19:50,349 - __main__ - ERROR - Application failed to start: No module named 'mysql'
+2025-09-09 14:20:55,936 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 14:20:55,936 - __main__ - INFO - Configuration validated successfully
+2025-09-09 14:20:55,936 - __main__ - INFO - Environment: development
+2025-09-09 14:20:55,936 - __main__ - INFO - Debug mode: False
+2025-09-09 14:20:56,202 - database.connection - ERROR - Failed to initialize database engine: No module named 'mysql'
+2025-09-09 14:20:56,202 - database.connection - ERROR - Failed to initialize database manager: No module named 'mysql'
+2025-09-09 14:20:56,202 - __main__ - ERROR - Application failed to start: No module named 'mysql'
+2025-09-09 14:21:29,505 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 14:21:29,505 - __main__ - INFO - Configuration validated successfully
+2025-09-09 14:21:29,505 - __main__ - INFO - Environment: development
+2025-09-09 14:21:29,505 - __main__ - INFO - Debug mode: False
+2025-09-09 14:21:29,906 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 14:21:29,949 - database.connection - ERROR - Database connection test failed: (mysql.connector.errors.ProgrammingError) 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-09 14:21:29,949 - database.connection - WARNING - Database connection test failed during initialization
+2025-09-09 14:21:29,949 - __main__ - INFO - Testing database connection...
+2025-09-09 14:21:29,959 - database.connection - ERROR - Database connection test failed: (mysql.connector.errors.ProgrammingError) 1045 (28000): Access denied for user 'root'@'localhost' (using password: YES)
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2025-09-09 14:21:29,959 - __main__ - ERROR - Application failed to start: Database connection failed
+2025-09-09 14:21:44,333 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 14:21:44,333 - __main__ - INFO - Configuration validated successfully
+2025-09-09 14:21:44,333 - __main__ - INFO - Environment: development
+2025-09-09 14:21:44,333 - __main__ - INFO - Debug mode: False
+2025-09-09 14:21:44,637 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 14:21:44,679 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:21:44,689 - database.connection - INFO - Database connection test successful
+2025-09-09 14:21:44,689 - __main__ - INFO - Testing database connection...
+2025-09-09 14:21:44,700 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:21:44,700 - database.connection - INFO - Database connection test successful
+2025-09-09 14:21:44,700 - __main__ - INFO - Creating database tables...
+2025-09-09 14:21:45,086 - database.connection - INFO - Database tables created successfully
+2025-09-09 14:21:45,092 - __main__ - ERROR - Application failed to start: No module named 'fastapi'
+2025-09-09 14:23:01,039 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 14:23:01,039 - __main__ - INFO - Configuration validated successfully
+2025-09-09 14:23:01,039 - __main__ - INFO - Environment: development
+2025-09-09 14:23:01,039 - __main__ - INFO - Debug mode: False
+2025-09-09 14:23:01,347 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 14:23:01,384 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:23:01,390 - database.connection - INFO - Database connection test successful
+2025-09-09 14:23:01,390 - __main__ - INFO - Testing database connection...
+2025-09-09 14:23:01,400 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:23:01,400 - database.connection - INFO - Database connection test successful
+2025-09-09 14:23:01,400 - __main__ - INFO - Creating database tables...
+2025-09-09 14:23:01,405 - database.connection - INFO - Database tables created successfully
+2025-09-09 14:23:01,851 - __main__ - ERROR - Application failed to start: No module named 'sentence_transformers'
+2025-09-09 14:26:50,100 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 14:26:50,100 - __main__ - INFO - Configuration validated successfully
+2025-09-09 14:26:50,101 - __main__ - INFO - Environment: development
+2025-09-09 14:26:50,101 - __main__ - INFO - Debug mode: False
+2025-09-09 14:26:50,406 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 14:26:50,427 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:26:50,437 - database.connection - INFO - Database connection test successful
+2025-09-09 14:26:50,437 - __main__ - INFO - Testing database connection...
+2025-09-09 14:26:50,442 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:26:50,448 - database.connection - INFO - Database connection test successful
+2025-09-09 14:26:50,448 - __main__ - INFO - Creating database tables...
+2025-09-09 14:26:50,453 - database.connection - INFO - Database tables created successfully
+2025-09-09 14:26:50,979 - __main__ - ERROR - Application failed to start: No module named 'sentence_transformers'
+2025-09-09 14:30:18,827 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 14:30:18,827 - __main__ - INFO - Configuration validated successfully
+2025-09-09 14:30:18,827 - __main__ - INFO - Environment: development
+2025-09-09 14:30:18,827 - __main__ - INFO - Debug mode: False
+2025-09-09 14:30:19,149 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 14:30:19,171 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:30:19,181 - database.connection - INFO - Database connection test successful
+2025-09-09 14:30:19,181 - __main__ - INFO - Testing database connection...
+2025-09-09 14:30:19,190 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:30:19,192 - database.connection - INFO - Database connection test successful
+2025-09-09 14:30:19,192 - __main__ - INFO - Creating database tables...
+2025-09-09 14:30:19,198 - database.connection - INFO - Database tables created successfully
+2025-09-09 14:30:28,150 - __main__ - ERROR - Application failed to start: No module named 'langdetect'
+2025-09-09 14:34:45,228 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 14:34:45,228 - __main__ - INFO - Configuration validated successfully
+2025-09-09 14:34:45,228 - __main__ - INFO - Environment: development
+2025-09-09 14:34:45,228 - __main__ - INFO - Debug mode: False
+2025-09-09 14:34:45,540 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 14:34:45,566 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:34:45,572 - database.connection - INFO - Database connection test successful
+2025-09-09 14:34:45,572 - __main__ - INFO - Testing database connection...
+2025-09-09 14:34:45,582 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:34:45,582 - database.connection - INFO - Database connection test successful
+2025-09-09 14:34:45,582 - __main__ - INFO - Creating database tables...
+2025-09-09 14:34:45,588 - database.connection - INFO - Database tables created successfully
+2025-09-09 14:34:50,609 - __main__ - ERROR - Application failed to start: No module named 'chromadb'
+2025-09-09 14:39:00,282 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 14:39:00,282 - __main__ - INFO - Configuration validated successfully
+2025-09-09 14:39:00,282 - __main__ - INFO - Environment: development
+2025-09-09 14:39:00,282 - __main__ - INFO - Debug mode: False
+2025-09-09 14:39:00,762 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 14:39:00,784 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:39:00,794 - database.connection - INFO - Database connection test successful
+2025-09-09 14:39:00,794 - __main__ - INFO - Testing database connection...
+2025-09-09 14:39:00,799 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:39:00,804 - database.connection - INFO - Database connection test successful
+2025-09-09 14:39:00,804 - __main__ - INFO - Creating database tables...
+2025-09-09 14:39:00,810 - database.connection - INFO - Database tables created successfully
+2025-09-09 14:39:06,441 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-09-09 14:39:06,472 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 14:39:06,472 - api.main - INFO - 📊 Setting up database...
+2025-09-09 14:39:06,478 - database.connection - INFO - Database tables created successfully
+2025-09-09 14:39:06,478 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 14:39:06,478 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 14:39:06,478 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 14:39:06,483 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 14:41:53,915 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 14:41:53,915 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 14:41:53,915 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 14:41:53,915 - services.ner_extractor - INFO - Loading model from provided path: /Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit/snapshots/7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 14:41:53,915 - services.ner_extractor - WARNING - Transformers loading failed: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit/snapshots/7674b37fe24022cf79e77d204fac5b9582b0dc40'. Use `repo_type` argument if needed.
+2025-09-09 14:41:53,915 - services.ner_extractor - WARNING - Failed to load model (attempt 1): No compatible model loading framework available
+2025-09-09 14:41:53,915 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 14:41:58,919 - services.ner_extractor - INFO - Loading model from provided path: /Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit/snapshots/7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 14:41:58,919 - services.ner_extractor - WARNING - Transformers loading failed: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit/snapshots/7674b37fe24022cf79e77d204fac5b9582b0dc40'. Use `repo_type` argument if needed.
+2025-09-09 14:41:58,919 - services.ner_extractor - WARNING - Failed to load model (attempt 2): No compatible model loading framework available
+2025-09-09 14:41:58,919 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 14:42:03,922 - services.ner_extractor - INFO - Loading model from provided path: /Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit/snapshots/7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 14:42:03,922 - services.ner_extractor - WARNING - Transformers loading failed: Repo id must be in the form 'repo_name' or 'namespace/repo_name': '/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit/snapshots/7674b37fe24022cf79e77d204fac5b9582b0dc40'. Use `repo_type` argument if needed.
+2025-09-09 14:42:03,922 - services.ner_extractor - WARNING - Failed to load model (attempt 3): No compatible model loading framework available
+2025-09-09 14:42:03,922 - services.ner_extractor - ERROR - Failed to load model after 3 attempts: No compatible model loading framework available
+2025-09-09 14:42:03,922 - api.main - INFO - ✅ Mistral NER extractor loaded from config path
+2025-09-09 14:42:04,063 - services.vector_service - INFO - ChromaDB initialized successfully
+2025-09-09 14:42:04,063 - services.vector_service - INFO - Collection: multilingual_topics_bge_m3
+2025-09-09 14:42:04,063 - services.vector_service - INFO - Persist directory: ./chroma_db
+2025-09-09 14:42:04,063 - api.main - INFO - ✅ ChromaDB vector services initialized
+2025-09-09 14:42:04,063 - api.main - INFO - ✅ Topic clustering services initialized
+2025-09-09 14:42:04,063 - api.main - INFO - 🎉 All services initialized successfully!
+2025-09-09 14:57:09,950 - api.main - INFO - 🔄 Shutting down services...
+2025-09-09 14:57:09,950 - database.connection - INFO - Database connections closed
+2025-09-09 14:57:09,950 - api.main - INFO - 👋 Application shutdown complete
+2025-09-09 14:57:12,800 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 14:57:12,800 - __main__ - INFO - Configuration validated successfully
+2025-09-09 14:57:12,800 - __main__ - INFO - Environment: development
+2025-09-09 14:57:12,800 - __main__ - INFO - Debug mode: False
+2025-09-09 14:57:13,199 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 14:57:13,221 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:57:13,229 - database.connection - INFO - Database connection test successful
+2025-09-09 14:57:13,229 - __main__ - INFO - Testing database connection...
+2025-09-09 14:57:13,240 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 14:57:13,245 - database.connection - INFO - Database connection test successful
+2025-09-09 14:57:13,245 - __main__ - INFO - Creating database tables...
+2025-09-09 14:57:13,250 - database.connection - INFO - Database tables created successfully
+2025-09-09 14:57:18,740 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-09-09 14:57:18,776 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 14:57:18,776 - api.main - INFO - 📊 Setting up database...
+2025-09-09 14:57:18,782 - database.connection - INFO - Database tables created successfully
+2025-09-09 14:57:18,782 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 14:57:18,782 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 14:57:18,786 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 14:57:18,786 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 14:57:25,932 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 14:57:25,933 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 14:57:25,933 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 14:57:25,933 - services.ner_extractor - INFO - Checking local cache for model mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit ...
+2025-09-09 14:57:26,670 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 14:57:26,686 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 14:57:27,316 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 14:57:27,722 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 15:02:21,276 - services.ner_extractor - ERROR - Failed to download or find model: [Errno 28] No space left on device
+2025-09-09 15:02:21,276 - api.main - ERROR - ❌ Failed to initialize services: [Errno 28] No space left on device
+2025-09-09 15:14:13,874 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 15:14:13,874 - __main__ - INFO - Configuration validated successfully
+2025-09-09 15:14:13,874 - __main__ - INFO - Environment: development
+2025-09-09 15:14:13,874 - __main__ - INFO - Debug mode: False
+2025-09-09 15:14:14,278 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 15:14:14,301 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 15:14:14,308 - database.connection - INFO - Database connection test successful
+2025-09-09 15:14:14,308 - __main__ - INFO - Testing database connection...
+2025-09-09 15:14:14,308 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 15:14:14,308 - database.connection - INFO - Database connection test successful
+2025-09-09 15:14:14,308 - __main__ - INFO - Creating database tables...
+2025-09-09 15:14:14,324 - database.connection - INFO - Database tables created successfully
+2025-09-09 15:14:20,059 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-09-09 15:14:20,103 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 15:14:20,103 - api.main - INFO - 📊 Setting up database...
+2025-09-09 15:14:20,105 - database.connection - INFO - Database tables created successfully
+2025-09-09 15:14:20,105 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 15:14:20,105 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 15:14:20,105 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 15:14:20,105 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 15:14:28,057 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 15:14:28,057 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 15:14:28,057 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 15:14:28,057 - services.ner_extractor - INFO - Checking local cache for model mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit ...
+2025-09-09 15:14:28,909 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 15:14:28,910 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 15:19:01,575 - services.ner_extractor - INFO - Model available at: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 15:19:01,575 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 15:19:02,229 - services.ner_extractor - WARNING - Transformers loading failed: The model's quantization config from the arguments has no `quant_method` attribute. Make sure that the model has been correctly quantized
+2025-09-09 15:19:02,229 - services.ner_extractor - WARNING - Failed to load model (attempt 1): No compatible model loading framework available
+2025-09-09 15:19:02,229 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 15:19:07,231 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 15:19:07,792 - services.ner_extractor - WARNING - Transformers loading failed: The model's quantization config from the arguments has no `quant_method` attribute. Make sure that the model has been correctly quantized
+2025-09-09 15:19:07,792 - services.ner_extractor - WARNING - Failed to load model (attempt 2): No compatible model loading framework available
+2025-09-09 15:19:07,792 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 15:19:12,793 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 15:19:13,310 - services.ner_extractor - WARNING - Transformers loading failed: The model's quantization config from the arguments has no `quant_method` attribute. Make sure that the model has been correctly quantized
+2025-09-09 15:19:13,310 - services.ner_extractor - WARNING - Failed to load model (attempt 3): No compatible model loading framework available
+2025-09-09 15:19:13,310 - services.ner_extractor - ERROR - Failed to load model after 3 attempts: No compatible model loading framework available
+2025-09-09 15:19:13,310 - api.main - INFO - ✅ Mistral NER extractor loaded from config path
+2025-09-09 15:19:13,452 - services.vector_service - INFO - ChromaDB initialized successfully
+2025-09-09 15:19:13,453 - services.vector_service - INFO - Collection: multilingual_topics_bge_m3
+2025-09-09 15:19:13,453 - services.vector_service - INFO - Persist directory: ./chroma_db
+2025-09-09 15:19:13,453 - api.main - INFO - ✅ ChromaDB vector services initialized
+2025-09-09 15:19:13,453 - api.main - INFO - ✅ Topic clustering services initialized
+2025-09-09 15:19:13,453 - api.main - INFO - 🎉 All services initialized successfully!
+2025-09-09 16:30:47,805 - api.main - INFO - 🔄 Shutting down services...
+2025-09-09 16:30:47,815 - database.connection - INFO - Database connections closed
+2025-09-09 16:30:47,815 - api.main - INFO - 👋 Application shutdown complete
+2025-09-09 16:31:00,399 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 16:31:00,399 - __main__ - INFO - Configuration validated successfully
+2025-09-09 16:31:00,399 - __main__ - INFO - Environment: development
+2025-09-09 16:31:00,399 - __main__ - INFO - Debug mode: False
+2025-09-09 16:31:00,825 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 16:31:00,853 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 16:31:00,853 - database.connection - INFO - Database connection test successful
+2025-09-09 16:31:00,853 - __main__ - INFO - Testing database connection...
+2025-09-09 16:31:00,869 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 16:31:00,869 - database.connection - INFO - Database connection test successful
+2025-09-09 16:31:00,869 - __main__ - INFO - Creating database tables...
+2025-09-09 16:31:00,869 - database.connection - INFO - Database tables created successfully
+2025-09-09 16:31:06,832 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-09-09 16:31:06,868 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 16:31:06,868 - api.main - INFO - 📊 Setting up database...
+2025-09-09 16:31:06,868 - database.connection - INFO - Database tables created successfully
+2025-09-09 16:31:06,868 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 16:31:06,868 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 16:31:06,868 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 16:31:06,868 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 16:31:14,127 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 16:31:14,127 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 16:31:14,129 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 16:31:14,129 - services.ner_extractor - INFO - Checking local cache for model mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit ...
+2025-09-09 16:31:14,469 - services.ner_extractor - INFO - Model available at: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 16:31:14,476 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 16:31:15,039 - services.ner_extractor - WARNING - Transformers loading failed: The model's quantization config from the arguments has no `quant_method` attribute. Make sure that the model has been correctly quantized
+2025-09-09 16:31:15,039 - services.ner_extractor - WARNING - Failed to load model (attempt 1): No compatible model loading framework available
+2025-09-09 16:31:15,039 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 16:31:20,041 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 16:31:20,596 - services.ner_extractor - WARNING - Transformers loading failed: The model's quantization config from the arguments has no `quant_method` attribute. Make sure that the model has been correctly quantized
+2025-09-09 16:31:20,597 - services.ner_extractor - WARNING - Failed to load model (attempt 2): No compatible model loading framework available
+2025-09-09 16:31:20,597 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 16:31:25,602 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 16:31:26,134 - services.ner_extractor - WARNING - Transformers loading failed: The model's quantization config from the arguments has no `quant_method` attribute. Make sure that the model has been correctly quantized
+2025-09-09 16:31:26,134 - services.ner_extractor - WARNING - Failed to load model (attempt 3): No compatible model loading framework available
+2025-09-09 16:31:26,134 - services.ner_extractor - ERROR - Failed to load model after 3 attempts: No compatible model loading framework available
+2025-09-09 16:31:26,134 - api.main - INFO - ✅ Mistral NER extractor loaded from config path
+2025-09-09 16:31:26,243 - services.vector_service - INFO - ChromaDB initialized successfully
+2025-09-09 16:31:26,259 - services.vector_service - INFO - Collection: multilingual_topics_bge_m3
+2025-09-09 16:31:26,259 - services.vector_service - INFO - Persist directory: ./chroma_db
+2025-09-09 16:31:26,259 - api.main - INFO - ✅ ChromaDB vector services initialized
+2025-09-09 16:31:26,259 - api.main - INFO - ✅ Topic clustering services initialized
+2025-09-09 16:31:26,259 - api.main - INFO - 🎉 All services initialized successfully!
+2025-09-09 16:32:36,633 - api.main - INFO - 🔄 Shutting down services...
+2025-09-09 16:32:36,635 - database.connection - INFO - Database connections closed
+2025-09-09 16:32:36,635 - api.main - INFO - 👋 Application shutdown complete
+2025-09-09 16:32:39,093 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 16:32:39,093 - __main__ - INFO - Configuration validated successfully
+2025-09-09 16:32:39,094 - __main__ - INFO - Environment: development
+2025-09-09 16:32:39,094 - __main__ - INFO - Debug mode: False
+2025-09-09 16:32:39,481 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 16:32:39,500 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 16:32:39,508 - database.connection - INFO - Database connection test successful
+2025-09-09 16:32:39,508 - __main__ - INFO - Testing database connection...
+2025-09-09 16:32:39,508 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 16:32:39,508 - database.connection - INFO - Database connection test successful
+2025-09-09 16:32:39,508 - __main__ - INFO - Creating database tables...
+2025-09-09 16:32:39,525 - database.connection - INFO - Database tables created successfully
+2025-09-09 16:32:45,228 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-09-09 16:32:45,259 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 16:32:45,259 - api.main - INFO - 📊 Setting up database...
+2025-09-09 16:32:45,259 - database.connection - INFO - Database tables created successfully
+2025-09-09 16:32:45,259 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 16:32:45,259 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 16:32:45,259 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 16:32:45,259 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 16:32:52,593 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 16:32:52,593 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 16:32:52,593 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 16:32:52,593 - services.ner_extractor - INFO - Checking local cache for model mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit ...
+2025-09-09 16:32:53,337 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 16:32:53,360 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 16:32:53,360 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 16:32:53,796 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 16:40:38,777 - services.ner_extractor - INFO - Model available at: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 16:40:38,777 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 16:40:39,384 - services.ner_extractor - WARNING - Transformers loading failed: The model's quantization config from the arguments has no `quant_method` attribute. Make sure that the model has been correctly quantized
+2025-09-09 16:40:39,384 - services.ner_extractor - WARNING - Failed to load model (attempt 1): No compatible model loading framework available
+2025-09-09 16:40:39,384 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 16:40:44,389 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 16:40:44,917 - services.ner_extractor - WARNING - Transformers loading failed: The model's quantization config from the arguments has no `quant_method` attribute. Make sure that the model has been correctly quantized
+2025-09-09 16:40:44,917 - services.ner_extractor - WARNING - Failed to load model (attempt 2): No compatible model loading framework available
+2025-09-09 16:40:44,917 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 16:40:49,932 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit\snapshots\7674b37fe24022cf79e77d204fac5b9582b0dc40
+2025-09-09 16:40:50,462 - services.ner_extractor - WARNING - Transformers loading failed: The model's quantization config from the arguments has no `quant_method` attribute. Make sure that the model has been correctly quantized
+2025-09-09 16:40:50,462 - services.ner_extractor - WARNING - Failed to load model (attempt 3): No compatible model loading framework available
+2025-09-09 16:40:50,464 - services.ner_extractor - ERROR - Failed to load model after 3 attempts: No compatible model loading framework available
+2025-09-09 16:40:50,464 - api.main - INFO - ✅ Mistral NER extractor loaded from config path
+2025-09-09 16:40:50,556 - services.vector_service - INFO - ChromaDB initialized successfully
+2025-09-09 16:40:50,556 - services.vector_service - INFO - Collection: multilingual_topics_bge_m3
+2025-09-09 16:40:50,556 - services.vector_service - INFO - Persist directory: ./chroma_db
+2025-09-09 16:40:50,556 - api.main - INFO - ✅ ChromaDB vector services initialized
+2025-09-09 16:40:50,556 - api.main - INFO - ✅ Topic clustering services initialized
+2025-09-09 16:40:50,556 - api.main - INFO - 🎉 All services initialized successfully!
+2025-09-09 16:44:21,197 - api.main - INFO - 🔄 Shutting down services...
+2025-09-09 16:44:21,197 - database.connection - INFO - Database connections closed
+2025-09-09 16:44:21,197 - api.main - INFO - 👋 Application shutdown complete
+2025-09-09 16:44:27,160 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 16:44:27,160 - __main__ - INFO - Configuration validated successfully
+2025-09-09 16:44:27,160 - __main__ - INFO - Environment: development
+2025-09-09 16:44:27,160 - __main__ - INFO - Debug mode: False
+2025-09-09 16:44:27,586 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 16:44:27,602 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 16:44:27,602 - database.connection - INFO - Database connection test successful
+2025-09-09 16:44:27,602 - __main__ - INFO - Testing database connection...
+2025-09-09 16:44:27,618 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 16:44:27,618 - database.connection - INFO - Database connection test successful
+2025-09-09 16:44:27,618 - __main__ - INFO - Creating database tables...
+2025-09-09 16:44:27,618 - database.connection - INFO - Database tables created successfully
+2025-09-09 16:44:33,415 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-09-09 16:44:33,460 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 16:44:33,460 - api.main - INFO - 📊 Setting up database...
+2025-09-09 16:44:33,460 - database.connection - INFO - Database tables created successfully
+2025-09-09 16:44:33,460 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 16:44:33,460 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 16:44:33,460 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 16:44:33,460 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 16:44:40,186 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 16:44:40,186 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 16:44:40,186 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 16:44:40,186 - services.ner_extractor - INFO - Checking local cache for model mistralai/Mistral-7B-Instruct-v0.3 ...
+2025-09-09 16:44:41,287 - services.ner_extractor - ERROR - Failed to download or find model: 401 Client Error. (Request ID: Root=1-68c00c20-580bcab5361ae379228679ef;c474e8f1-3dd3-49e9-903b-3fe43ed46c3c)
+
+Cannot access gated repo for url https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3/resolve/0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a/.gitattributes.
+Access to model mistralai/Mistral-7B-Instruct-v0.3 is restricted. You must have access to it and be authenticated to access it. Please log in.
+2025-09-09 16:44:41,288 - api.main - ERROR - ❌ Failed to initialize services: 401 Client Error. (Request ID: Root=1-68c00c20-580bcab5361ae379228679ef;c474e8f1-3dd3-49e9-903b-3fe43ed46c3c)
+
+Cannot access gated repo for url https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.3/resolve/0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a/.gitattributes.
+Access to model mistralai/Mistral-7B-Instruct-v0.3 is restricted. You must have access to it and be authenticated to access it. Please log in.
+2025-09-09 16:46:51,868 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 16:46:51,868 - __main__ - INFO - Configuration validated successfully
+2025-09-09 16:46:51,868 - __main__ - INFO - Environment: development
+2025-09-09 16:46:51,868 - __main__ - INFO - Debug mode: False
+2025-09-09 16:46:52,228 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 16:46:52,261 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 16:46:52,268 - database.connection - INFO - Database connection test successful
+2025-09-09 16:46:52,268 - __main__ - INFO - Testing database connection...
+2025-09-09 16:46:52,274 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 16:46:52,274 - database.connection - INFO - Database connection test successful
+2025-09-09 16:46:52,274 - __main__ - INFO - Creating database tables...
+2025-09-09 16:46:52,274 - database.connection - INFO - Database tables created successfully
+2025-09-09 16:46:57,717 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-09-09 16:46:57,742 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 16:46:57,742 - api.main - INFO - 📊 Setting up database...
+2025-09-09 16:46:57,742 - database.connection - INFO - Database tables created successfully
+2025-09-09 16:46:57,742 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 16:46:57,742 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 16:46:57,758 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 16:46:57,758 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 16:47:07,243 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 16:47:07,243 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 16:47:07,243 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 16:47:07,243 - services.ner_extractor - INFO - Checking local cache for model mistralai/Mistral-7B-Instruct-v0.3 ...
+2025-09-09 16:47:07,989 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 16:47:08,014 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 16:47:08,021 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 16:47:08,021 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 17:03:42,686 - services.ner_extractor - ERROR - Failed to download or find model: [WinError 1314] A required privilege is not held by the client: '..\\..\\blobs\\9f913dc05d66cfb23c16e3c93b3cc4899813dfa6' -> 'C:\\Users\\UPSIFS\\.cache\\mistral_ner\\models--mistralai--Mistral-7B-Instruct-v0.3\\snapshots\\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a\\config.json'
+2025-09-09 17:03:42,686 - api.main - ERROR - ❌ Failed to initialize services: [WinError 1314] A required privilege is not held by the client: '..\\..\\blobs\\9f913dc05d66cfb23c16e3c93b3cc4899813dfa6' -> 'C:\\Users\\UPSIFS\\.cache\\mistral_ner\\models--mistralai--Mistral-7B-Instruct-v0.3\\snapshots\\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a\\config.json'
+2025-09-09 17:10:09,932 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 17:10:09,932 - __main__ - INFO - Configuration validated successfully
+2025-09-09 17:10:09,932 - __main__ - INFO - Environment: development
+2025-09-09 17:10:09,932 - __main__ - INFO - Debug mode: False
+2025-09-09 17:10:10,396 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 17:10:10,415 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:10:10,428 - database.connection - INFO - Database connection test successful
+2025-09-09 17:10:10,428 - __main__ - INFO - Testing database connection...
+2025-09-09 17:10:10,428 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:10:10,428 - database.connection - INFO - Database connection test successful
+2025-09-09 17:10:10,443 - __main__ - INFO - Creating database tables...
+2025-09-09 17:10:10,443 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:10:17,223 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-09-09 17:10:17,270 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 17:10:17,274 - api.main - INFO - 📊 Setting up database...
+2025-09-09 17:10:17,274 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:10:17,274 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 17:10:17,274 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 17:10:17,274 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 17:10:17,274 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 17:10:24,677 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 17:10:24,677 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 17:10:24,677 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 17:10:24,677 - services.ner_extractor - INFO - Checking local cache for model mistralai/Mistral-7B-Instruct-v0.3 ...
+2025-09-09 17:10:25,430 - huggingface_hub.file_download - WARNING - Xet Storage is enabled for this repo, but the 'hf_xet' package is not installed. Falling back to regular HTTP download. For better performance, install the package with: `pip install huggingface_hub[hf_xet]` or `pip install hf_xet`
+2025-09-09 17:10:27,041 - services.ner_extractor - INFO - Model available at: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:10:27,041 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:10:27,138 - services.ner_extractor - WARNING - Transformers loading failed: Cannot instantiate this tokenizer from a slow version. If it's based on sentencepiece, make sure you have sentencepiece installed.
+2025-09-09 17:10:27,138 - services.ner_extractor - WARNING - Failed to load model (attempt 1): No compatible model loading framework available
+2025-09-09 17:10:27,138 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 17:10:32,148 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:10:32,148 - services.ner_extractor - WARNING - Transformers loading failed: Cannot instantiate this tokenizer from a slow version. If it's based on sentencepiece, make sure you have sentencepiece installed.
+2025-09-09 17:10:32,148 - services.ner_extractor - WARNING - Failed to load model (attempt 2): No compatible model loading framework available
+2025-09-09 17:10:32,148 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 17:10:37,155 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:10:37,155 - services.ner_extractor - WARNING - Transformers loading failed: Cannot instantiate this tokenizer from a slow version. If it's based on sentencepiece, make sure you have sentencepiece installed.
+2025-09-09 17:10:37,155 - services.ner_extractor - WARNING - Failed to load model (attempt 3): No compatible model loading framework available
+2025-09-09 17:10:37,155 - services.ner_extractor - ERROR - Failed to load model after 3 attempts: No compatible model loading framework available
+2025-09-09 17:10:37,155 - api.main - INFO - ✅ Mistral NER extractor loaded from config path
+2025-09-09 17:10:37,376 - services.vector_service - INFO - ChromaDB initialized successfully
+2025-09-09 17:10:37,376 - services.vector_service - INFO - Collection: multilingual_topics_bge_m3
+2025-09-09 17:10:37,376 - services.vector_service - INFO - Persist directory: ./chroma_db
+2025-09-09 17:10:37,376 - api.main - INFO - ✅ ChromaDB vector services initialized
+2025-09-09 17:10:37,376 - api.main - INFO - ✅ Topic clustering services initialized
+2025-09-09 17:10:37,376 - api.main - INFO - 🎉 All services initialized successfully!
+2025-09-09 17:11:09,538 - api.main - INFO - 🔄 Shutting down services...
+2025-09-09 17:11:09,538 - database.connection - INFO - Database connections closed
+2025-09-09 17:11:09,538 - api.main - INFO - 👋 Application shutdown complete
+2025-09-09 17:12:16,710 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 17:12:16,711 - __main__ - INFO - Configuration validated successfully
+2025-09-09 17:12:16,711 - __main__ - INFO - Environment: development
+2025-09-09 17:12:16,711 - __main__ - INFO - Debug mode: False
+2025-09-09 17:12:17,108 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 17:12:17,128 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:12:17,136 - database.connection - INFO - Database connection test successful
+2025-09-09 17:12:17,136 - __main__ - INFO - Testing database connection...
+2025-09-09 17:12:17,145 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:12:17,147 - database.connection - INFO - Database connection test successful
+2025-09-09 17:12:17,147 - __main__ - INFO - Creating database tables...
+2025-09-09 17:12:17,152 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:12:23,479 - __main__ - INFO - Starting server on 0.0.0.0:8000
+2025-09-09 17:12:23,509 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 17:12:23,509 - api.main - INFO - 📊 Setting up database...
+2025-09-09 17:12:23,509 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:12:23,525 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 17:12:23,525 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 17:12:23,525 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 17:12:23,525 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 17:12:30,813 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 17:12:30,813 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 17:12:30,813 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 17:12:30,813 - services.ner_extractor - INFO - Checking local cache for model mistralai/Mistral-7B-Instruct-v0.3 ...
+2025-09-09 17:12:31,179 - services.ner_extractor - INFO - Model available at: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:12:31,179 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:12:52,952 - services.ner_extractor - INFO - Successfully loaded transformers model: mistralai/Mistral-7B-Instruct-v0.3
+2025-09-09 17:12:52,952 - api.main - INFO - ✅ Mistral NER extractor loaded from config path
+2025-09-09 17:12:53,212 - services.vector_service - INFO - ChromaDB initialized successfully
+2025-09-09 17:12:53,212 - services.vector_service - INFO - Collection: multilingual_topics_bge_m3
+2025-09-09 17:12:53,212 - services.vector_service - INFO - Persist directory: ./chroma_db
+2025-09-09 17:12:53,212 - api.main - INFO - ✅ ChromaDB vector services initialized
+2025-09-09 17:12:53,212 - api.main - INFO - ✅ Topic clustering services initialized
+2025-09-09 17:12:53,212 - api.main - INFO - 🎉 All services initialized successfully!
+2025-09-09 17:13:54,756 - api.main - INFO - 🔄 Shutting down services...
+2025-09-09 17:13:54,756 - database.connection - INFO - Database connections closed
+2025-09-09 17:13:54,756 - api.main - INFO - 👋 Application shutdown complete
+2025-09-09 17:13:58,066 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 17:13:58,066 - __main__ - INFO - Configuration validated successfully
+2025-09-09 17:13:58,066 - __main__ - INFO - Environment: development
+2025-09-09 17:13:58,066 - __main__ - INFO - Debug mode: False
+2025-09-09 17:13:58,562 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 17:13:58,594 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:13:58,594 - database.connection - INFO - Database connection test successful
+2025-09-09 17:13:58,594 - __main__ - INFO - Testing database connection...
+2025-09-09 17:13:58,615 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:13:58,615 - database.connection - INFO - Database connection test successful
+2025-09-09 17:13:58,615 - __main__ - INFO - Creating database tables...
+2025-09-09 17:13:58,615 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:14:05,728 - __main__ - INFO - Starting server on 0.0.0.0:7000
+2025-09-09 17:14:05,764 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 17:14:05,764 - api.main - INFO - 📊 Setting up database...
+2025-09-09 17:14:05,764 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:14:05,764 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 17:14:05,764 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 17:14:05,764 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 17:14:05,764 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 17:14:14,409 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 17:14:14,409 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 17:14:14,409 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 17:14:14,411 - services.ner_extractor - INFO - Checking local cache for model mistralai/Mistral-7B-Instruct-v0.3 ...
+2025-09-09 17:14:14,756 - services.ner_extractor - INFO - Model available at: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:14:14,756 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:14:42,192 - services.ner_extractor - INFO - Successfully loaded transformers model: mistralai/Mistral-7B-Instruct-v0.3
+2025-09-09 17:14:42,192 - api.main - INFO - ✅ Mistral NER extractor loaded from config path
+2025-09-09 17:14:42,353 - services.vector_service - INFO - ChromaDB initialized successfully
+2025-09-09 17:14:42,353 - services.vector_service - INFO - Collection: multilingual_topics_bge_m3
+2025-09-09 17:14:42,353 - services.vector_service - INFO - Persist directory: ./chroma_db
+2025-09-09 17:14:42,353 - api.main - INFO - ✅ ChromaDB vector services initialized
+2025-09-09 17:14:42,353 - api.main - INFO - ✅ Topic clustering services initialized
+2025-09-09 17:14:42,367 - api.main - INFO - 🎉 All services initialized successfully!
+2025-09-09 17:17:04,223 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:17:04,223 - database.connection - INFO - Database connection test successful
+2025-09-09 17:17:04,272 - services.vector_service - ERROR - Failed to add topic health_check_1757418424 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:17:04,294 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:17:04,318 - services.vector_service - ERROR - Failed to delete topic health_check_1757418424: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:17:04,324 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:17:12,925 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:17:12,929 - database.connection - INFO - Database connection test successful
+2025-09-09 17:17:12,941 - services.vector_service - ERROR - Failed to add topic health_check_1757418432 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:17:12,941 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:17:12,972 - services.vector_service - ERROR - Failed to delete topic health_check_1757418432: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:17:12,972 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:17:31,573 - services.topic_clustering - INFO - Processing text: language=hindi, confidence=0.90
+2025-09-09 17:27:10,523 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 17:27:10,523 - __main__ - INFO - Configuration validated successfully
+2025-09-09 17:27:10,523 - __main__ - INFO - Environment: development
+2025-09-09 17:27:10,523 - __main__ - INFO - Debug mode: False
+2025-09-09 17:27:10,523 - __main__ - ERROR - Application failed to start: No module named 'sqlalchemy'
+2025-09-09 17:31:11,278 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 17:31:11,278 - __main__ - INFO - Configuration validated successfully
+2025-09-09 17:31:11,278 - __main__ - INFO - Environment: development
+2025-09-09 17:31:11,278 - __main__ - INFO - Debug mode: False
+2025-09-09 17:31:11,610 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 17:31:11,642 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:31:11,642 - database.connection - INFO - Database connection test successful
+2025-09-09 17:31:11,642 - __main__ - INFO - Testing database connection...
+2025-09-09 17:31:11,658 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:31:11,658 - database.connection - INFO - Database connection test successful
+2025-09-09 17:31:11,658 - __main__ - INFO - Creating database tables...
+2025-09-09 17:31:11,658 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:31:16,840 - __main__ - ERROR - Application failed to start: No module named 'chromadb'
+2025-09-09 17:33:04,974 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 17:33:04,974 - __main__ - INFO - Configuration validated successfully
+2025-09-09 17:33:04,974 - __main__ - INFO - Environment: development
+2025-09-09 17:33:04,974 - __main__ - INFO - Debug mode: False
+2025-09-09 17:33:05,344 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 17:33:05,376 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:33:05,382 - database.connection - INFO - Database connection test successful
+2025-09-09 17:33:05,382 - __main__ - INFO - Testing database connection...
+2025-09-09 17:33:05,392 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:33:05,392 - database.connection - INFO - Database connection test successful
+2025-09-09 17:33:05,392 - __main__ - INFO - Creating database tables...
+2025-09-09 17:33:05,392 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:33:10,983 - __main__ - INFO - Starting server on 0.0.0.0:7000
+2025-09-09 17:33:11,015 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 17:33:11,015 - api.main - INFO - 📊 Setting up database...
+2025-09-09 17:33:11,015 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:33:11,015 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 17:33:11,015 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 17:33:11,015 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 17:33:11,015 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 17:33:18,104 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 17:33:18,104 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 17:33:18,104 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 17:33:18,104 - services.ner_extractor - INFO - Checking local cache for model mistralai/Mistral-7B-Instruct-v0.3 ...
+2025-09-09 17:33:18,473 - services.ner_extractor - INFO - Model available at: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:33:18,473 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:33:18,541 - services.ner_extractor - WARNING - Transformers loading failed: Cannot instantiate this tokenizer from a slow version. If it's based on sentencepiece, make sure you have sentencepiece installed.
+2025-09-09 17:33:18,541 - services.ner_extractor - WARNING - Failed to load model (attempt 1): No compatible model loading framework available
+2025-09-09 17:33:18,541 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 17:33:23,541 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:33:23,541 - services.ner_extractor - WARNING - Transformers loading failed: Cannot instantiate this tokenizer from a slow version. If it's based on sentencepiece, make sure you have sentencepiece installed.
+2025-09-09 17:33:23,541 - services.ner_extractor - WARNING - Failed to load model (attempt 2): No compatible model loading framework available
+2025-09-09 17:33:23,541 - services.ner_extractor - INFO - Retrying in 5 seconds...
+2025-09-09 17:33:28,541 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:33:28,541 - services.ner_extractor - WARNING - Transformers loading failed: Cannot instantiate this tokenizer from a slow version. If it's based on sentencepiece, make sure you have sentencepiece installed.
+2025-09-09 17:33:28,541 - services.ner_extractor - WARNING - Failed to load model (attempt 3): No compatible model loading framework available
+2025-09-09 17:33:28,541 - services.ner_extractor - ERROR - Failed to load model after 3 attempts: No compatible model loading framework available
+2025-09-09 17:33:28,541 - api.main - INFO - ✅ Mistral NER extractor loaded from config path
+2025-09-09 17:33:28,651 - services.vector_service - INFO - ChromaDB initialized successfully
+2025-09-09 17:33:28,651 - services.vector_service - INFO - Collection: multilingual_topics_bge_m3
+2025-09-09 17:33:28,651 - services.vector_service - INFO - Persist directory: ./chroma_db
+2025-09-09 17:33:28,651 - api.main - INFO - ✅ ChromaDB vector services initialized
+2025-09-09 17:33:28,651 - api.main - INFO - ✅ Topic clustering services initialized
+2025-09-09 17:33:28,651 - api.main - INFO - 🎉 All services initialized successfully!
+2025-09-09 17:33:35,993 - api.main - INFO - 🔄 Shutting down services...
+2025-09-09 17:33:35,993 - database.connection - INFO - Database connections closed
+2025-09-09 17:33:35,993 - api.main - INFO - 👋 Application shutdown complete
+2025-09-09 17:33:49,531 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 17:33:49,531 - __main__ - INFO - Configuration validated successfully
+2025-09-09 17:33:49,531 - __main__ - INFO - Environment: development
+2025-09-09 17:33:49,531 - __main__ - INFO - Debug mode: False
+2025-09-09 17:33:49,921 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 17:33:49,936 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:33:49,952 - database.connection - INFO - Database connection test successful
+2025-09-09 17:33:49,952 - __main__ - INFO - Testing database connection...
+2025-09-09 17:33:49,952 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:33:49,952 - database.connection - INFO - Database connection test successful
+2025-09-09 17:33:49,952 - __main__ - INFO - Creating database tables...
+2025-09-09 17:33:49,968 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:33:55,647 - __main__ - INFO - Starting server on 0.0.0.0:7000
+2025-09-09 17:33:55,679 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 17:33:55,679 - api.main - INFO - 📊 Setting up database...
+2025-09-09 17:33:55,679 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:33:55,679 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 17:33:55,679 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 17:33:55,679 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 17:33:55,679 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 17:34:03,170 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 17:34:03,170 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 17:34:03,170 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 17:34:03,170 - services.ner_extractor - INFO - Checking local cache for model mistralai/Mistral-7B-Instruct-v0.3 ...
+2025-09-09 17:34:03,564 - services.ner_extractor - INFO - Model available at: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:34:03,571 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:34:31,676 - services.ner_extractor - INFO - Successfully loaded transformers model: mistralai/Mistral-7B-Instruct-v0.3
+2025-09-09 17:34:31,676 - api.main - INFO - ✅ Mistral NER extractor loaded from config path
+2025-09-09 17:34:31,914 - services.vector_service - INFO - ChromaDB initialized successfully
+2025-09-09 17:34:31,914 - services.vector_service - INFO - Collection: multilingual_topics_bge_m3
+2025-09-09 17:34:31,914 - services.vector_service - INFO - Persist directory: ./chroma_db
+2025-09-09 17:34:31,914 - api.main - INFO - ✅ ChromaDB vector services initialized
+2025-09-09 17:34:31,914 - api.main - INFO - ✅ Topic clustering services initialized
+2025-09-09 17:34:31,914 - api.main - INFO - 🎉 All services initialized successfully!
+2025-09-09 17:34:57,071 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:34:57,072 - database.connection - INFO - Database connection test successful
+2025-09-09 17:34:57,111 - services.vector_service - ERROR - Failed to add topic health_check_1757419497 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:34:57,134 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:34:57,159 - services.vector_service - ERROR - Failed to delete topic health_check_1757419497: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:34:57,166 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,183 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,206 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:35:00,206 - database.connection - INFO - Database connection test successful
+2025-09-09 17:35:00,217 - services.vector_service - ERROR - Failed to add topic health_check_1757419500 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,217 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,250 - services.vector_service - ERROR - Failed to delete topic health_check_1757419500: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,270 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,283 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:35:00,285 - database.connection - INFO - Database connection test successful
+2025-09-09 17:35:00,297 - services.vector_service - ERROR - Failed to add topic health_check_1757419500 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,304 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,330 - services.vector_service - ERROR - Failed to delete topic health_check_1757419500: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,338 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,722 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:35:00,722 - database.connection - INFO - Database connection test successful
+2025-09-09 17:35:00,739 - services.vector_service - ERROR - Failed to add topic health_check_1757419500 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,747 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,770 - services.vector_service - ERROR - Failed to delete topic health_check_1757419500: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:35:00,778 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:35:31,180 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:35:31,197 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:35:31,197 - database.connection - INFO - Database connection test successful
+2025-09-09 17:35:31,215 - services.vector_service - ERROR - Failed to add topic health_check_1757419531 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:35:31,215 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:35:31,243 - services.vector_service - ERROR - Failed to delete topic health_check_1757419531: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:35:31,243 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:36:00,876 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:36:00,887 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:36:00,887 - database.connection - INFO - Database connection test successful
+2025-09-09 17:36:00,903 - services.vector_service - ERROR - Failed to add topic health_check_1757419560 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:36:00,919 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:36:00,935 - services.vector_service - ERROR - Failed to delete topic health_check_1757419560: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:36:00,935 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:36:30,875 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:36:30,893 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:36:30,893 - database.connection - INFO - Database connection test successful
+2025-09-09 17:36:30,907 - services.vector_service - ERROR - Failed to add topic health_check_1757419590 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:36:30,919 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:36:30,935 - services.vector_service - ERROR - Failed to delete topic health_check_1757419590: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:36:30,935 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:36:57,888 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:36:57,889 - database.connection - INFO - Database connection test successful
+2025-09-09 17:36:57,902 - services.vector_service - ERROR - Failed to add topic health_check_1757419617 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:36:57,909 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:36:57,943 - services.vector_service - ERROR - Failed to delete topic health_check_1757419617: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:36:57,950 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:37:00,887 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:37:00,890 - database.connection - INFO - Database connection test successful
+2025-09-09 17:37:00,901 - services.vector_service - ERROR - Failed to add topic health_check_1757419620 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:37:00,908 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:37:00,928 - services.vector_service - ERROR - Failed to delete topic health_check_1757419620: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:37:00,935 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:37:00,949 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:37:00,962 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:37:00,964 - database.connection - INFO - Database connection test successful
+2025-09-09 17:37:00,976 - services.vector_service - ERROR - Failed to add topic health_check_1757419620 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:37:00,985 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:37:01,005 - services.vector_service - ERROR - Failed to delete topic health_check_1757419620: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:37:01,012 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:37:01,024 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:37:01,026 - database.connection - INFO - Database connection test successful
+2025-09-09 17:37:01,041 - services.vector_service - ERROR - Failed to add topic health_check_1757419621 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:37:01,050 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:37:01,081 - services.vector_service - ERROR - Failed to delete topic health_check_1757419621: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:37:01,088 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:37:30,889 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:37:30,905 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:37:30,906 - database.connection - INFO - Database connection test successful
+2025-09-09 17:37:30,921 - services.vector_service - ERROR - Failed to add topic health_check_1757419650 to vector database: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:37:30,921 - services.vector_service - ERROR - Vector search failed: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:37:30,949 - services.vector_service - ERROR - Failed to delete topic health_check_1757419650: Error in compaction: Failed to apply logs to the metadata segment
+2025-09-09 17:37:30,956 - services.vector_service - ERROR - Failed to get collection stats: Error executing plan: Error sending backfill request to compactor: Failed to apply logs to the metadata segment
+2025-09-09 17:37:48,704 - api.main - INFO - 🔄 Shutting down services...
+2025-09-09 17:37:48,704 - database.connection - INFO - Database connections closed
+2025-09-09 17:37:48,704 - api.main - INFO - 👋 Application shutdown complete
+2025-09-09 17:40:19,127 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 17:40:19,127 - __main__ - INFO - Configuration validated successfully
+2025-09-09 17:40:19,127 - __main__ - INFO - Environment: development
+2025-09-09 17:40:19,127 - __main__ - INFO - Debug mode: False
+2025-09-09 17:40:19,576 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 17:40:19,611 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:40:19,611 - database.connection - INFO - Database connection test successful
+2025-09-09 17:40:19,611 - __main__ - INFO - Testing database connection...
+2025-09-09 17:40:19,624 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:40:19,624 - database.connection - INFO - Database connection test successful
+2025-09-09 17:40:19,624 - __main__ - INFO - Creating database tables...
+2025-09-09 17:40:19,640 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:40:26,262 - __main__ - INFO - Starting server on 0.0.0.0:7000
+2025-09-09 17:40:26,309 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 17:40:26,309 - api.main - INFO - 📊 Setting up database...
+2025-09-09 17:40:26,325 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:40:26,325 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 17:40:26,325 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 17:40:26,325 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 17:40:26,325 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 17:40:34,077 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 17:40:34,077 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 17:40:34,077 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 17:40:34,077 - services.ner_extractor - INFO - Checking local cache for model mistralai/Mistral-7B-Instruct-v0.3 ...
+2025-09-09 17:40:34,420 - services.ner_extractor - INFO - Model available at: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:40:34,420 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:41:02,316 - services.ner_extractor - INFO - Successfully loaded transformers model: mistralai/Mistral-7B-Instruct-v0.3
+2025-09-09 17:41:02,316 - api.main - INFO - ✅ Mistral NER extractor loaded from config path
+2025-09-09 17:41:02,318 - services.vector_service - ERROR - Failed to initialize ChromaDB: [91mYou are using a deprecated configuration of Chroma.
+
+[94mIf you do not have data you wish to migrate, you only need to change how you construct
+your Chroma client. Please see the "New Clients" section of https://docs.trychroma.com/deployment/migration.
+________________________________________________________________________________________________
+
+If you do have data you wish to migrate, we have a migration tool you can use in order to
+migrate your data to the new Chroma architecture.
+Please `pip install chroma-migrate` and run `chroma-migrate` to migrate your data and then
+change how you construct your Chroma client.
+
+See https://docs.trychroma.com/deployment/migration for more information or join our discord at https://discord.gg/MMeYNTmh3x for help![0m
+2025-09-09 17:41:02,318 - api.main - ERROR - ❌ Failed to initialize services: [91mYou are using a deprecated configuration of Chroma.
+
+[94mIf you do not have data you wish to migrate, you only need to change how you construct
+your Chroma client. Please see the "New Clients" section of https://docs.trychroma.com/deployment/migration.
+________________________________________________________________________________________________
+
+If you do have data you wish to migrate, we have a migration tool you can use in order to
+migrate your data to the new Chroma architecture.
+Please `pip install chroma-migrate` and run `chroma-migrate` to migrate your data and then
+change how you construct your Chroma client.
+
+See https://docs.trychroma.com/deployment/migration for more information or join our discord at https://discord.gg/MMeYNTmh3x for help![0m
+2025-09-09 17:44:40,929 - __main__ - INFO - Starting Multilingual Topic Clustering System
+2025-09-09 17:44:40,929 - __main__ - INFO - Configuration validated successfully
+2025-09-09 17:44:40,929 - __main__ - INFO - Environment: development
+2025-09-09 17:44:40,929 - __main__ - INFO - Debug mode: False
+2025-09-09 17:44:41,408 - database.connection - INFO - Database engine initialized successfully
+2025-09-09 17:44:41,429 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:44:41,429 - database.connection - INFO - Database connection test successful
+2025-09-09 17:44:41,429 - __main__ - INFO - Testing database connection...
+2025-09-09 17:44:41,445 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:44:41,445 - database.connection - INFO - Database connection test successful
+2025-09-09 17:44:41,445 - __main__ - INFO - Creating database tables...
+2025-09-09 17:44:41,445 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:44:47,991 - __main__ - INFO - Starting server on 0.0.0.0:7000
+2025-09-09 17:44:48,034 - api.main - INFO - 🚀 Initializing Multilingual Topic Clustering System...
+2025-09-09 17:44:48,034 - api.main - INFO - 📊 Setting up database...
+2025-09-09 17:44:48,039 - database.connection - INFO - Database tables created successfully
+2025-09-09 17:44:48,039 - api.main - INFO - 🤖 Loading AI models...
+2025-09-09 17:44:48,039 - services.embedding_service - INFO - Loading embedding model: BAAI/bge-m3
+2025-09-09 17:44:48,039 - sentence_transformers.SentenceTransformer - INFO - Use pytorch device_name: cpu
+2025-09-09 17:44:48,039 - sentence_transformers.SentenceTransformer - INFO - Load pretrained SentenceTransformer: BAAI/bge-m3
+2025-09-09 17:44:55,815 - services.embedding_service - INFO - Successfully loaded embedding model: BAAI/bge-m3
+2025-09-09 17:44:55,815 - services.embedding_service - INFO - Embedding dimension: 1024
+2025-09-09 17:44:55,816 - api.main - INFO - ✅ BGE-M3 embedding services loaded
+2025-09-09 17:44:55,816 - services.ner_extractor - INFO - Checking local cache for model mistralai/Mistral-7B-Instruct-v0.3 ...
+2025-09-09 17:44:56,245 - services.ner_extractor - INFO - Model available at: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:44:56,245 - services.ner_extractor - INFO - Loading model from provided path: C:\Users\UPSIFS/.cache/mistral_ner\models--mistralai--Mistral-7B-Instruct-v0.3\snapshots\0d4b76e1efeb5eb6f6b5e757c79870472e04bd3a
+2025-09-09 17:45:24,092 - services.ner_extractor - INFO - Successfully loaded transformers model: mistralai/Mistral-7B-Instruct-v0.3
+2025-09-09 17:45:24,093 - api.main - INFO - ✅ Mistral NER extractor loaded from config path
+2025-09-09 17:45:24,346 - services.vector_service - INFO - ChromaDB initialized successfully
+2025-09-09 17:45:24,346 - services.vector_service - INFO - Collection: multilingual_topics_bge_m3
+2025-09-09 17:45:24,346 - services.vector_service - INFO - Persist directory: ./chroma_db
+2025-09-09 17:45:24,346 - api.main - INFO - ✅ ChromaDB vector services initialized
+2025-09-09 17:45:24,346 - api.main - INFO - ✅ Topic clustering services initialized
+2025-09-09 17:45:24,347 - api.main - INFO - 🎉 All services initialized successfully!
+2025-09-09 17:45:51,536 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:45:51,538 - database.connection - INFO - Database connection test successful
+2025-09-09 17:45:51,647 - services.vector_service - INFO - Added topic to vector database: health_check_1757420151
+2025-09-09 17:45:51,670 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 17:45:51,695 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757420151
+2025-09-09 17:46:16,939 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 17:46:16,941 - database.connection - INFO - Database connection test successful
+2025-09-09 17:46:16,957 - services.vector_service - INFO - Added topic to vector database: health_check_1757420176
+2025-09-09 17:46:16,959 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 17:46:16,986 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757420176
+2025-09-09 17:46:45,202 - services.topic_clustering - INFO - Processing text: language=hindi, confidence=0.90
+2025-09-09 18:05:51,352 - services.ner_extractor - WARNING - Failed to parse JSON response: es": ["अर्जुन उर्फ बहरा पुत्र भवंर सिंह", "श्री अमित कुमार आनंद"],
+  "organisation_names": ["सोशल मीडिया सेल अमरोहा"],
+  "location_names": ["जनपद अमरोहा", "थाना रजबपुर"],
+  "district_names": ["जनपद अम...
+2025-09-09 18:05:51,352 - services.ner_extractor - INFO - NER extraction completed in 1146150.02ms
+2025-09-09 18:05:51,922 - services.embedding_service - INFO - Generated embeddings for 1 texts in 570.08ms
+2025-09-09 18:05:51,933 - services.vector_service - INFO - Found 0 similar topics above threshold 0.44099999999999995
+2025-09-09 18:05:51,933 - services.topic_clustering - INFO - Found 0 similar topics after NER enhancement
+2025-09-09 18:05:51,945 - services.vector_service - INFO - Added topic to vector database: 79ff5132-f28b-4106-8e21-004db7831ccd
+2025-09-09 18:05:51,992 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:51,992 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,016 - services.vector_service - INFO - Added topic to vector database: health_check_1757421351
+2025-09-09 18:05:52,016 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,054 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421351
+2025-09-09 18:05:52,073 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,073 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,092 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,092 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,117 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,121 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,121 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,133 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,133 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,163 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,180 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,181 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,199 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,202 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,225 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,246 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,247 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,262 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,264 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,287 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,300 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,301 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,316 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,316 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,342 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,342 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,358 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,374 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,374 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,390 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,406 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,406 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,422 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,422 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,441 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,649 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,651 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,666 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,668 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,678 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,695 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,695 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,716 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,716 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,745 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,745 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,760 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,780 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,782 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,804 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,816 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,816 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,829 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,829 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,846 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,861 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,861 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,878 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,878 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,916 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,928 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,928 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,945 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,945 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:52,961 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:52,978 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:52,978 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:52,995 - services.vector_service - INFO - Added topic to vector database: health_check_1757421352
+2025-09-09 18:05:52,995 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:53,028 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421352
+2025-09-09 18:05:53,040 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:53,042 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:53,057 - services.vector_service - INFO - Added topic to vector database: health_check_1757421353
+2025-09-09 18:05:53,059 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:53,087 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421353
+2025-09-09 18:05:53,099 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:53,100 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:53,114 - services.vector_service - INFO - Added topic to vector database: health_check_1757421353
+2025-09-09 18:05:53,116 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:53,128 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421353
+2025-09-09 18:05:53,145 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:53,145 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:53,162 - services.vector_service - INFO - Added topic to vector database: health_check_1757421353
+2025-09-09 18:05:53,162 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:53,195 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421353
+2025-09-09 18:05:53,195 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:53,195 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:53,225 - services.vector_service - INFO - Added topic to vector database: health_check_1757421353
+2025-09-09 18:05:53,226 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:53,245 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421353
+2025-09-09 18:05:53,262 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:53,262 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:53,274 - services.vector_service - INFO - Added topic to vector database: health_check_1757421353
+2025-09-09 18:05:53,278 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:53,295 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421353
+2025-09-09 18:05:53,312 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:53,312 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:53,329 - services.vector_service - INFO - Added topic to vector database: health_check_1757421353
+2025-09-09 18:05:53,329 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:53,346 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421353
+2025-09-09 18:05:53,363 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:53,363 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:53,379 - services.vector_service - INFO - Added topic to vector database: health_check_1757421353
+2025-09-09 18:05:53,379 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:53,396 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421353
+2025-09-09 18:05:53,416 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:53,416 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:53,442 - services.vector_service - INFO - Added topic to vector database: health_check_1757421353
+2025-09-09 18:05:53,445 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:53,462 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421353
+2025-09-09 18:05:53,481 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:53,481 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:53,495 - services.vector_service - INFO - Added topic to vector database: health_check_1757421353
+2025-09-09 18:05:53,495 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:53,530 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421353
+2025-09-09 18:05:53,553 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:05:53,554 - database.connection - INFO - Database connection test successful
+2025-09-09 18:05:53,571 - services.vector_service - INFO - Added topic to vector database: health_check_1757421353
+2025-09-09 18:05:53,573 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:05:53,596 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421353
+2025-09-09 18:06:23,811 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:06:23,813 - database.connection - INFO - Database connection test successful
+2025-09-09 18:06:23,820 - services.vector_service - INFO - Added topic to vector database: health_check_1757421383
+2025-09-09 18:06:23,820 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:06:23,852 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421383
+2025-09-09 18:06:53,511 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:06:53,511 - database.connection - INFO - Database connection test successful
+2025-09-09 18:06:53,522 - services.vector_service - INFO - Added topic to vector database: health_check_1757421413
+2025-09-09 18:06:53,522 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:06:53,571 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421413
+2025-09-09 18:06:57,868 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:06:57,868 - database.connection - INFO - Database connection test successful
+2025-09-09 18:06:57,897 - services.vector_service - INFO - Added topic to vector database: health_check_1757421417
+2025-09-09 18:06:57,897 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:06:57,924 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421417
+2025-09-09 18:07:23,499 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:07:23,502 - database.connection - INFO - Database connection test successful
+2025-09-09 18:07:23,519 - services.vector_service - INFO - Added topic to vector database: health_check_1757421443
+2025-09-09 18:07:23,519 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:07:23,536 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421443
+2025-09-09 18:07:51,880 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:07:51,882 - database.connection - INFO - Database connection test successful
+2025-09-09 18:07:51,898 - services.vector_service - INFO - Added topic to vector database: health_check_1757421471
+2025-09-09 18:07:51,898 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:07:51,930 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421471
+2025-09-09 18:07:53,497 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:07:53,499 - database.connection - INFO - Database connection test successful
+2025-09-09 18:07:53,516 - services.vector_service - INFO - Added topic to vector database: health_check_1757421473
+2025-09-09 18:07:53,519 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:07:53,542 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421473
+2025-09-09 18:07:53,566 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:07:53,567 - database.connection - INFO - Database connection test successful
+2025-09-09 18:07:53,583 - services.vector_service - INFO - Added topic to vector database: health_check_1757421473
+2025-09-09 18:07:53,583 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:07:53,618 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421473
+2025-09-09 18:08:23,498 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:08:23,500 - database.connection - INFO - Database connection test successful
+2025-09-09 18:08:23,517 - services.vector_service - INFO - Added topic to vector database: health_check_1757421503
+2025-09-09 18:08:23,519 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:08:23,546 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421503
+2025-09-09 18:08:53,807 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:08:53,807 - database.connection - INFO - Database connection test successful
+2025-09-09 18:08:53,832 - services.vector_service - INFO - Added topic to vector database: health_check_1757421533
+2025-09-09 18:08:53,834 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:08:53,851 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421533
+2025-09-09 18:08:57,879 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:08:57,880 - database.connection - INFO - Database connection test successful
+2025-09-09 18:08:57,898 - services.vector_service - INFO - Added topic to vector database: health_check_1757421537
+2025-09-09 18:08:57,914 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:08:57,930 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421537
+2025-09-09 18:09:23,510 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:09:23,517 - database.connection - INFO - Database connection test successful
+2025-09-09 18:09:23,521 - services.vector_service - INFO - Added topic to vector database: health_check_1757421563
+2025-09-09 18:09:23,521 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:09:23,559 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421563
+2025-09-09 18:09:51,890 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:09:51,890 - database.connection - INFO - Database connection test successful
+2025-09-09 18:09:51,916 - services.vector_service - INFO - Added topic to vector database: health_check_1757421591
+2025-09-09 18:09:51,918 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:09:51,943 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421591
+2025-09-09 18:09:53,512 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:09:53,514 - database.connection - INFO - Database connection test successful
+2025-09-09 18:09:53,531 - services.vector_service - INFO - Added topic to vector database: health_check_1757421593
+2025-09-09 18:09:53,536 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:09:53,562 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421593
+2025-09-09 18:09:53,580 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:09:53,580 - database.connection - INFO - Database connection test successful
+2025-09-09 18:09:53,588 - services.vector_service - INFO - Added topic to vector database: health_check_1757421593
+2025-09-09 18:09:53,602 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:09:53,619 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421593
+2025-09-09 18:10:23,836 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:10:23,836 - database.connection - INFO - Database connection test successful
+2025-09-09 18:10:23,852 - services.vector_service - INFO - Added topic to vector database: health_check_1757421623
+2025-09-09 18:10:23,852 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:10:23,867 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421623
+2025-09-09 18:10:53,514 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:10:53,515 - database.connection - INFO - Database connection test successful
+2025-09-09 18:10:53,528 - services.vector_service - INFO - Added topic to vector database: health_check_1757421653
+2025-09-09 18:10:53,528 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:10:53,564 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421653
+2025-09-09 18:10:57,893 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:10:57,893 - database.connection - INFO - Database connection test successful
+2025-09-09 18:10:57,914 - services.vector_service - INFO - Added topic to vector database: health_check_1757421657
+2025-09-09 18:10:57,914 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:10:57,935 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421657
+2025-09-09 18:11:23,898 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:11:23,899 - database.connection - INFO - Database connection test successful
+2025-09-09 18:11:23,915 - services.vector_service - INFO - Added topic to vector database: health_check_1757421683
+2025-09-09 18:11:23,917 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:11:23,943 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421683
+2025-09-09 18:11:51,884 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:11:51,886 - database.connection - INFO - Database connection test successful
+2025-09-09 18:11:51,897 - services.vector_service - INFO - Added topic to vector database: health_check_1757421711
+2025-09-09 18:11:51,897 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:11:51,929 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421711
+2025-09-09 18:11:53,883 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:11:53,883 - database.connection - INFO - Database connection test successful
+2025-09-09 18:11:53,898 - services.vector_service - INFO - Added topic to vector database: health_check_1757421713
+2025-09-09 18:11:53,898 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:11:53,931 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421713
+2025-09-09 18:11:53,966 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:11:53,968 - database.connection - INFO - Database connection test successful
+2025-09-09 18:11:53,977 - services.vector_service - INFO - Added topic to vector database: health_check_1757421713
+2025-09-09 18:11:53,977 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:11:54,008 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421713
+2025-09-09 18:12:55,211 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:12:55,211 - database.connection - INFO - Database connection test successful
+2025-09-09 18:12:55,226 - services.vector_service - INFO - Added topic to vector database: health_check_1757421775
+2025-09-09 18:12:55,226 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:12:55,258 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421775
+2025-09-09 18:12:57,876 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:12:57,876 - database.connection - INFO - Database connection test successful
+2025-09-09 18:12:57,899 - services.vector_service - INFO - Added topic to vector database: health_check_1757421777
+2025-09-09 18:12:57,899 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:12:57,928 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421777
+2025-09-09 18:13:51,546 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:13:51,546 - database.connection - INFO - Database connection test successful
+2025-09-09 18:13:51,554 - services.vector_service - INFO - Added topic to vector database: health_check_1757421831
+2025-09-09 18:13:51,570 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:13:51,598 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421831
+2025-09-09 18:13:53,893 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:13:53,895 - database.connection - INFO - Database connection test successful
+2025-09-09 18:13:53,898 - services.vector_service - INFO - Added topic to vector database: health_check_1757421833
+2025-09-09 18:13:53,898 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:13:53,929 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421833
+2025-09-09 18:13:55,914 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:13:55,914 - database.connection - INFO - Database connection test successful
+2025-09-09 18:13:55,930 - services.vector_service - INFO - Added topic to vector database: health_check_1757421835
+2025-09-09 18:13:55,930 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:13:55,963 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421835
+2025-09-09 18:14:57,212 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:14:57,212 - database.connection - INFO - Database connection test successful
+2025-09-09 18:14:57,226 - services.vector_service - INFO - Added topic to vector database: health_check_1757421897
+2025-09-09 18:14:57,226 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:14:57,242 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421897
+2025-09-09 18:14:57,892 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:14:57,897 - database.connection - INFO - Database connection test successful
+2025-09-09 18:14:57,915 - services.vector_service - INFO - Added topic to vector database: health_check_1757421897
+2025-09-09 18:14:57,917 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:14:57,929 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421897
+2025-09-09 18:15:51,549 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:15:51,549 - database.connection - INFO - Database connection test successful
+2025-09-09 18:15:51,573 - services.vector_service - INFO - Added topic to vector database: health_check_1757421951
+2025-09-09 18:15:51,576 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:15:51,601 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421951
+2025-09-09 18:15:53,882 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:15:53,882 - database.connection - INFO - Database connection test successful
+2025-09-09 18:15:53,898 - services.vector_service - INFO - Added topic to vector database: health_check_1757421953
+2025-09-09 18:15:53,898 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:15:53,913 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421953
+2025-09-09 18:15:57,903 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:15:57,904 - database.connection - INFO - Database connection test successful
+2025-09-09 18:15:57,913 - services.vector_service - INFO - Added topic to vector database: health_check_1757421957
+2025-09-09 18:15:57,913 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:15:57,945 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757421957
+2025-09-09 18:16:57,889 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:16:57,891 - database.connection - INFO - Database connection test successful
+2025-09-09 18:16:57,907 - services.vector_service - INFO - Added topic to vector database: health_check_1757422017
+2025-09-09 18:16:57,908 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:16:57,924 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422017
+2025-09-09 18:16:58,892 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:16:58,892 - database.connection - INFO - Database connection test successful
+2025-09-09 18:16:58,908 - services.vector_service - INFO - Added topic to vector database: health_check_1757422018
+2025-09-09 18:16:58,913 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:16:58,925 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422018
+2025-09-09 18:17:51,890 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:17:51,890 - database.connection - INFO - Database connection test successful
+2025-09-09 18:17:51,912 - services.vector_service - INFO - Added topic to vector database: health_check_1757422071
+2025-09-09 18:17:51,913 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:17:51,933 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422071
+2025-09-09 18:17:53,901 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:17:53,901 - database.connection - INFO - Database connection test successful
+2025-09-09 18:17:53,925 - services.vector_service - INFO - Added topic to vector database: health_check_1757422073
+2025-09-09 18:17:53,925 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:17:53,946 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422073
+2025-09-09 18:18:00,189 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:18:00,190 - database.connection - INFO - Database connection test successful
+2025-09-09 18:18:00,211 - services.vector_service - INFO - Added topic to vector database: health_check_1757422080
+2025-09-09 18:18:00,213 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:18:00,235 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422080
+2025-09-09 18:18:57,893 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:18:57,897 - database.connection - INFO - Database connection test successful
+2025-09-09 18:18:57,915 - services.vector_service - INFO - Added topic to vector database: health_check_1757422137
+2025-09-09 18:18:57,917 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:18:57,944 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422137
+2025-09-09 18:19:00,895 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:19:00,897 - database.connection - INFO - Database connection test successful
+2025-09-09 18:19:00,913 - services.vector_service - INFO - Added topic to vector database: health_check_1757422140
+2025-09-09 18:19:00,913 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:19:00,932 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422140
+2025-09-09 18:19:51,904 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:19:51,904 - database.connection - INFO - Database connection test successful
+2025-09-09 18:19:51,931 - services.vector_service - INFO - Added topic to vector database: health_check_1757422191
+2025-09-09 18:19:51,933 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:19:51,957 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422191
+2025-09-09 18:20:02,223 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:20:02,224 - database.connection - INFO - Database connection test successful
+2025-09-09 18:20:02,241 - services.vector_service - INFO - Added topic to vector database: health_check_1757422202
+2025-09-09 18:20:02,241 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:20:02,276 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422202
+2025-09-09 18:20:02,291 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:20:02,291 - database.connection - INFO - Database connection test successful
+2025-09-09 18:20:02,307 - services.vector_service - INFO - Added topic to vector database: health_check_1757422202
+2025-09-09 18:20:02,310 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:20:02,324 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422202
+2025-09-09 18:20:57,895 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:20:57,896 - database.connection - INFO - Database connection test successful
+2025-09-09 18:20:57,913 - services.vector_service - INFO - Added topic to vector database: health_check_1757422257
+2025-09-09 18:20:57,913 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:20:57,929 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422257
+2025-09-09 18:21:02,901 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:21:02,903 - database.connection - INFO - Database connection test successful
+2025-09-09 18:21:02,918 - services.vector_service - INFO - Added topic to vector database: health_check_1757422262
+2025-09-09 18:21:02,918 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:21:02,951 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422262
+2025-09-09 18:21:51,904 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:21:51,904 - database.connection - INFO - Database connection test successful
+2025-09-09 18:21:51,920 - services.vector_service - INFO - Added topic to vector database: health_check_1757422311
+2025-09-09 18:21:51,932 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:21:51,951 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422311
+2025-09-09 18:22:04,213 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:22:04,213 - database.connection - INFO - Database connection test successful
+2025-09-09 18:22:04,228 - services.vector_service - INFO - Added topic to vector database: health_check_1757422324
+2025-09-09 18:22:04,228 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:22:04,260 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422324
+2025-09-09 18:22:04,273 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:22:04,277 - database.connection - INFO - Database connection test successful
+2025-09-09 18:22:04,293 - services.vector_service - INFO - Added topic to vector database: health_check_1757422324
+2025-09-09 18:22:04,295 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:22:04,320 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422324
+2025-09-09 18:22:57,881 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:22:57,883 - database.connection - INFO - Database connection test successful
+2025-09-09 18:22:57,908 - services.vector_service - INFO - Added topic to vector database: health_check_1757422377
+2025-09-09 18:22:57,910 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:22:57,932 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422377
+2025-09-09 18:23:05,204 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:23:05,209 - database.connection - INFO - Database connection test successful
+2025-09-09 18:23:05,226 - services.vector_service - INFO - Added topic to vector database: health_check_1757422385
+2025-09-09 18:23:05,226 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:23:05,242 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422385
+2025-09-09 18:23:51,884 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:23:51,884 - database.connection - INFO - Database connection test successful
+2025-09-09 18:23:51,899 - services.vector_service - INFO - Added topic to vector database: health_check_1757422431
+2025-09-09 18:23:51,899 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:23:51,915 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422431
+2025-09-09 18:24:06,218 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:24:06,218 - database.connection - INFO - Database connection test successful
+2025-09-09 18:24:06,234 - services.vector_service - INFO - Added topic to vector database: health_check_1757422446
+2025-09-09 18:24:06,234 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:24:06,250 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422446
+2025-09-09 18:24:06,275 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:24:06,275 - database.connection - INFO - Database connection test successful
+2025-09-09 18:24:06,298 - services.vector_service - INFO - Added topic to vector database: health_check_1757422446
+2025-09-09 18:24:06,298 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:24:06,322 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422446
+2025-09-09 18:24:57,880 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:24:57,882 - database.connection - INFO - Database connection test successful
+2025-09-09 18:24:57,885 - services.vector_service - INFO - Added topic to vector database: health_check_1757422497
+2025-09-09 18:24:57,885 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:24:57,919 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422497
+2025-09-09 18:25:07,205 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:25:07,205 - database.connection - INFO - Database connection test successful
+2025-09-09 18:25:07,217 - services.vector_service - INFO - Added topic to vector database: health_check_1757422507
+2025-09-09 18:25:07,228 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:25:07,248 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422507
+2025-09-09 18:25:51,894 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:25:51,895 - database.connection - INFO - Database connection test successful
+2025-09-09 18:25:51,918 - services.vector_service - INFO - Added topic to vector database: health_check_1757422551
+2025-09-09 18:25:51,920 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:25:51,946 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422551
+2025-09-09 18:26:08,202 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:26:08,203 - database.connection - INFO - Database connection test successful
+2025-09-09 18:26:08,220 - services.vector_service - INFO - Added topic to vector database: health_check_1757422568
+2025-09-09 18:26:08,222 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:26:08,247 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422568
+2025-09-09 18:26:08,260 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:26:08,261 - database.connection - INFO - Database connection test successful
+2025-09-09 18:26:08,283 - services.vector_service - INFO - Added topic to vector database: health_check_1757422568
+2025-09-09 18:26:08,285 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:26:08,307 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422568
+2025-09-09 18:26:57,879 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:26:57,880 - database.connection - INFO - Database connection test successful
+2025-09-09 18:26:57,888 - services.vector_service - INFO - Added topic to vector database: health_check_1757422617
+2025-09-09 18:26:57,898 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:26:57,922 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422617
+2025-09-09 18:27:09,211 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:27:09,211 - database.connection - INFO - Database connection test successful
+2025-09-09 18:27:09,226 - services.vector_service - INFO - Added topic to vector database: health_check_1757422629
+2025-09-09 18:27:09,226 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:27:09,242 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422629
+2025-09-09 18:27:51,895 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:27:51,897 - database.connection - INFO - Database connection test successful
+2025-09-09 18:27:51,913 - services.vector_service - INFO - Added topic to vector database: health_check_1757422671
+2025-09-09 18:27:51,913 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:27:51,942 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422671
+2025-09-09 18:28:10,198 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:28:10,198 - database.connection - INFO - Database connection test successful
+2025-09-09 18:28:10,218 - services.vector_service - INFO - Added topic to vector database: health_check_1757422690
+2025-09-09 18:28:10,220 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:28:10,242 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422690
+2025-09-09 18:28:10,242 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:28:10,258 - database.connection - INFO - Database connection test successful
+2025-09-09 18:28:10,279 - services.vector_service - INFO - Added topic to vector database: health_check_1757422690
+2025-09-09 18:28:10,281 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:28:10,306 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422690
+2025-09-09 18:28:57,894 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:28:57,898 - database.connection - INFO - Database connection test successful
+2025-09-09 18:28:57,914 - services.vector_service - INFO - Added topic to vector database: health_check_1757422737
+2025-09-09 18:28:57,914 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:28:57,942 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422737
+2025-09-09 18:29:11,219 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:29:11,219 - database.connection - INFO - Database connection test successful
+2025-09-09 18:29:11,235 - services.vector_service - INFO - Added topic to vector database: health_check_1757422751
+2025-09-09 18:29:11,237 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:29:11,253 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422751
+2025-09-09 18:29:51,902 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:29:51,902 - database.connection - INFO - Database connection test successful
+2025-09-09 18:29:51,924 - services.vector_service - INFO - Added topic to vector database: health_check_1757422791
+2025-09-09 18:29:51,924 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:29:51,952 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422791
+2025-09-09 18:30:12,227 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:30:12,230 - database.connection - INFO - Database connection test successful
+2025-09-09 18:30:12,246 - services.vector_service - INFO - Added topic to vector database: health_check_1757422812
+2025-09-09 18:30:12,248 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:30:12,274 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422812
+2025-09-09 18:30:12,289 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:30:12,289 - database.connection - INFO - Database connection test successful
+2025-09-09 18:30:12,305 - services.vector_service - INFO - Added topic to vector database: health_check_1757422812
+2025-09-09 18:30:12,305 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:30:12,332 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422812
+2025-09-09 18:30:57,893 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:30:57,893 - database.connection - INFO - Database connection test successful
+2025-09-09 18:30:57,909 - services.vector_service - INFO - Added topic to vector database: health_check_1757422857
+2025-09-09 18:30:57,909 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:30:57,925 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422857
+2025-09-09 18:31:13,209 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:31:13,209 - database.connection - INFO - Database connection test successful
+2025-09-09 18:31:13,226 - services.vector_service - INFO - Added topic to vector database: health_check_1757422873
+2025-09-09 18:31:13,226 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:31:13,253 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422873
+2025-09-09 18:31:51,895 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:31:51,896 - database.connection - INFO - Database connection test successful
+2025-09-09 18:31:51,913 - services.vector_service - INFO - Added topic to vector database: health_check_1757422911
+2025-09-09 18:31:51,914 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:31:51,938 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422911
+2025-09-09 18:32:14,209 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:32:14,209 - database.connection - INFO - Database connection test successful
+2025-09-09 18:32:14,225 - services.vector_service - INFO - Added topic to vector database: health_check_1757422934
+2025-09-09 18:32:14,225 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:32:14,241 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422934
+2025-09-09 18:32:14,267 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:32:14,269 - database.connection - INFO - Database connection test successful
+2025-09-09 18:32:14,273 - services.vector_service - INFO - Added topic to vector database: health_check_1757422934
+2025-09-09 18:32:14,285 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:32:14,304 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422934
+2025-09-09 18:32:57,906 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:32:57,906 - database.connection - INFO - Database connection test successful
+2025-09-09 18:32:57,930 - services.vector_service - INFO - Added topic to vector database: health_check_1757422977
+2025-09-09 18:32:57,930 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:32:57,962 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422977
+2025-09-09 18:33:15,197 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:33:15,199 - database.connection - INFO - Database connection test successful
+2025-09-09 18:33:15,210 - services.vector_service - INFO - Added topic to vector database: health_check_1757422995
+2025-09-09 18:33:15,210 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:33:15,239 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757422995
+2025-09-09 18:33:51,895 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:33:51,895 - database.connection - INFO - Database connection test successful
+2025-09-09 18:33:51,917 - services.vector_service - INFO - Added topic to vector database: health_check_1757423031
+2025-09-09 18:33:51,919 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:33:51,941 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423031
+2025-09-09 18:34:16,225 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:34:16,225 - database.connection - INFO - Database connection test successful
+2025-09-09 18:34:16,239 - services.vector_service - INFO - Added topic to vector database: health_check_1757423056
+2025-09-09 18:34:16,239 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:34:16,271 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423056
+2025-09-09 18:34:16,286 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:34:16,286 - database.connection - INFO - Database connection test successful
+2025-09-09 18:34:16,304 - services.vector_service - INFO - Added topic to vector database: health_check_1757423056
+2025-09-09 18:34:16,306 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:34:16,320 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423056
+2025-09-09 18:34:57,894 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:34:57,898 - database.connection - INFO - Database connection test successful
+2025-09-09 18:34:57,916 - services.vector_service - INFO - Added topic to vector database: health_check_1757423097
+2025-09-09 18:34:57,916 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:34:57,943 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423097
+2025-09-09 18:35:17,194 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:35:17,194 - database.connection - INFO - Database connection test successful
+2025-09-09 18:35:17,210 - services.vector_service - INFO - Added topic to vector database: health_check_1757423117
+2025-09-09 18:35:17,210 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:35:17,239 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423117
+2025-09-09 18:35:51,897 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:35:51,898 - database.connection - INFO - Database connection test successful
+2025-09-09 18:35:51,914 - services.vector_service - INFO - Added topic to vector database: health_check_1757423151
+2025-09-09 18:35:51,914 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:35:51,930 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423151
+2025-09-09 18:36:17,241 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:36:17,241 - database.connection - INFO - Database connection test successful
+2025-09-09 18:36:17,257 - services.vector_service - INFO - Added topic to vector database: health_check_1757423177
+2025-09-09 18:36:17,263 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:36:17,287 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423177
+2025-09-09 18:36:17,298 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:36:17,298 - database.connection - INFO - Database connection test successful
+2025-09-09 18:36:17,320 - services.vector_service - INFO - Added topic to vector database: health_check_1757423177
+2025-09-09 18:36:17,320 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:36:17,346 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423177
+2025-09-09 18:36:57,884 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:36:57,889 - database.connection - INFO - Database connection test successful
+2025-09-09 18:36:57,898 - services.vector_service - INFO - Added topic to vector database: health_check_1757423217
+2025-09-09 18:36:57,898 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:36:57,930 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423217
+2025-09-09 18:37:17,205 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:37:17,205 - database.connection - INFO - Database connection test successful
+2025-09-09 18:37:17,215 - services.vector_service - INFO - Added topic to vector database: health_check_1757423237
+2025-09-09 18:37:17,215 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:37:17,252 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423237
+2025-09-09 18:37:51,903 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:37:51,903 - database.connection - INFO - Database connection test successful
+2025-09-09 18:37:51,912 - services.vector_service - INFO - Added topic to vector database: health_check_1757423271
+2025-09-09 18:37:51,927 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:37:51,955 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423271
+2025-09-09 18:38:17,213 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:38:17,213 - database.connection - INFO - Database connection test successful
+2025-09-09 18:38:17,239 - services.vector_service - INFO - Added topic to vector database: health_check_1757423297
+2025-09-09 18:38:17,241 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:38:17,266 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423297
+2025-09-09 18:38:17,273 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:38:17,273 - database.connection - INFO - Database connection test successful
+2025-09-09 18:38:17,289 - services.vector_service - INFO - Added topic to vector database: health_check_1757423297
+2025-09-09 18:38:17,289 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:38:17,321 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423297
+2025-09-09 18:38:57,879 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:38:57,885 - database.connection - INFO - Database connection test successful
+2025-09-09 18:38:57,902 - services.vector_service - INFO - Added topic to vector database: health_check_1757423337
+2025-09-09 18:38:57,905 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:38:57,928 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423337
+2025-09-09 18:39:17,193 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:39:17,194 - database.connection - INFO - Database connection test successful
+2025-09-09 18:39:17,199 - services.vector_service - INFO - Added topic to vector database: health_check_1757423357
+2025-09-09 18:39:17,199 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:39:17,231 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423357
+2025-09-09 18:39:51,895 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:39:51,897 - database.connection - INFO - Database connection test successful
+2025-09-09 18:39:51,914 - services.vector_service - INFO - Added topic to vector database: health_check_1757423391
+2025-09-09 18:39:51,914 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:39:51,930 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423391
+2025-09-09 18:40:17,193 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:40:17,193 - database.connection - INFO - Database connection test successful
+2025-09-09 18:40:17,211 - services.vector_service - INFO - Added topic to vector database: health_check_1757423417
+2025-09-09 18:40:17,211 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:40:17,246 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423417
+2025-09-09 18:40:17,258 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:40:17,261 - database.connection - INFO - Database connection test successful
+2025-09-09 18:40:17,273 - services.vector_service - INFO - Added topic to vector database: health_check_1757423417
+2025-09-09 18:40:17,273 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:40:17,288 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423417
+2025-09-09 18:40:58,195 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:40:58,195 - database.connection - INFO - Database connection test successful
+2025-09-09 18:40:58,210 - services.vector_service - INFO - Added topic to vector database: health_check_1757423458
+2025-09-09 18:40:58,210 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:40:58,233 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423458
+2025-09-09 18:41:16,911 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:41:16,913 - database.connection - INFO - Database connection test successful
+2025-09-09 18:41:16,929 - services.vector_service - INFO - Added topic to vector database: health_check_1757423476
+2025-09-09 18:41:16,929 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:41:16,945 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423476
+2025-09-09 18:41:51,879 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:41:51,879 - database.connection - INFO - Database connection test successful
+2025-09-09 18:41:51,895 - services.vector_service - INFO - Added topic to vector database: health_check_1757423511
+2025-09-09 18:41:51,895 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:41:51,926 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423511
+2025-09-09 18:42:17,202 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:42:17,202 - database.connection - INFO - Database connection test successful
+2025-09-09 18:42:17,218 - services.vector_service - INFO - Added topic to vector database: health_check_1757423537
+2025-09-09 18:42:17,218 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:42:17,242 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423537
+2025-09-09 18:42:17,254 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:42:17,254 - database.connection - INFO - Database connection test successful
+2025-09-09 18:42:17,270 - services.vector_service - INFO - Added topic to vector database: health_check_1757423537
+2025-09-09 18:42:17,270 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:42:17,301 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423537
+2025-09-09 18:42:57,890 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:42:57,894 - database.connection - INFO - Database connection test successful
+2025-09-09 18:42:57,912 - services.vector_service - INFO - Added topic to vector database: health_check_1757423577
+2025-09-09 18:42:57,914 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:42:57,930 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423577
+2025-09-09 18:43:17,215 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:43:17,216 - database.connection - INFO - Database connection test successful
+2025-09-09 18:43:17,233 - services.vector_service - INFO - Added topic to vector database: health_check_1757423597
+2025-09-09 18:43:17,235 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:43:17,258 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423597
+2025-09-09 18:43:51,891 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:43:51,896 - database.connection - INFO - Database connection test successful
+2025-09-09 18:43:51,914 - services.vector_service - INFO - Added topic to vector database: health_check_1757423631
+2025-09-09 18:43:51,915 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:43:51,937 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423631
+2025-09-09 18:44:17,194 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:44:17,194 - database.connection - INFO - Database connection test successful
+2025-09-09 18:44:17,210 - services.vector_service - INFO - Added topic to vector database: health_check_1757423657
+2025-09-09 18:44:17,210 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:44:17,240 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423657
+2025-09-09 18:44:17,256 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:44:17,256 - database.connection - INFO - Database connection test successful
+2025-09-09 18:44:17,273 - services.vector_service - INFO - Added topic to vector database: health_check_1757423657
+2025-09-09 18:44:17,273 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:44:17,302 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423657
+2025-09-09 18:44:57,902 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:44:57,910 - database.connection - INFO - Database connection test successful
+2025-09-09 18:44:57,926 - services.vector_service - INFO - Added topic to vector database: health_check_1757423697
+2025-09-09 18:44:57,926 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:44:57,957 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423697
+2025-09-09 18:45:17,198 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:45:17,198 - database.connection - INFO - Database connection test successful
+2025-09-09 18:45:17,210 - services.vector_service - INFO - Added topic to vector database: health_check_1757423717
+2025-09-09 18:45:17,210 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:45:17,246 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423717
+2025-09-09 18:45:51,908 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:45:51,910 - database.connection - INFO - Database connection test successful
+2025-09-09 18:45:51,920 - services.vector_service - INFO - Added topic to vector database: health_check_1757423751
+2025-09-09 18:45:51,920 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:45:51,950 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423751
+2025-09-09 18:46:17,221 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:46:17,221 - database.connection - INFO - Database connection test successful
+2025-09-09 18:46:17,242 - services.vector_service - INFO - Added topic to vector database: health_check_1757423777
+2025-09-09 18:46:17,242 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:46:17,261 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423777
+2025-09-09 18:46:17,300 - database.connection - INFO - Database 'topic_clustering' created or already exists.
+2025-09-09 18:46:17,300 - database.connection - INFO - Database connection test successful
+2025-09-09 18:46:17,321 - services.vector_service - INFO - Added topic to vector database: health_check_1757423777
+2025-09-09 18:46:17,322 - services.vector_service - INFO - Found 1 similar topics above threshold 0.0
+2025-09-09 18:46:17,347 - services.vector_service - INFO - Deleted topic from vector database: health_check_1757423777

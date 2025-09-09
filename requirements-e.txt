@@ -26,7 +26,6 @@ coloredlogs==15.0.1
 confection==0.1.5
 cymem==2.0.11
 decorator==5.2.1
-deeppavlov==1.7.0
 defusedxml==0.7.1
 Deprecated==1.2.18
 diskcache==5.6.3
@@ -74,9 +73,9 @@ matplotlib-inline==0.1.7
 mccabe==0.7.0
 mdurl==0.1.2
 mistune==3.1.4
-mlx==0.29.0
-mlx-lm==0.27.1
-mlx-metal==0.29.0
+mlx==0.29.0; sys_platform == "darwin"
+mlx-lm==0.27.1; sys_platform == "darwin"
+mlx-metal==0.29.0; sys_platform == "darwin"
 mmh3==5.2.0
 mpmath==1.3.0
 murmurhash==1.0.13
@@ -87,7 +86,7 @@ nbconvert==7.16.6
 nbformat==5.10.4
 networkx==3.2.1
 nltk==3.9.1
-numpy==1.24.3
+numpy
 oauthlib==3.3.1
 onnxruntime==1.19.2
 opentelemetry-api==1.27.0
@@ -181,7 +180,7 @@ typing_extensions==4.15.0
 tzdata==2025.2
 urllib3==2.5.0
 uvicorn==0.24.0
-uvloop==0.21.0
+uvloop==0.21.0; sys_platform != "win32"
 wasabi==1.1.3
 watchfiles==1.1.0
 wcwidth==0.2.13
