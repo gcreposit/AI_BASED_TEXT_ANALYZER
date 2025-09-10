@@ -61,7 +61,7 @@ async def lifespan(app: FastAPI):
 
         # Option 2: If you want to use config but modify it
         # Assuming config.MISTRAL_MODEL_NAME contains the model path
-        ner_extractor = MistralNERExtractor(model_path=config.MISTRAL_MODEL_PATH,model_id=config.MISTRAL_MODEL_NAME)
+        ner_extractor = MistralNERExtractor(model_id=config.MISTRAL_MODEL_NAME)
         logger.info("✅ Mistral NER extractor loaded from config path")
 
         # Option 3: If config.MISTRAL_MODEL_NAME is a model ID and you want auto-detection

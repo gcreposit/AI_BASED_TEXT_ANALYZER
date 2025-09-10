@@ -26,7 +26,7 @@ class Config:
     # Model Configuration
     BGE_MODEL_NAME = os.getenv("BGE_MODEL_NAME", "BAAI/bge-m3")
     MISTRAL_MODEL_NAME = os.getenv("MISTRAL_MODEL_NAME", "mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit")
-    MISTRAL_MODEL_PATH = os.getenv("MISTRAL_MODEL_PATH", "/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit")
+    # MISTRAL_MODEL_PATH = os.getenv("MISTRAL_MODEL_PATH", "/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit")
 
     # Processing Configuration
     SIMILARITY_THRESHOLD = float(os.getenv("SIMILARITY_THRESHOLD", "0.80"))
