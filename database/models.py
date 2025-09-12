@@ -3,13 +3,14 @@ Database models for the Multilingual Topic Clustering System
 """
 
 from sqlalchemy import Column, String, Text, DateTime, Float, Integer, JSON, Boolean, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
 from datetime import datetime
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 
 class Topic(Base):

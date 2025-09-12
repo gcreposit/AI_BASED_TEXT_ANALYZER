@@ -539,7 +539,7 @@ class TopicClusteringService:
                     processing_time_ms=int(processing_time),
                     error_message=result.get("error", ""),
                     user_id=user_id,
-                    meta_data={
+                    metadata_info={
                         "language": result.get("detected_language"),
                         "action": result.get("action"),
                         "confidence": result.get("confidence"),

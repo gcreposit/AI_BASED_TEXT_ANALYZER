@@ -79,7 +79,7 @@ class TopicClusteringResponse(BaseModel):
     source_type: str = Field(..., description="Source type of the text")
     embedding_model: str = Field(default="BAAI/bge-m3", description="Embedding model used")
     processing_time_ms: int = Field(..., description="Processing time in milliseconds")
-    extracted_entities: ExtractedEntities = Field(..., description="Extracted entities and meta_data")
+    extracted_entities: ExtractedEntities = Field(..., description="Extracted entities and metadata")
     boost_reasons: List[str] = Field(default_factory=list, description="Reasons for similarity boost")
     timestamp: float = Field(..., description="Processing timestamp")
 
@@ -142,7 +142,7 @@ class SearchResult(BaseModel):
     """Schema for individual search results"""
     topic_id: str = Field(..., description="Topic identifier")
     similarity: float = Field(..., description="Similarity score")
-    meta_data: Dict[str, Any] = Field(..., description="Topic meta_data")
+    metadata: Dict[str, Any] = Field(..., description="Topic metadata")
     document: str = Field(..., description="Representative document")
 
 
