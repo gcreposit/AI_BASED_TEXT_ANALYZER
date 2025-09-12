@@ -176,19 +176,20 @@ class PipelineProcessor:
     def _add_analysis_status_column(self):
         """Add analysisStatus column to post_bank table"""
         try:
+            from sqlalchemy import text
             with engine.connect() as conn:
                 # Check if column exists
                 result = conn.execute(
-                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
-                    "WHERE TABLE_SCHEMA = %s AND TABLE_NAME = 'post_bank' "
-                    "AND COLUMN_NAME = 'analysisStatus'",
-                    (DUMP_DB_CONFIG['database'],)
+                    text("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                         "WHERE TABLE_SCHEMA = :schema AND TABLE_NAME = 'post_bank' "
+                         "AND COLUMN_NAME = 'analysisStatus'"),
+                    {'schema': DUMP_DB_CONFIG['database']}
                 )
                 
                 if result.fetchone()[0] == 0:
                     # Column doesn't exist, add it
                     conn.execute(
-                        "ALTER TABLE post_bank ADD COLUMN analysisStatus VARCHAR(20) DEFAULT 'NOT_ANALYZED'"
+                        text("ALTER TABLE post_bank ADD COLUMN analysisStatus VARCHAR(20) DEFAULT 'NOT_ANALYZED'")
                     )
                     conn.commit()
                     logger.info("Added analysisStatus column to post_bank table")
