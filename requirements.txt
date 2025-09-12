@@ -1,0 +1,16 @@
+dotenv
+sqlalchemy
+mysql-connector-python
+fastapi
+huggingface-hub
+sentence_transformers
+langdetect
+chromadb
+sentencepiece
+pymysql
+accelerate
+hf_xet
+transformers
+bitsandbytes
+vllm
+cryptography

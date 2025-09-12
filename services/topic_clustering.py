@@ -527,6 +527,29 @@ class TopicClusteringService:
         elif action == "merged_topics":
             self.stats['topics_merged'] += 1
 
+    # def _log_processing(self, result: Dict[str, Any], processing_time: float, user_id: Optional[str]):
+    #     """Log processing operation"""
+    #     try:
+    #         with self.db_manager.get_session() as session:
+    #             from database.models import ProcessingLog
+    #
+    #             log_entry = ProcessingLog(
+    #                 operation_type="text_clustering",
+    #                 status="success" if "error" not in result else "failure",
+    #                 processing_time_ms=int(processing_time),
+    #                 error_message=result.get("error", ""),
+    #                 user_id=user_id,
+    #                 meta_data={
+    #                     "language": result.get("detected_language"),
+    #                     "action": result.get("action"),
+    #                     "confidence": result.get("confidence"),
+    #                     "topic_id": result.get("topic_id")
+    #                 }
+    #             )
+    #             session.add(log_entry)
+    #     except Exception as e:
+    #         logger.error(f"Failed to log processing: {e}")
+
     def _log_processing(self, result: Dict[str, Any], processing_time: float, user_id: Optional[str]):
         """Log processing operation"""
         try:

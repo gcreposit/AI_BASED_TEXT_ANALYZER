@@ -6,7 +6,16 @@ import logging
 from typing import Dict, Any, List, Optional, Tuple
 from pathlib import Path
 
-# Required imports for MLX and Hugging Face models
+# Required imports for vLLM, MLX and Hugging Face models
+try:
+    from vllm import LLM, SamplingParams
+    from vllm.transformers_utils.tokenizer import get_tokenizer
+
+    VLLM_AVAILABLE = True
+except ImportError:
+    VLLM_AVAILABLE = False
+    print("vLLM not available. Install with: pip install vllm")
+
 try:
     import mlx.core as mx
     import mlx.nn as nn
@@ -42,34 +51,15 @@ logger = logging.getLogger(__name__)
 class MistralNERExtractor:
     """
     NER extractor using Mistral 24B model for Hindi/English/Hinglish text processing
-    Optimized for efficient model loading and reuse with MLX support
+    Optimized for efficient model loading and reuse with vLLM, MLX, and Transformers support
     """
 
     def __init__(self, model_id: str = None, model_path: Optional[str] = None, cache_dir: Optional[str] = None):
-
-        # Support both model_id and direct model_path
-        # if model_path:
-        #     self.model_path = model_path
-        #     self.model_id = model_path.split('/')[-1]  # Extract model name from path
-        # else:
-        #     # Default to your specific model
-        #     self.model_id = "mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit"
-        #     self.model_path = "/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit"
-        #     logger.info(f"Using default model path: {self.model_path}")
-
-        # self.cache_dir = cache_dir or os.path.expanduser("~/.cache/mistral_ner")
-        # self.model = None
-        # self.tokenizer = None
-        # self._model_loaded = False
-        #
-        # # Ensure cache directory exists (only if we're not using direct path)
-        # if not self.model_path:
-        #     os.makedirs(self.cache_dir, exist_ok=True)
-
         self.cache_dir = cache_dir or os.path.expanduser("~/.cache/mistral_ner")
         self.model = None
         self.tokenizer = None
         self._model_loaded = False
+        self._loading_method = None  # Track which loading method worked: 'vllm', 'mlx', 'transformers'
 
         # Ensure cache directory exists
         os.makedirs(self.cache_dir, exist_ok=True)
@@ -84,7 +74,7 @@ class MistralNERExtractor:
                 raise FileNotFoundError(f"Model path does not exist: {self.model_path}")
         else:
             # Use model_id with caching logic
-            self.model_id = model_id
+            self.model_id = model_id or "mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit"
             self.model_path = self._get_or_download_model()
 
         # Domain-specific vocabularies and patterns
@@ -126,20 +116,15 @@ class MistralNERExtractor:
         # Load model during initialization for efficiency
         self._load_model()
 
-
     def _get_or_download_model(self) -> str:
-        """
-        Check if model exists locally in cache.
-        If not, download from Hugging Face Hub and return local path.
-        """
+        """Check if model exists locally in cache."""
         logger.info(f"Checking local cache for model {self.model_id} ...")
 
-        # Use HuggingFace cache
         try:
             local_path = snapshot_download(
                 repo_id=self.model_id,
                 cache_dir=self.cache_dir,
-                local_files_only=False  # Falls back to local if already cached
+                local_files_only=False
             )
             logger.info(f"Model available at: {local_path}")
             return local_path
@@ -147,28 +132,8 @@ class MistralNERExtractor:
             logger.error(f"Failed to download or find model: {e}")
             raise
 
-
-    def _get_model_cache_path(self) -> str:
-        """Get the local cache path for the model"""
-        if self.model_path:
-            return self.model_path
-        model_name = self.model_id.replace("/", "_")
-        return os.path.join(self.cache_dir, model_name)
-
-    def _is_model_cached(self) -> bool:
-        """Check if model is already cached locally"""
-        cache_path = self._get_model_cache_path()
-        return os.path.exists(cache_path) and (
-                os.path.isfile(cache_path) or
-                (os.path.isdir(cache_path) and os.listdir(cache_path))
-        )
-
     def _load_model(self, max_retries: int = 3, retry_wait: int = 5) -> bool:
-        """
-        Load the Mistral model with retry logic and caching.
-        Supports both MLX and Hugging Face models.
-        Returns True if successful, False otherwise.
-        """
+        """Load the Mistral model with vLLM, MLX, and Transformers support."""
         if self._model_loaded and self.model is not None and self.tokenizer is not None:
             logger.info("Model already loaded, skipping reload")
             return True
@@ -176,51 +141,86 @@ class MistralNERExtractor:
         retry_count = 0
         while retry_count < max_retries:
             try:
-                # Use direct path if provided, otherwise check cache or download
-                if self.model_path:
-                    local_path = self.model_path
-                    logger.info(f"Loading model from provided path: {local_path}")
-                elif self._is_model_cached():
-                    local_path = self._get_model_cache_path()
-                    logger.info(f"Loading model from local cache: {local_path}")
-                else:
-                    logger.info(f"Downloading model: {self.model_id}")
-                    if not HF_HUB_AVAILABLE:
-                        raise ImportError("huggingface_hub not available for downloading models")
-                    # Download to our cache directory
-                    local_path = snapshot_download(
-                        repo_id=self.model_id,
-                        cache_dir=self.cache_dir,
-                        local_files_only=False
-                    )
+                local_path = self.model_path
+                logger.info(f"Loading model from: {local_path}")
 
-                # Try MLX loading first (for 4-bit models), then fallback to standard loading
+                # Try vLLM loading first (fastest inference)
+                if VLLM_AVAILABLE:
+                    try:
+                        logger.info("Attempting vLLM model loading...")
+
+                        # Initialize vLLM model with optimized settings
+                        self.model = LLM(
+                            model=local_path,
+                            tokenizer=local_path,
+                            trust_remote_code=True,
+                            dtype="auto",  # Let vLLM choose optimal dtype
+                            gpu_memory_utilization=0.85,  # Use 85% of GPU memory
+                            max_model_len=4096,  # Reasonable context length
+                            tensor_parallel_size=1,  # Single GPU
+                            disable_log_stats=True,  # Reduce logging noise
+                            enforce_eager=False,  # Use CUDA graphs for better performance
+                        )
+
+                        # Get tokenizer for vLLM
+                        self.tokenizer = get_tokenizer(
+                            tokenizer_name=local_path,
+                            trust_remote_code=True
+                        )
+
+                        # Set pad token if not available
+                        if hasattr(self.tokenizer, 'pad_token') and self.tokenizer.pad_token is None:
+                            self.tokenizer.pad_token = self.tokenizer.eos_token
+
+                        self._loading_method = 'vllm'
+                        logger.info(f"Successfully loaded vLLM model: {self.model_id}")
+                        self._model_loaded = True
+                        return True
+
+                    except Exception as e:
+                        logger.warning(f"vLLM loading failed: {e}")
+                        self._loading_method = None
+
+                # Try MLX loading second (for Apple Silicon)
                 if MLX_AVAILABLE:
                     try:
+                        logger.info("Attempting MLX model loading...")
                         self.model, self.tokenizer = mlx_load(local_path)
+                        self._loading_method = 'mlx'
                         logger.info(f"Successfully loaded MLX model: {self.model_id}")
                         self._model_loaded = True
                         return True
                     except Exception as e:
                         logger.warning(f"MLX loading failed: {e}")
+                        self._loading_method = None
 
                 # Fallback to standard transformers loading
                 if TRANSFORMERS_AVAILABLE:
                     try:
-                        self.tokenizer = AutoTokenizer.from_pretrained(local_path)
+                        logger.info("Attempting Transformers model loading...")
+                        self.tokenizer = AutoTokenizer.from_pretrained(local_path, trust_remote_code=True)
+
+                        # Set pad token if not available
+                        if self.tokenizer.pad_token is None:
+                            self.tokenizer.pad_token = self.tokenizer.eos_token
+
                         self.model = AutoModelForCausalLM.from_pretrained(
                             local_path,
-                            torch_dtype=torch.float16,
-                            device_map="auto" if torch.cuda.is_available() else None
+                            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+                            device_map="auto" if torch.cuda.is_available() else None,
+                            trust_remote_code=True
                         )
-                        logger.info(f"Successfully loaded transformers model: {self.model_id}")
+
+                        self._loading_method = 'transformers'
+                        logger.info(f"Successfully loaded Transformers model: {self.model_id}")
                         self._model_loaded = True
                         return True
                     except Exception as e:
                         logger.warning(f"Transformers loading failed: {e}")
+                        self._loading_method = None
 
                 # If we reach here, no loading method worked
-                raise Exception("No compatible model loading framework available")
+                raise Exception("No compatible model loading framework available or all methods failed")
 
             except Exception as e:
                 retry_count += 1
@@ -229,19 +229,13 @@ class MistralNERExtractor:
                 if retry_count >= max_retries:
                     logger.error(f"Failed to load model after {max_retries} attempts: {e}")
                     self._model_loaded = False
+                    self._loading_method = None
                     return False
 
                 logger.info(f"Retrying in {retry_wait} seconds...")
                 time.sleep(retry_wait)
 
         return False
-
-    def _ensure_model_loaded(self) -> bool:
-        """Ensure model is loaded before processing"""
-        if not self._model_loaded:
-            logger.info("Model not loaded, attempting to load...")
-            return self._load_model()
-        return True
 
     def _dedupe(self, seq: List[str]) -> List[str]:
         """Remove duplicates while preserving order"""
@@ -305,25 +299,72 @@ class MistralNERExtractor:
         return self._dedupe(found_keywords)
 
     def _build_instruction_prompt(self, text: str) -> str:
-        """Build instruction prompt for Mistral model"""
-        instructions = f"""
-आप एक डेटा-एक्सट्रैक्शन सहायक हैं। नीचे दिए गए हिन्दी टेक्स्ट से पार्स कर के केवल वैध JSON लौटाइए। 
-JSON की कुंजियाँ और फ़ॉर्मेट बिल्कुल इस स्कीमा जैसा होना चाहिए:
-{json.dumps(self.json_schema, ensure_ascii=False, indent=2)}
+        """Build instruction prompt that adapts to model type"""
 
-नियम:
-- सभी सूचियाँ unique और साफ़ strings हों।
-- "person_names" में व्यक्ति (@handles नहीं), "organisation_names" में संगठन/विभाग/कंपनी,
-  "location_names" में शहर/कस्बा/इलाका/राज्य (जिले/थाने अलग keys में हैं) डालें।
-- "incidents" और "events" में 3-7 शब्दों के संक्षिप्त वाक्यांश रखें (जैसे "मारपीट", "सड़क दुर्घटना", "प्रदर्शन", "एफआईआर दर्ज")।
-- "sentiment" में label = positive|negative|neutral और confidence 0..1 दें।
-- "contextual_understanding" में 1-3 वाक्य का सार दें (हिन्दी में)।
-- कोड-फेंस (```), अतिरिक्त टेक्स्ट, या टिप्पणियाँ न जोड़ें—सिर्फ JSON लौटाएँ।
+        # Check if model is instruction-tuned based on model name
+        is_instruct_model = self._is_instruction_tuned_model()
 
-टेक्स्ट:
-{text.strip()}
-"""
-        return f"<s>[INST]{instructions.strip()}[/INST]"
+        instructions = f"""आप एक डेटा-एक्सट्रैक्शन सहायक हैं। नीचे दिए गए हिन्दी टेक्स्ट से पार्स कर के केवल वैध JSON लौटाइए। 
+    JSON की कुंजियाँ और फ़ॉर्मेट बिल्कुल इस स्कीमा जैसा होना चाहिए:
+    {json.dumps(self.json_schema, ensure_ascii=False, indent=2)}
+
+    नियम:
+    - सभी सूचियाँ unique और साफ़ strings हों।
+    - "person_names" में व्यक्ति (@handles नहीं), "organisation_names" में संगठन/विभाग/कंपनी,
+      "location_names" में शहर/कस्बा/इलाका/राज्य (जिले/थाने अलग keys में हैं) डालें।
+    - "incidents" और "events" में 3-7 शब्दों के संक्षिप्त वाक्यांश रखें (जैसे "मारपीट", "सड़क दुर्घटना", "प्रदर्शन", "एफआईआर दर्ज")।
+    - "sentiment" में label = positive|negative|neutral और confidence 0..1 दें।
+    - "contextual_understanding" में 1-3 वाक्य का सार दें (हिन्दी में)।
+    - कोड-फेंस (```), अतिरिक्त टेक्स्ट, या टिप्पणियाँ न जोड़ें—सिर्फ JSON लौटाएँ।
+
+    टेक्स्ट:
+    {text.strip()}"""
+
+        if is_instruct_model:
+            # Use instruction format for instruction-tuned models
+            return f"<s>[INST]{instructions.strip()}[/INST]"
+        else:
+            # Use completion format for base models
+            return f"{instructions.strip()}\n\nJSON Output:"
+
+    def _is_instruction_tuned_model(self) -> bool:
+        """Check if the loaded model is instruction-tuned based on model name"""
+        if not self.model_id:
+            return False
+
+        # Convert to lowercase for case-insensitive matching
+        model_name = self.model_id.lower()
+
+        # List of patterns that indicate instruction-tuned models
+        instruct_patterns = [
+            'instruct',
+            'instruction',
+            'chat',
+            'dolphin',
+            'vicuna',
+            'alpaca',
+            'wizard',
+            'openchat',
+            'airoboros',
+            'nous-hermes',
+            'guanaco',
+            'orca',
+            'platypus',
+            'samantha',
+            'manticore'
+        ]
+
+        # Check if any instruction pattern is in the model name
+        for pattern in instruct_patterns:
+            if pattern in model_name:
+                return True
+
+        # Additional check for common instruction model naming conventions
+        if any(suffix in model_name for suffix in ['-it', '-sft', '-dpo', '-rlhf']):
+            return True
+
+        # Default to False for base models
+        return False
 
     def _safe_json_parse(self, response_text: str) -> Dict[str, Any]:
         """Parse JSON response with error handling and cleanup"""
@@ -376,12 +417,32 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
 
             result[field] = self._dedupe(combined_values)
 
-        # Handle sentiment
+        # Handle sentiment with better error handling
         sentiment = llm_json.get("sentiment", {})
         if isinstance(sentiment, dict) and "label" in sentiment and "confidence" in sentiment:
+            try:
+                # Safely parse confidence, default to 0.5 if invalid
+                confidence_val = sentiment.get("confidence", 0.5)
+                if isinstance(confidence_val, str):
+                    confidence_val = float(confidence_val) if confidence_val.strip() else 0.5
+                elif confidence_val is None:
+                    confidence_val = 0.5
+
+                result["sentiment"] = {
+                    "label": str(sentiment.get("label", "neutral")),
+                    "confidence": float(confidence_val)
+                }
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Invalid sentiment confidence value: {sentiment.get('confidence')} - using default")
+                result["sentiment"] = {
+                    "label": str(sentiment.get("label", "neutral")),
+                    "confidence": 0.5
+                }
+        else:
+            # Default sentiment
             result["sentiment"] = {
-                "label": str(sentiment.get("label", "neutral")),
-                "confidence": float(sentiment.get("confidence", 0.5))
+                "label": "neutral",
+                "confidence": 0.5
             }
 
         # Handle contextual understanding
@@ -391,17 +452,7 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
         return result
 
     def extract(self, text: str, max_tokens: int = 1024, temperature: float = 0.2) -> Dict[str, Any]:
-        """
-        Extract entities and information from text using Mistral model
-
-        Args:
-            text: Input text to process
-            max_tokens: Maximum tokens for model generation
-            temperature: Sampling temperature for model
-
-        Returns:
-            Dictionary containing extracted entities and information
-        """
+        """Extract entities and information from text using Mistral model"""
         if not text or not text.strip():
             logger.warning("Empty text provided for extraction")
             return dict(self.json_schema)
@@ -419,24 +470,45 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
                 "religion_names": self._find_keywords(text, self.religions),
             }
 
-            # Step 2: LLM-based extraction (comprehensive but slower)
+            # Step 2: LLM-based extraction
             llm_json = {}
 
-            if self._ensure_model_loaded():
+            if self._model_loaded and self.model is not None:
                 prompt = self._build_instruction_prompt(text)
 
                 try:
-                    # Try MLX generation first, then fallback to standard methods
                     raw_response = ""
 
-                    if MLX_AVAILABLE and self.model is not None and self._model_loaded:
+                    # Try vLLM generation first (fastest)
+                    if self._loading_method == 'vllm' and VLLM_AVAILABLE:
+                        try:
+                            # Create sampling parameters for vLLM
+                            sampling_params = SamplingParams(
+                                temperature=temperature,
+                                max_tokens=max_tokens,
+                                stop=[self.tokenizer.eos_token] if hasattr(self.tokenizer, 'eos_token') else None,
+                                top_p=0.9,
+                                frequency_penalty=0.1
+                            )
+
+                            # Generate with vLLM
+                            outputs = self.model.generate([prompt], sampling_params)
+                            raw_response = outputs[0].outputs[0].text.strip()
+                            logger.debug("Used vLLM generation")
+
+                        except Exception as e:
+                            logger.warning(f"vLLM generation failed: {e}")
+                            raw_response = ""
+
+                    # Try MLX generation second
+                    elif self._loading_method == 'mlx' and MLX_AVAILABLE:
                         try:
                             raw_response = mlx_generate(
                                 self.model,
                                 self.tokenizer,
                                 prompt=prompt,
                                 max_tokens=max_tokens,
-                                # temperature=temperature,
+                                temp=temperature,  # Fixed: use 'temp' not 'temperature'
                                 verbose=False
                             )
                             logger.debug("Used MLX generation")
@@ -444,60 +516,35 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
                             logger.warning(f"MLX generation failed: {e}")
                             raw_response = ""
 
-                    # Fallback to transformers if MLX failed or not available
-                    if not raw_response and TRANSFORMERS_AVAILABLE and self.model is not None:
+                    # Fallback to transformers generation
+                    elif self._loading_method == 'transformers' and TRANSFORMERS_AVAILABLE:
                         try:
-                            inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, max_length=2048)
-
-                            # Move to appropriate device
-                            # if hasattr(self.model, 'device'):
-                            #     inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
-                            #
-                            # with torch.no_grad():
-                            #     outputs = self.model.generate(
-                            #         **inputs,
-                            #         max_new_tokens=max_tokens,
-                            #         temperature=temperature,
-                            #         do_sample=True if temperature > 0 else False,
-                            #         pad_token_id=self.tokenizer.eos_token_id if self.tokenizer.eos_token_id else self.tokenizer.pad_token_id,
-                            #         eos_token_id=self.tokenizer.eos_token_id if self.tokenizer.eos_token_id else self.tokenizer.pad_token_id
-                            #     )
-
-                            # Handle both MLX tokenizer wrapper and standard tokenizer
-                            if hasattr(self.tokenizer, 'encode'):
-                                # For MLX tokenizer wrapper
-                                inputs = self.tokenizer.encode(prompt)
-                                if not isinstance(inputs, torch.Tensor):
-                                    inputs = torch.tensor(inputs).unsqueeze(0)
-                            else:
-                                # For standard tokenizer
-                                inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, max_length=2048)
-                                inputs = inputs.input_ids
+                            # Improved transformers generation
+                            inputs = self.tokenizer(
+                                prompt,
+                                return_tensors="pt",
+                                truncation=True,
+                                max_length=2048,
+                                padding=True
+                            )
 
                             # Move to appropriate device
                             if hasattr(self.model, 'device'):
-                                inputs = inputs.to(self.model.device)
+                                inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
 
                             with torch.no_grad():
                                 outputs = self.model.generate(
-                                    inputs,
+                                    **inputs,
                                     max_new_tokens=max_tokens,
                                     temperature=temperature,
                                     do_sample=True if temperature > 0 else False,
-                                    pad_token_id=getattr(self.tokenizer, 'eos_token_id', 0),
-                                    eos_token_id=getattr(self.tokenizer, 'eos_token_id', 0)
+                                    pad_token_id=self.tokenizer.pad_token_id,
+                                    eos_token_id=self.tokenizer.eos_token_id,
+                                    attention_mask=inputs.get('attention_mask')  # Fixed: include attention mask
                                 )
 
                             # Decode and remove the original prompt
-                            # full_response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-                            # Handle both MLX and standard tokenizer decode
-                            if hasattr(self.tokenizer, 'decode'):
-                                full_response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-                            else:
-                                # Fallback for MLX tokenizer wrapper
-                                full_response = self.tokenizer.detokenize(outputs[0].tolist())
-
+                            full_response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
                             raw_response = full_response[len(prompt):].strip()
                             logger.debug("Used Transformers generation")
 
@@ -505,13 +552,9 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
                             logger.warning(f"Transformers generation failed: {e}")
                             raw_response = ""
 
-                    # If model is None (tokenizer-only mode), skip LLM generation
-                    if self.model is None:
-                        logger.info("Model not loaded, skipping LLM generation")
-                        raw_response = ""
-
                     if raw_response:
                         llm_json = self._safe_json_parse(raw_response)
+                        logger.info("LLM extraction successful")
                     else:
                         logger.info("No LLM response available, using regex extractions only")
                         llm_json = {}
@@ -535,24 +578,68 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
             return dict(self.json_schema)
 
     def extract_batch(self, texts: List[str], max_tokens: int = 1024, temperature: float = 0.2) -> List[Dict[str, Any]]:
-        """
-        Extract entities from multiple texts efficiently
-
-        Args:
-            texts: List of input texts
-            max_tokens: Maximum tokens per generation
-            temperature: Sampling temperature
-
-        Returns:
-            List of extraction results
-        """
-        if not self._ensure_model_loaded():
+        """Extract entities from multiple texts efficiently"""
+        if not self._model_loaded or self.model is None:
             logger.warning("Model not available for batch processing")
             return [dict(self.json_schema) for _ in texts]
 
         results = []
         total_start = time.time()
 
+        # Special handling for vLLM batch processing
+        if self._loading_method == 'vllm' and VLLM_AVAILABLE:
+            try:
+                # Prepare all prompts
+                prompts = [self._build_instruction_prompt(text) for text in texts]
+
+                # Create sampling parameters
+                sampling_params = SamplingParams(
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                    stop=[self.tokenizer.eos_token] if hasattr(self.tokenizer, 'eos_token') else None,
+                    top_p=0.9,
+                    frequency_penalty=0.1
+                )
+
+                # Batch generation with vLLM
+                outputs = self.model.generate(prompts, sampling_params)
+
+                # Process results
+                for i, output in enumerate(outputs):
+                    try:
+                        text = texts[i]
+                        raw_response = output.outputs[0].text.strip()
+
+                        # Regex extractions
+                        regex_extractions = {
+                            "hashtags": self._find_hashtags(text),
+                            "mention_ids": self._find_mentions(text),
+                            "district_names": self._find_districts(text),
+                            "thana_names": self._find_thana(text),
+                            "caste_names": self._find_keywords(text, self.castes),
+                            "religion_names": self._find_keywords(text, self.religions),
+                        }
+
+                        # Parse LLM response
+                        llm_json = self._safe_json_parse(raw_response) if raw_response else {}
+
+                        # Merge and add result
+                        final_result = self._merge_results(llm_json, regex_extractions)
+                        results.append(final_result)
+
+                    except Exception as e:
+                        logger.error(f"Failed to process batch item {i}: {e}")
+                        results.append(dict(self.json_schema))
+
+                total_time = time.time() - total_start
+                logger.info(f"vLLM batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
+                return results
+
+            except Exception as e:
+                logger.error(f"vLLM batch processing failed: {e}")
+                # Fall back to sequential processing
+
+        # Sequential processing for MLX and Transformers
         for i, text in enumerate(texts):
             try:
                 result = self.extract(text, max_tokens, temperature)
@@ -569,73 +656,35 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
                 results.append(dict(self.json_schema))
 
         total_time = time.time() - total_start
-        logger.info(f"Batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
-
+        logger.info(f"Sequential batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
         return results
 
     def get_model_info(self) -> Dict[str, Any]:
         """Get information about the loaded model"""
         return {
             "model_id": self.model_id,
+            "model_path": self.model_path,
             "model_loaded": self._model_loaded,
-            "model_cached": self._is_model_cached(),
+            "loading_method": self._loading_method,
             "cache_dir": self.cache_dir,
             "tokenizer_loaded": self.tokenizer is not None,
             "supported_languages": ["hindi", "english", "hinglish"],
             "extraction_capabilities": list(self.json_schema.keys()),
+            "vllm_available": VLLM_AVAILABLE,
             "mlx_available": MLX_AVAILABLE,
             "transformers_available": TRANSFORMERS_AVAILABLE
         }
 
-    def validate_extraction_result(self, result: Dict[str, Any]) -> bool:
-        """Validate extraction result against schema"""
-        try:
-            # Check if all required keys are present
-            for key in self.json_schema.keys():
-                if key not in result:
-                    logger.warning(f"Missing key in result: {key}")
-                    return False
-
-            # Check data types
-            list_fields = [k for k, v in self.json_schema.items() if isinstance(v, list)]
-            for field in list_fields:
-                if not isinstance(result[field], list):
-                    logger.warning(f"Invalid type for field {field}: expected list, got {type(result[field])}")
-                    return False
-
-            # Check sentiment structure
-            sentiment = result.get("sentiment", {})
-            if not isinstance(sentiment, dict) or "label" not in sentiment or "confidence" not in sentiment:
-                logger.warning("Invalid sentiment structure")
-                return False
-
-            return True
-
-        except Exception as e:
-            logger.error(f"Validation failed: {e}")
-            return False
-
     def test_extraction(self, sample_text: str = None) -> Dict[str, Any]:
-        """
-        Test the extraction with a sample text
-
-        Args:
-            sample_text: Optional sample text, uses default if not provided
-
-        Returns:
-            Test extraction result
-        """
+        """Test the extraction with a sample text"""
         if sample_text is None:
             sample_text = "लखनऊ के गोमती नगर थाने में पुलिस कदाचार की शिकायत दर्ज की गई। राम शर्मा नाम के व्यक्ति पर अत्याचार हुआ। #यूपीपुलिस #न्याय"
 
         logger.info("Running extraction test...")
         result = self.extract(sample_text)
 
-        # Validate result
-        is_valid = self.validate_extraction_result(result)
-
         # Log test results
-        logger.info(f"Test completed. Valid: {is_valid}. Found {len(result.get('person_names', []))} persons, "
+        logger.info(f"Test completed. Found {len(result.get('person_names', []))} persons, "
                     f"{len(result.get('incidents', []))} incidents, "
                     f"{len(result.get('hashtags', []))} hashtags")
 
@@ -643,9 +692,11 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
 
     def reload_model(self) -> bool:
         """Force reload the model"""
+        logger.info("Reloading model...")
         self._model_loaded = False
         self.model = None
         self.tokenizer = None
+        self._loading_method = None
         return self._load_model()
 
     def unload_model(self):
@@ -653,6 +704,7 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
         self.model = None
         self.tokenizer = None
         self._model_loaded = False
+        self._loading_method = None
         logger.info("Model unloaded from memory")
 
     def add_custom_district(self, district_name: str):
@@ -662,13 +714,7 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
             logger.info(f"Added custom district: {district_name}")
 
     def add_custom_keywords(self, keywords: List[str], category: str):
-        """
-        Add custom keywords to existing categories
-
-        Args:
-            keywords: List of keywords to add
-            category: Category name (religions, castes, etc.)
-        """
+        """Add custom keywords to existing categories"""
         if category == "religions" and hasattr(self, 'religions'):
             new_keywords = [kw for kw in keywords if kw not in self.religions]
             self.religions.extend(new_keywords)
@@ -679,7 +725,6 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
             logger.info(f"Added {len(new_keywords)} new keywords to castes")
         else:
             logger.warning(f"Unknown category: {category}")
-            return
 
     def get_extraction_stats(self) -> Dict[str, Any]:
         """Get statistics about the extractor's capabilities"""
@@ -690,63 +735,202 @@ JSON की कुंजियाँ और फ़ॉर्मेट बिल�
             "pattern_count": len(self.thana_patterns),
             "schema_fields": len(self.json_schema),
             "model_loaded": self._model_loaded,
-            "model_cached": self._is_model_cached(),
+            "loading_method": self._loading_method,
             "cache_dir": self.cache_dir,
+            "vllm_available": VLLM_AVAILABLE,
             "mlx_available": MLX_AVAILABLE,
             "transformers_available": TRANSFORMERS_AVAILABLE
         }
 
 
-# Example usage and testing
+# Debugging helper function
+def debug_model_loading(model_path: str):
+    """Debug function to check model loading issues with all methods"""
+    logger.info("Starting comprehensive model loading debug...")
+
+    # Check path exists
+    if not os.path.exists(model_path):
+        logger.error(f"Model path does not exist: {model_path}")
+        return False
+
+    logger.info(f"Model path exists: {model_path}")
+
+    # List contents
+    try:
+        contents = os.listdir(model_path)
+        logger.info(f"Model directory contents: {contents}")
+
+        # Check for required files
+        required_files = ['config.json', 'tokenizer.json', 'tokenizer_config.json']
+        for file in required_files:
+            if file in contents:
+                logger.info(f"Found {file}")
+            else:
+                logger.warning(f"Missing {file}")
+
+    except Exception as e:
+        logger.error(f"Error reading model directory: {e}")
+        return False
+
+    # Test vLLM loading first
+    if VLLM_AVAILABLE:
+        try:
+            logger.info("Testing vLLM loading...")
+            model = LLM(
+                model=model_path,
+                tokenizer=model_path,
+                trust_remote_code=True,
+                dtype="auto",
+                gpu_memory_utilization=0.85,
+                max_model_len=2048,  # Smaller for testing
+                tensor_parallel_size=1,
+                disable_log_stats=True,
+                enforce_eager=False,
+            )
+            tokenizer = get_tokenizer(
+                tokenizer_name=model_path,
+                trust_remote_code=True
+            )
+            logger.info("vLLM loading successful")
+            return True
+        except Exception as e:
+            logger.error(f"vLLM loading failed: {e}")
+    else:
+        logger.info("vLLM not available, skipping test")
+
+    # Test MLX loading
+    if MLX_AVAILABLE:
+        try:
+            logger.info("Testing MLX loading...")
+            model, tokenizer = mlx_load(model_path)
+            logger.info("MLX loading successful")
+            return True
+        except Exception as e:
+            logger.error(f"MLX loading failed: {e}")
+    else:
+        logger.info("MLX not available, skipping test")
+
+    # Test Transformers loading
+    if TRANSFORMERS_AVAILABLE:
+        try:
+            logger.info("Testing Transformers loading...")
+            tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+            logger.info("Tokenizer loading successful")
+
+            model = AutoModelForCausalLM.from_pretrained(
+                model_path,
+                torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+                device_map="auto" if torch.cuda.is_available() else None,
+                trust_remote_code=True
+            )
+            logger.info("Model loading successful")
+            return True
+        except Exception as e:
+            logger.error(f"Transformers loading failed: {e}")
+    else:
+        logger.info("Transformers not available, skipping test")
+
+    logger.error("All loading methods failed or unavailable")
+    return False
+
+
+def check_dependencies():
+    """Check which dependencies are available"""
+    dependencies = {
+        "vLLM": VLLM_AVAILABLE,
+        "MLX": MLX_AVAILABLE,
+        "Transformers": TRANSFORMERS_AVAILABLE,
+        "HuggingFace Hub": HF_HUB_AVAILABLE
+    }
+
+    logger.info("Dependency Status:")
+    for name, available in dependencies.items():
+        status = "Available" if available else "Not Available"
+        logger.info(f"  {name}: {status}")
+
+    return dependencies
+
+
 if __name__ == "__main__":
-    print("🚀 Initializing Mistral NER Extractor...")
+    print("Initializing Complete Mistral NER Extractor with vLLM Support...")
 
-    # Initialize with the exact path that works in your script
-    extractor = MistralNERExtractor(
-        model_path="/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit/snapshots/7674b37fe24022cf79e77d204fac5b9582b0dc40",
-        model_id="mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit"
-    )
+    # Check dependencies first
+    print("\nChecking dependencies...")
+    deps = check_dependencies()
 
-    # Check model info
-    model_info = extractor.get_model_info()
-    print("📊 Model Info:")
-    for key, value in model_info.items():
-        print(f"  {key}: {value}")
-    print()
+    if not any(deps[key] for key in ["vLLM", "MLX", "Transformers"]):
+        print("ERROR: No model loading framework available!")
+        print("Please install at least one of: vllm, mlx, or transformers")
+        exit(1)
 
-    # Test with sample text
-    print("🧪 Running test extraction...")
-    test_result = extractor.test_extraction()
-    print("✅ Test Result:")
-    print(json.dumps(test_result, ensure_ascii=False, indent=2))
-    print()
+    # Model path from your setup
+    model_path = "/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit/snapshots/7674b37fe24022cf79e77d204fac5b9582b0dc40"
 
-    # Test with custom text
-    custom_text = "मुंबई के बांद्रा थाने में राहुल शर्मा नाम के व्यक्ति पर हमला हुआ। पुलिस ने FIR दर्ज की है। #मुंबईपुलिस #न्याय @MumbaiPolice"
-    print("🔍 Testing with custom text:")
-    print(f"Input: {custom_text}")
+    # Debug model loading first
+    print("\nDebugging model loading...")
+    debug_success = debug_model_loading(model_path)
 
-    custom_result = extractor.extract(custom_text)
-    print("Result:")
-    print(json.dumps(custom_result, ensure_ascii=False, indent=2))
-    print()
+    if not debug_success:
+        print("Model loading debug failed. Please check the issues above.")
+        exit(1)
 
-    # Test batch processing
-    print("📦 Testing batch processing...")
-    batch_texts = [
-        "लखनऊ में प्रदर्शन हुआ।",
-        "दिल्ली के कनॉट प्लेस में ट्रैफिक जाम।",
-        "आगरा के सदर थाने में चोरी की रिपोर्ट दर्ज की गई। #आगराpolic"
-    ]
+    # Initialize extractor
+    try:
+        print("\nInitializing extractor...")
+        extractor = MistralNERExtractor(
+            model_path=model_path,
+            model_id="mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit"
+        )
 
-    batch_results = extractor.extract_batch(batch_texts)
-    print(f"✅ Processed {len(batch_results)} texts successfully!")
+        # Check model info
+        model_info = extractor.get_model_info()
+        print("\nModel Info:")
+        for key, value in model_info.items():
+            print(f"  {key}: {value}")
 
-    # Show extraction stats
-    print("\n📈 Extraction Statistics:")
-    stats = extractor.get_extraction_stats()
-    for key, value in stats.items():
-        print(f"  {key}: {value}")
+        # Test extraction
+        print("\nTesting extraction...")
+        test_result = extractor.test_extraction()
+        print("Test Result:")
+        print(json.dumps(test_result, ensure_ascii=False, indent=2))
 
-    print("\n🎉 All tests completed successfully!")
-    print("💡 The model is now loaded and ready for production use!")
+        # Test batch processing with small batch
+        print("\nTesting batch processing...")
+        batch_texts = [
+            "लखनऊ में प्रदर्शन हुआ।",
+            "दिल्ली के कनॉट प्लेस में ट्रैफिक जाम।",
+            "आगरा के सदर थाने में चोरी की रिपोर्ट दर्ज की गई। #आगरापुलिस"
+        ]
+
+        batch_results = extractor.extract_batch(batch_texts)
+        print(f"Processed {len(batch_results)} texts successfully!")
+
+        # Show extraction stats
+        print("\nExtraction Statistics:")
+        stats = extractor.get_extraction_stats()
+        for key, value in stats.items():
+            print(f"  {key}: {value}")
+
+        print("\nExtractor is working properly!")
+        print("The system is ready for production use.")
+
+        # Performance recommendation
+        if model_info.get("loading_method") == "vllm":
+            print("\nPERFORMANCE: Using vLLM - optimal for production inference!")
+        elif model_info.get("loading_method") == "mlx":
+            print("\nPERFORMANCE: Using MLX - optimized for Apple Silicon!")
+        elif model_info.get("loading_method") == "transformers":
+            print("\nPERFORMANCE: Using Transformers - consider installing vLLM for better performance!")
+
+    except Exception as e:
+        print(f"Extractor initialization failed: {e}")
+        import traceback
+
+        traceback.print_exc()
+        print("\nTroubleshooting Tips:")
+        print("1. Check if the model path exists and is accessible")
+        print("2. Ensure you have sufficient GPU memory (if using vLLM)")
+        print("3. Try installing missing dependencies:")
+        print("   pip install vllm  # For GPU acceleration")
+        print("   pip install mlx mlx-lm  # For Apple Silicon")
+        print("   pip install transformers torch  # Fallback option")

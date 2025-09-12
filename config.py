@@ -48,9 +48,9 @@ class Config:
 
     @property
     def DATABASE_URL(self):
-        """Construct database URL for SQLAlchemy with proper URL encoding"""
+        """Construct database URL for SQLAlchemy"""
         encoded_password = quote_plus(self.MYSQL_PASSWORD)
-        return (f"mysql+mysqlconnector://{self.MYSQL_USER}:{encoded_password}"
+        return (f"mysql+pymysql://{self.MYSQL_USER}:{encoded_password}"
                 f"@{self.MYSQL_HOST}:{self.MYSQL_PORT}/{self.MYSQL_DATABASE}")
 
     @property
