@@ -98,7 +98,7 @@ class DatabaseManager:
     def drop_tables(self):
         """Drop all database tables (use with caution!)"""
         try:
-            Base.meta_data.drop_all(bind=self.engine)
+            Base.metadata.drop_all(bind=self.engine)
             logger.warning("All database tables dropped")
         except Exception as e:
             logger.error(f"Failed to drop database tables: {e}")

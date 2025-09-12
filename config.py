@@ -3,6 +3,7 @@ Configuration management for the Multilingual Topic Clustering System
 """
 
 import os
+from urllib.parse import quote_plus
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -47,8 +48,9 @@ class Config:
 
     @property
     def DATABASE_URL(self):
-        """Construct database URL for SQLAlchemy"""
-        return (f"mysql+mysqlconnector://{self.MYSQL_USER}:{self.MYSQL_PASSWORD}"
+        """Construct database URL for SQLAlchemy with proper URL encoding"""
+        encoded_password = quote_plus(self.MYSQL_PASSWORD)
+        return (f"mysql+mysqlconnector://{self.MYSQL_USER}:{encoded_password}"
                 f"@{self.MYSQL_HOST}:{self.MYSQL_PORT}/{self.MYSQL_DATABASE}")
 
     @property

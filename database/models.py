@@ -129,7 +129,7 @@ class ProcessingLog(Base):
     status = Column(String(20), nullable=False, index=True)  # success, failure, partial
     processing_time_ms = Column(Integer)
     error_message = Column(Text)
-    meta_data = Column(JSON)
+    metadata_info = Column(JSON)
 
     # User and session information
     user_id = Column(String(100), index=True)
@@ -149,7 +149,7 @@ class ProcessingLog(Base):
             'status': self.status,
             'processing_time_ms': self.processing_time_ms,
             'error_message': self.error_message,
-            'meta_data': self.metadata,
+            'metadata_info': self.metadata_info,
             'user_id': self.user_id,
             'session_id': self.session_id,
             'created_at': self.created_at.isoformat() if self.created_at else None

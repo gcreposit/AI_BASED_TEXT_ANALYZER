@@ -154,7 +154,7 @@ class TopicClusteringService:
         base_score = match['similarity']
         boost = 0.0
 
-        match_meta_data = match.get('meta_data', {})
+        match_meta_data = match.get('metadata', {})
 
         # Geographic relevance boost
         if self._has_geographic_overlap(ner_data, match_meta_data):
@@ -280,7 +280,7 @@ class TopicClusteringService:
     def _get_boost_reasons(self, match: Dict[str, Any], ner_data: Dict[str, Any]) -> List[str]:
         """Get reasons for similarity boost"""
         reasons = []
-        match_meta_data = match.get('meta_data', {})
+        match_meta_data = match.get('metadata', {})
 
         if self._has_geographic_overlap(ner_data, match_meta_data):
             reasons.append("geographic_match")
@@ -320,7 +320,7 @@ class TopicClusteringService:
             return {
                 "action": "grouped",
                 "topic_id": topic_id,
-                "topic_title": best_match['meta_data'].get('topic_title', ''),
+                "topic_title": best_match['metadata'].get('topic_title', ''),
                 "similarity_score": best_match['enhanced_similarity'],
                 "confidence": self._calculate_confidence(best_match['enhanced_similarity']),
                 "boost_reasons": best_match.get('boost_reasons', [])
