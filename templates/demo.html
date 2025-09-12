@@ -253,7 +253,7 @@ document.getElementById('clusteringForm').addEventListener('submit', async funct
     
     processing = true;
     updateProcessButton(true);
-    
+    // FORM HERE DATA IS MESSAGE IS BEING PROCESSED
     try {
         const startTime = Date.now();
         const response = await fetch('/api/process-text', {
