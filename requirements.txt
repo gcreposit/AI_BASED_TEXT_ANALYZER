@@ -14,3 +14,5 @@ transformers
 bitsandbytes
 vllm
 cryptography
+peft
+flash_attn

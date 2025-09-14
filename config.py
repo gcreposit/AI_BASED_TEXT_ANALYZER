@@ -25,7 +25,7 @@ class Config:
     CHROMA_COLLECTION_NAME = os.getenv("CHROMA_COLLECTION_NAME", "multilingual_topics_bge_m3")
 
     # Model Configuration
-    BGE_MODEL_NAME = os.getenv("BGE_MODEL_NAME", "BAAI/bge-m3")
+    EMBEDDING_MODEL_NAME = os.getenv("EMBEDDING_MODEL_NAME", "BAAI/bge-m3")
     MISTRAL_MODEL_NAME = os.getenv("MISTRAL_MODEL_NAME", "mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit")
     # MISTRAL_MODEL_PATH = os.getenv("MISTRAL_MODEL_PATH", "/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit")
 
@@ -61,7 +61,7 @@ class Config:
     def validate(self):
         """Validate configuration settings"""
         required_vars = [
-            "MYSQL_PASSWORD", "MYSQL_DATABASE", "BGE_MODEL_NAME", "MISTRAL_MODEL_NAME"
+            "MYSQL_PASSWORD", "MYSQL_DATABASE", "EMBEDDING_MODEL_NAME", "MISTRAL_MODEL_NAME"
         ]
 
         missing_vars = []
