@@ -49,25 +49,12 @@ async def lifespan(app: FastAPI):
         logger.info("🤖 Loading AI models...")
 
         # Initialize embedding services (BGE-M3)
-        embedding_service = EmbeddingService(config.BGE_MODEL_NAME)
+        embedding_service = EmbeddingService(config.EMBEDDING_MODEL_NAME)
         logger.info("✅ BGE-M3 embedding services loaded")
 
-        # Initialize NER extractor (Mistral 24B)
-        # Option 1: Using direct model path (recommended for your local model)
-        # ner_extractor = MistralNERExtractor(
-        #     model_path="/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit"
-        # )
-        # logger.info("✅ Mistral NER extractor loaded from local path")
-
-        # Option 2: If you want to use config but modify it
         # Assuming config.MISTRAL_MODEL_NAME contains the model path
         ner_extractor = MistralNERExtractor(model_id=config.MISTRAL_MODEL_NAME)
         logger.info("✅ Mistral NER extractor loaded from config path")
-
-        # Option 3: If config.MISTRAL_MODEL_NAME is a model ID and you want auto-detection
-        # ner_extractor = MistralNERExtractor(model_id=config.MISTRAL_MODEL_NAME)
-        # logger.info("✅ Mistral NER extractor loaded (auto-detected local cache)")
-
 
         # Initialize vector services (ChromaDB)
         vector_service = VectorService(config.CHROMA_PERSIST_DIR, config.CHROMA_COLLECTION_NAME)

@@ -1,5 +1,5 @@
 """
-Main topic clustering services that combines BGE-M3 embeddings with Mistral NER
+Enhanced topic clustering service with intelligent topic title generation
 """
 
 import time
@@ -8,14 +8,15 @@ from typing import Dict, Any, List, Optional, Tuple
 import logging
 import numpy as np
 from sqlalchemy.sql import func
+import re
 
 logger = logging.getLogger(__name__)
 
 
 class TopicClusteringService:
     """
-    Main services that orchestrates the multilingual topic clustering pipeline
-    combining BGE-M3 embeddings with Mistral 24B NER extraction
+    Enhanced topic clustering service with intelligent topic title generation
+    that creates meaningful, descriptive titles based on incident, location, and context
     """
 
     def __init__(self,
@@ -28,13 +29,53 @@ class TopicClusteringService:
         self.vector_service = vector_service
         self.db_manager = db_manager
 
+        # Enhanced incident categorization patterns
+        self.incident_patterns = {
+            'legal_action': [
+                r'सजा', r'दंडित', r'कारावास', r'जेल', r'अदालत', r'न्यायालय', r'फैसला',
+                r'sentence', r'prison', r'court', r'judgment', r'conviction', r'BNS', r'IPC',
+                r'धारा', r'मु0अ0सं0', r'FIR', r'पोक्सो', r'POCSO', r'अर्थदंड'
+            ],
+            'crime': [
+                r'चोरी', r'डकैती', r'लूट', r'हत्या', r'दुष्कर्म', r'बलात्कार', r'अपहरण',
+                r'theft', r'robbery', r'murder', r'rape', r'kidnapping', r'assault',
+                r'मारपीट', r'छेड़छाड़', r'घूसखोरी', r'भ्रष्टाचार'
+            ],
+            'police_action': [
+                r'गिरफ्तार', r'पकड़', r'छापेमारी', r'ऑपरेशन', r'पुलिस कार्रवाई',
+                r'arrest', r'caught', r'raid', r'operation', r'police action',
+                r'जांच', r'तलाशी', r'घेराबंदी', r'कार्रवाई'
+            ],
+            'accident': [
+                r'दुर्घटना', r'एक्सीडेंट', r'टक्कर', r'आग', r'विस्फोट',
+                r'accident', r'collision', r'fire', r'explosion', r'crash',
+                r'गिरना', r'डूबना', r'जलना', r'घायल'
+            ],
+            'protest_political': [
+                r'प्रदर्शन', r'धरना', r'रैली', r'आंदोलन', r'विरोध', r'चुनाव',
+                r'protest', r'demonstration', r'rally', r'movement', r'election',
+                r'नारेबाजी', r'जुलूस', r'सभा', r'मीटिंग'
+            ],
+            'administrative': [
+                r'योजना', r'सरकारी', r'प्रशासनिक', r'विभाग', r'कार्यक्रम', r'नीति',
+                r'scheme', r'government', r'administrative', r'department', r'program', r'policy',
+                r'मंत्रालय', r'अधिकारी', r'सचिव', r'मुख्यमंत्री'
+            ],
+            'social_incident': [
+                r'समाजिक', r'सामुदायिक', r'धार्मिक', r'जातिवाद', r'भेदभाव',
+                r'social', r'community', r'religious', r'discrimination', r'caste',
+                r'दंगा', r'संघर्ष', r'तनाव', r'विवाद'
+            ]
+        }
+
         # Processing statistics
         self.stats = {
             'total_processed': 0,
             'total_processing_time': 0,
             'topics_created': 0,
             'topics_merged': 0,
-            'errors': 0
+            'errors': 0,
+            'title_improvements': 0
         }
 
     def process_text(self,
@@ -42,15 +83,7 @@ class TopicClusteringService:
                      source_type: str = "unknown",
                      user_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        Main function to process incoming text and assign to topics
-
-        Args:
-            text: Input text to process
-            source_type: Source type of the text
-            user_id: Optional user identifier
-
-        Returns:
-            Dictionary containing processing results
+        Main function to process incoming text and assign to topics with enhanced title generation
         """
         start_time = time.time()
 
@@ -68,37 +101,40 @@ class TopicClusteringService:
 
             logger.info(f"Processing text: language={detected_language}, confidence={lang_confidence:.2f}")
 
-            # Step 3: Parallel processing - NER extraction
+            # Step 3: Enhanced NER extraction with incident categorization
             ner_data = self.ner_extractor.extract(text)
 
-            # Step 4: Create enhanced text representation
-            enhanced_text = self.embedding_service.create_enhanced_text(processed_text, ner_data)
+            # Step 4: Enhance NER data with incident categorization
+            enhanced_ner_data = self._enhance_ner_with_categorization(ner_data, text)
 
-            # Step 5: Generate embeddings
+            # Step 5: Create enhanced text representation
+            enhanced_text = self.embedding_service.create_enhanced_text(processed_text, enhanced_ner_data)
+
+            # Step 6: Generate embeddings
             embeddings = self.embedding_service.generate_embeddings([enhanced_text])
             query_embedding = embeddings[0]
 
-            # Step 6: Find similar topics with NER-based filtering
+            # Step 7: Find similar topics with enhanced NER-based filtering
             similar_topics = self._find_similar_topics_with_ner(
-                query_embedding, ner_data, detected_language, source_type
+                query_embedding, enhanced_ner_data, detected_language, source_type
             )
 
-            # Step 7: Decide on topic assignment
+            # Step 8: Decide on topic assignment with intelligent title generation
             topic_result = self._assign_or_create_topic(
-                text, processed_text, enhanced_text, query_embedding, ner_data,
+                text, processed_text, enhanced_text, query_embedding, enhanced_ner_data,
                 similar_topics, detected_language, lang_confidence, source_type, user_id
             )
 
             processing_time = (time.time() - start_time) * 1000
 
-            # Step 8: Build comprehensive result
+            # Step 9: Build comprehensive result
             result = self._build_result(
                 text, processed_text, enhanced_text, topic_result,
-                ner_data, detected_language, lang_confidence,
+                enhanced_ner_data, detected_language, lang_confidence,
                 source_type, processing_time
             )
 
-            # Step 9: Update statistics and log
+            # Step 10: Update statistics and log
             self._update_statistics(processing_time, topic_result['action'])
             self._log_processing(result, processing_time, user_id)
 
@@ -110,6 +146,393 @@ class TopicClusteringService:
             self.stats['errors'] += 1
             return self._build_error_result(text, str(e), processing_time)
 
+    def _enhance_ner_with_categorization(self, ner_data: Dict[str, Any], original_text: str) -> Dict[str, Any]:
+        """Enhance NER data with incident categorization"""
+        enhanced_data = ner_data.copy()
+
+        # Categorize the type of incident
+        incident_category = self._categorize_incident(original_text)
+        enhanced_data['incident_category'] = incident_category
+
+        # Extract key phrases for better topic titles
+        key_phrases = self._extract_key_phrases(original_text, ner_data)
+        enhanced_data['key_phrases'] = key_phrases
+
+        # Determine severity/priority
+        severity = self._determine_severity(original_text, ner_data)
+        enhanced_data['severity'] = severity
+
+        return enhanced_data
+
+    def _categorize_incident(self, text: str) -> str:
+        """Categorize the type of incident based on content patterns"""
+        text_lower = text.lower()
+
+        category_scores = {}
+
+        for category, patterns in self.incident_patterns.items():
+            score = 0
+            for pattern in patterns:
+                matches = len(re.findall(pattern, text_lower, re.IGNORECASE))
+                score += matches
+            category_scores[category] = score
+
+        # Find the category with highest score
+        if category_scores:
+            max_category = max(category_scores, key=category_scores.get)
+            if category_scores[max_category] > 0:
+                return max_category
+
+        return 'general'
+
+    def _extract_key_phrases(self, text: str, ner_data: Dict[str, Any]) -> List[str]:
+        """Extract key phrases for topic title generation"""
+        key_phrases = []
+
+        # Crime-specific phrases
+        crime_phrases = [
+            r'नाबालिग से दुष्कर्म', r'आजीवन कारावास', r'मु0अ0सं0 \d+',
+            r'धारा \d+', r'BNS की धाराओं', r'पोक्सो एक्ट',
+            r'rape case', r'murder case', r'theft case', r'FIR number',
+            r'चोरी का मामला', r'हत्या का मामला', r'गिरफ्तारी'
+        ]
+
+        for phrase_pattern in crime_phrases:
+            matches = re.findall(phrase_pattern, text, re.IGNORECASE)
+            key_phrases.extend(matches)
+
+        # Operations and campaigns
+        if ner_data.get('events'):
+            key_phrases.extend(ner_data['events'][:2])
+
+        return key_phrases[:5]  # Limit to 5 key phrases
+
+    def _determine_severity(self, text: str, ner_data: Dict[str, Any]) -> str:
+        """Determine incident severity"""
+        text_lower = text.lower()
+
+        high_severity_indicators = [
+            'murder', 'हत्या', 'rape', 'दुष्कर्म', 'terrorist', 'आतंकवादी',
+            'explosion', 'विस्फोट', 'kidnapping', 'अपहरण', 'आजीवन कारावास'
+        ]
+
+        medium_severity_indicators = [
+            'theft', 'चोरी', 'assault', 'मारपीट', 'fraud', 'धोखाधड़ी',
+            'accident', 'दुर्घटना', 'गिरफ्तार', 'arrest'
+        ]
+
+        for indicator in high_severity_indicators:
+            if indicator in text_lower:
+                return 'high'
+
+        for indicator in medium_severity_indicators:
+            if indicator in text_lower:
+                return 'medium'
+
+        return 'low'
+
+    def _generate_intelligent_topic_title(self, ner_data: Dict[str, Any], language: str, original_text: str = "") -> str:
+        """Generate intelligent, descriptive topic titles based on incident analysis"""
+
+        # Get enhanced NER data
+        incident_category = ner_data.get('incident_category', 'general')
+        key_phrases = ner_data.get('key_phrases', [])
+        severity = ner_data.get('severity', 'low')
+
+        title_parts = []
+
+        # Strategy 1: Location-based title with incident details
+        location_part = self._build_location_part(ner_data)
+        incident_part = self._build_incident_part(ner_data, incident_category, original_text)
+
+        # Strategy 2: Build title based on incident category
+        if incident_category == 'legal_action':
+            title_parts = self._build_legal_action_title(ner_data, location_part, original_text)
+        elif incident_category == 'crime':
+            title_parts = self._build_crime_title(ner_data, location_part, original_text)
+        elif incident_category == 'police_action':
+            title_parts = self._build_police_action_title(ner_data, location_part, original_text)
+        elif incident_category == 'accident':
+            title_parts = self._build_accident_title(ner_data, location_part, original_text)
+        elif incident_category == 'protest_political':
+            title_parts = self._build_political_title(ner_data, location_part, original_text)
+        elif incident_category == 'administrative':
+            title_parts = self._build_administrative_title(ner_data, location_part, original_text)
+        elif incident_category == 'social_incident':
+            title_parts = self._build_social_title(ner_data, location_part, original_text)
+        else:
+            # Fallback to generic but descriptive title
+            title_parts = self._build_generic_descriptive_title(ner_data, location_part, incident_part)
+
+        # Ensure we have something meaningful
+        if not title_parts:
+            title_parts = self._build_fallback_title(ner_data, language, original_text)
+
+        # Join parts and finalize
+        separator = " - " if language == 'english' else " - "
+        title = separator.join(filter(None, title_parts))
+
+        # Post-process title
+        title = self._post_process_title(title, language)
+
+        # Track improvement
+        if title not in ["सामान्य विषय", "General Topic", "सामान्य"]:
+            self.stats['title_improvements'] += 1
+
+        return title
+
+    def _build_location_part(self, ner_data: Dict[str, Any]) -> str:
+        """Build location part of title"""
+        if ner_data.get('district_names'):
+            return ner_data['district_names'][0]
+        elif ner_data.get('thana_names'):
+            return f"थाना {ner_data['thana_names'][0]}"
+        elif ner_data.get('location_names'):
+            return ner_data['location_names'][0]
+        return ""
+
+    def _build_incident_part(self, ner_data: Dict[str, Any], incident_category: str, text: str) -> str:
+        """Build incident description part"""
+        if ner_data.get('incidents'):
+            return ner_data['incidents'][0]
+        elif ner_data.get('events'):
+            return ner_data['events'][0]
+        elif incident_category != 'general':
+            return incident_category.replace('_', ' ').title()
+        return ""
+
+    def _build_legal_action_title(self, ner_data: Dict[str, Any], location: str, text: str) -> List[str]:
+        """Build title for legal action cases"""
+        parts = []
+
+        if location:
+            parts.append(location)
+
+        # Check for specific legal terms
+        if 'BNS' in text or 'भारतीय न्याय संहिता' in text:
+            parts.append("BNS के तहत सजा")
+        elif 'आजीवन कारावास' in text:
+            parts.append("आजीवन कारावास की सजा")
+        elif 'सजा' in text or 'दंडित' in text:
+            parts.append("न्यायालय का फैसला")
+        else:
+            parts.append("कानूनी कार्रवाई")
+
+        # Add specific crime if available
+        if 'दुष्कर्म' in text or 'rape' in text.lower():
+            parts.append("दुष्कर्म मामला")
+        elif ner_data.get('incidents'):
+            parts.append(ner_data['incidents'][0])
+
+        return parts
+
+    def _build_crime_title(self, ner_data: Dict[str, Any], location: str, text: str) -> List[str]:
+        """Build title for crime cases"""
+        parts = []
+
+        if location:
+            parts.append(location)
+
+        # Identify specific crime type
+        crime_types = {
+            'दुष्कर्म': 'दुष्कर्म मामला',
+            'चोरी': 'चोरी की घटना',
+            'हत्या': 'हत्या का मामला',
+            'लूट': 'लूट की घटना',
+            'डकैती': 'डकैती का मामला',
+            'बलात्कार': 'बलात्कार का मामला',
+            'अपहरण': 'अपहरण का मामला'
+        }
+
+        text_lower = text.lower()
+        for crime, title in crime_types.items():
+            if crime in text or crime.lower() in text_lower:
+                parts.append(title)
+                break
+        else:
+            if ner_data.get('incidents'):
+                parts.append(ner_data['incidents'][0])
+            else:
+                parts.append("आपराधिक मामला")
+
+        return parts
+
+    def _build_police_action_title(self, ner_data: Dict[str, Any], location: str, text: str) -> List[str]:
+        """Build title for police action cases"""
+        parts = []
+
+        if location:
+            parts.append(location)
+
+        if ner_data.get('events'):
+            # Clean event names like "ऑपरेशन कन्विक्शन"
+            event = ner_data['events'][0]
+            parts.append(event)
+        elif 'गिरफ्तार' in text:
+            parts.append("गिरफ्तारी")
+        elif 'छापेमारी' in text:
+            parts.append("छापेमारी")
+        else:
+            parts.append("पुलिस कार्रवाई")
+
+        return parts
+
+    def _build_accident_title(self, ner_data: Dict[str, Any], location: str, text: str) -> List[str]:
+        """Build title for accident cases"""
+        parts = []
+
+        if location:
+            parts.append(location)
+
+        if 'सड़क दुर्घटना' in text:
+            parts.append("सड़क दुर्घटना")
+        elif 'आग' in text:
+            parts.append("आग की घटना")
+        elif 'दुर्घटना' in text:
+            parts.append("दुर्घटना")
+        else:
+            parts.append("अकस्मात घटना")
+
+        return parts
+
+    def _build_political_title(self, ner_data: Dict[str, Any], location: str, text: str) -> List[str]:
+        """Build title for political/protest cases"""
+        parts = []
+
+        if location:
+            parts.append(location)
+
+        if 'चुनाव' in text:
+            parts.append("चुनावी गतिविधि")
+        elif 'प्रदर्शन' in text:
+            parts.append("प्रदर्शन")
+        elif 'धरना' in text:
+            parts.append("धरना")
+        elif 'रैली' in text:
+            parts.append("रैली")
+        else:
+            parts.append("राजनीतिक गतिविधि")
+
+        return parts
+
+    def _build_administrative_title(self, ner_data: Dict[str, Any], location: str, text: str) -> List[str]:
+        """Build title for administrative cases"""
+        parts = []
+
+        if location:
+            parts.append(location)
+
+        if ner_data.get('organisation_names'):
+            org = ner_data['organisation_names'][0]
+            parts.append(f"{org} की गतिविधि")
+        elif 'योजना' in text:
+            parts.append("सरकारी योजना")
+        elif 'कार्यक्रम' in text:
+            parts.append("सरकारी कार्यक्रम")
+        else:
+            parts.append("प्रशासनिक कार्य")
+
+        return parts
+
+    def _build_social_title(self, ner_data: Dict[str, Any], location: str, text: str) -> List[str]:
+        """Build title for social incident cases"""
+        parts = []
+
+        if location:
+            parts.append(location)
+
+        if 'जातिवाद' in text:
+            parts.append("जातिवाद की घटना")
+        elif 'भेदभाव' in text:
+            parts.append("भेदभाव का मामला")
+        elif 'धार्मिक' in text:
+            parts.append("धार्मिक मामला")
+        else:
+            parts.append("सामाजिक घटना")
+
+        return parts
+
+    def _build_generic_descriptive_title(self, ner_data: Dict[str, Any], location: str, incident: str) -> List[str]:
+        """Build generic but descriptive title"""
+        parts = []
+
+        # Always try to include location
+        if location:
+            parts.append(location)
+
+        # Add incident or event
+        if incident:
+            parts.append(incident)
+        elif ner_data.get('incidents'):
+            parts.append(ner_data['incidents'][0])
+        elif ner_data.get('events'):
+            parts.append(ner_data['events'][0])
+
+        # Add organization if available
+        if ner_data.get('organisation_names') and len(parts) < 2:
+            org = ner_data['organisation_names'][0]
+            if len(org) < 20:  # Avoid very long org names
+                parts.append(org)
+
+        return parts
+
+    def _build_fallback_title(self, ner_data: Dict[str, Any], language: str, text: str) -> List[str]:
+        """Build fallback title when other methods fail"""
+
+        # Extract key words from contextual understanding
+        context = ner_data.get('contextual_understanding', '')
+        if context:
+            # Extract meaningful words from context (avoid common words)
+            context_words = context.split()
+            meaningful_words = []
+
+            # Common Hindi stop words to avoid
+            stop_words = {'में', 'की', 'के', 'को', 'से', 'पर', 'और', 'या', 'है', 'हैं', 'था', 'थे', 'एक', 'यह', 'वह'}
+
+            for word in context_words[:8]:  # Look at first 8 words
+                if len(word) > 2 and word not in stop_words:
+                    meaningful_words.append(word)
+                if len(meaningful_words) >= 3:
+                    break
+
+            if meaningful_words:
+                return meaningful_words
+
+        # Location-based fallback
+        if ner_data.get('district_names'):
+            return [ner_data['district_names'][0], "की घटना"]
+        elif ner_data.get('thana_names'):
+            return [f"थाना {ner_data['thana_names'][0]}", "क्षेत्र"]
+        elif ner_data.get('location_names'):
+            return [ner_data['location_names'][0], "क्षेत्रीय मामला"]
+
+        # Final fallback - but more specific than "General Topic"
+        return ["स्थानीय घटना"] if language in ['hindi', 'hinglish'] else ["Local Incident"]
+
+    def _post_process_title(self, title: str, language: str) -> str:
+        """Post-process the generated title"""
+        if not title or title.strip() in ["", "सामान्य विषय", "General Topic"]:
+            return "स्थानीय घटना" if language in ['hindi', 'hinglish'] else "Local Incident"
+
+        # Clean up title
+        title = title.strip()
+
+        # Remove redundant words
+        title = re.sub(r'\b(की|के|में|से|पर)\b\s*-\s*', ' - ', title)
+        title = re.sub(r'\s+-\s*$', '', title)  # Remove trailing dash
+        title = re.sub(r'^\s*-\s*', '', title)  # Remove leading dash
+
+        # Limit title length
+        if len(title) > 80:
+            parts = title.split(' - ')
+            if len(parts) > 1:
+                title = ' - '.join(parts[:2])
+            else:
+                words = title.split()[:12]
+                title = ' '.join(words)
+
+        return title
+
     def _find_similar_topics_with_ner(self,
                                       query_embedding: np.ndarray,
                                       ner_data: Dict[str, Any],
@@ -117,23 +540,16 @@ class TopicClusteringService:
                                       source_type: str) -> List[Dict[str, Any]]:
         """Find similar topics using both semantic similarity and NER filtering"""
 
-        # Get dynamic threshold based on content characteristics
         threshold = self.embedding_service.get_similarity_threshold("", language, source_type)
+        filters = {"primary_language": language}
 
-        # Prepare filters for vector search
-        filters = {
-            "primary_language": language
-        }
-
-        # Base semantic similarity search
         semantic_matches = self.vector_service.search_similar_topics(
             query_embedding=query_embedding,
             n_results=20,
-            threshold=threshold * 0.7,  # Lower threshold for initial search
+            threshold=threshold * 0.7,
             filters=filters
         )
 
-        # Enhance matches with NER-based scoring
         enhanced_matches = []
         for match in semantic_matches:
             enhanced_score = self._calculate_enhanced_similarity(match, ner_data)
@@ -143,9 +559,7 @@ class TopicClusteringService:
                 match['boost_reasons'] = self._get_boost_reasons(match, ner_data)
                 enhanced_matches.append(match)
 
-        # Sort by enhanced similarity
         enhanced_matches.sort(key=lambda x: x['enhanced_similarity'], reverse=True)
-
         logger.info(f"Found {len(enhanced_matches)} similar topics after NER enhancement")
         return enhanced_matches
 
@@ -156,23 +570,18 @@ class TopicClusteringService:
 
         match_meta_data = match.get('metadata', {})
 
-        # Geographic relevance boost
         if self._has_geographic_overlap(ner_data, match_meta_data):
             boost += 0.15
 
-        # Incident type boost (highest priority)
         if self._has_incident_overlap(ner_data, match_meta_data):
             boost += 0.20
 
-        # Entity overlap boost
         if self._has_entity_overlap(ner_data, match_meta_data):
             boost += 0.10
 
-        # Sentiment alignment boost
         if self._has_sentiment_alignment(ner_data, match_meta_data):
             boost += 0.05
 
-        # Source type alignment
         if self._has_source_alignment(ner_data, match_meta_data):
             boost += 0.03
 
@@ -180,8 +589,6 @@ class TopicClusteringService:
 
     def _has_geographic_overlap(self, ner_data: Dict[str, Any], topic_meta_data: Dict[str, Any]) -> bool:
         """Check geographic relevance between NER data and topic"""
-
-        # Parse stored JSON strings back to lists if needed
         def safe_get_list(data: Dict[str, Any], key: str) -> List[str]:
             value = data.get(key, [])
             if isinstance(value, str):
@@ -209,7 +616,6 @@ class TopicClusteringService:
 
     def _has_incident_overlap(self, ner_data: Dict[str, Any], topic_meta_data: Dict[str, Any]) -> bool:
         """Check incident type similarity"""
-
         def safe_get_list(data: Dict[str, Any], key: str) -> List[str]:
             value = data.get(key, [])
             if isinstance(value, str):
@@ -233,7 +639,6 @@ class TopicClusteringService:
 
     def _has_entity_overlap(self, ner_data: Dict[str, Any], topic_meta_data: Dict[str, Any]) -> bool:
         """Check entity overlap"""
-
         def safe_get_list(data: Dict[str, Any], key: str) -> List[str]:
             value = data.get(key, [])
             if isinstance(value, str):
@@ -267,15 +672,53 @@ class TopicClusteringService:
             except:
                 topic_sentiment_data = {}
 
-        topic_sentiment = topic_sentiment_data.get('label', 'neutral') if isinstance(topic_sentiment_data,
-                                                                                     dict) else 'neutral'
-
+        topic_sentiment = topic_sentiment_data.get('label', 'neutral') if isinstance(topic_sentiment_data, dict) else 'neutral'
         return ner_sentiment == topic_sentiment
 
     def _has_source_alignment(self, ner_data: Dict[str, Any], topic_meta_data: Dict[str, Any]) -> bool:
-        """Check source type alignment"""
-        # This would need to be passed in the meta_data, simplified for now
-        return True
+        """Check source type alignment between current text and existing topic"""
+        try:
+            # Get current source type from the processing context or default
+            current_source = getattr(self, '_current_source_type', 'unknown')
+
+            # Get topic's source type from metadata
+            topic_source = topic_meta_data.get('source_type', 'unknown')
+
+            # Direct match
+            if current_source == topic_source:
+                return True
+
+            # Define source type compatibility groups
+            social_media_sources = {'social_media', 'twitter', 'facebook', 'instagram', 'whatsapp'}
+            news_sources = {'news', 'newspaper', 'online_news', 'press_release'}
+            official_sources = {'government', 'police', 'court', 'official'}
+
+            # Check if both sources belong to the same category
+            source_groups = [social_media_sources, news_sources, official_sources]
+
+            for group in source_groups:
+                if current_source in group and topic_source in group:
+                    return True
+
+            # Special alignments for mixed sources
+            mixed_alignments = {
+                ('police', 'official'): True,
+                ('government', 'official'): True,
+                ('court', 'official'): True,
+                ('press_release', 'news'): True,
+                ('online_news', 'news'): True
+            }
+
+            alignment_key = tuple(sorted([current_source, topic_source]))
+            if alignment_key in mixed_alignments:
+                return mixed_alignments[alignment_key]
+
+            # If we can't determine alignment, consider it neutral (no boost/penalty)
+            return False
+
+        except Exception as e:
+            logger.warning(f"Error in source alignment check: {e}")
+            return False
 
     def _get_boost_reasons(self, match: Dict[str, Any], ner_data: Dict[str, Any]) -> List[str]:
         """Get reasons for similarity boost"""
@@ -307,7 +750,7 @@ class TopicClusteringService:
                                 lang_confidence: float,
                                 source_type: str,
                                 user_id: Optional[str]) -> Dict[str, Any]:
-        """Assign text to existing topic or create new one"""
+        """Assign text to existing topic or create new one with intelligent title generation"""
 
         if similar_topics:
             # Assign to best matching topic
@@ -326,9 +769,9 @@ class TopicClusteringService:
                 "boost_reasons": best_match.get('boost_reasons', [])
             }
         else:
-            # Create new topic
+            # Create new topic with intelligent title
             topic_id = str(uuid.uuid4())
-            topic_title = self._generate_topic_title(ner_data, language)
+            topic_title = self._generate_intelligent_topic_title(ner_data, language, original_text)
 
             # Save to databases
             self._create_new_topic(
@@ -344,51 +787,6 @@ class TopicClusteringService:
                 "confidence": "high",
                 "boost_reasons": []
             }
-
-    def _generate_topic_title(self, ner_data: Dict[str, Any], language: str) -> str:
-        """Generate concise topic title using NER data"""
-        title_parts = []
-
-        # Prioritize geographic information
-        if ner_data.get('district_names'):
-            title_parts.append(ner_data['district_names'][0])
-        elif ner_data.get('location_names'):
-            title_parts.append(ner_data['location_names'][0])
-
-        # Add incident/event information
-        if ner_data.get('incidents'):
-            title_parts.append(ner_data['incidents'][0])
-        elif ner_data.get('events'):
-            title_parts.append(ner_data['events'][0])
-        elif ner_data.get('organisation_names'):
-            title_parts.append(ner_data['organisation_names'][0])
-
-        # Fallback to contextual understanding
-        if not title_parts and ner_data.get('contextual_understanding'):
-            context = ner_data['contextual_understanding']
-            # Extract first few meaningful words
-            words = context.split()[:4]
-            title_parts.extend(words)
-
-        # Final fallback based on language
-        if not title_parts:
-            fallbacks = {
-                'hindi': "सामान्य विषय",
-                'hinglish': "General Topic",
-                'english': "General Topic"
-            }
-            title_parts = [fallbacks.get(language, "General Topic")]
-
-        # Join with appropriate separator and limit length
-        separator = " — " if language in ['hindi', 'hinglish'] else " - "
-        title = separator.join(title_parts[:3])  # Max 3 parts for readability
-
-        # Ensure title doesn't exceed 10 words
-        if len(title.split()) > 10:
-            words = title.split()[:10]
-            title = " ".join(words)
-
-        return title
 
     def _create_new_topic(self, topic_id: str, title: str, original_text: str,
                           processed_text: str, enhanced_text: str, embedding: np.ndarray,
@@ -428,13 +826,16 @@ class TopicClusteringService:
             )
             session.add(text_entry)
 
-            # Add to vector database
+            # Add to vector database with enhanced metadata
             vector_meta_data = {
                 "topic_title": title,
                 "primary_language": language,
                 "source_type": source_type,
                 "content_count": 1,
-                **{k: v for k, v in ner_data.items() if k != 'contextual_understanding'}
+                "incident_category": ner_data.get('incident_category', 'general'),
+                "severity": ner_data.get('severity', 'low'),
+                **{k: v for k, v in ner_data.items() if
+                   k not in ['contextual_understanding', 'incident_category', 'severity', 'key_phrases']}
             }
 
             success = self.vector_service.add_topic(
@@ -449,6 +850,7 @@ class TopicClusteringService:
                 raise Exception("Vector database operation failed")
 
             self.stats['topics_created'] += 1
+            logger.info(f"Created new topic: {topic_id} with title: '{title}'")
 
     def _update_existing_topic(self, topic_id: str, original_text: str,
                                ner_data: Dict[str, Any], user_id: Optional[str]):
@@ -462,6 +864,7 @@ class TopicClusteringService:
             if topic:
                 topic.content_count += 1
                 topic.updated_at = func.now()
+                logger.info(f"Updated topic {topic_id} - new count: {topic.content_count}")
 
             # Create new text entry
             text_entry = TextEntry(
@@ -543,7 +946,9 @@ class TopicClusteringService:
                         "language": result.get("detected_language"),
                         "action": result.get("action"),
                         "confidence": result.get("confidence"),
-                        "topic_id": result.get("topic_id")
+                        "topic_id": result.get("topic_id"),
+                        "topic_title": result.get("topic_title"),
+                        "incident_category": result.get("extracted_entities", {}).get("incident_category")
                     }
                 )
                 session.add(log_entry)
@@ -555,10 +960,13 @@ class TopicClusteringService:
         avg_time = (self.stats['total_processing_time'] / self.stats['total_processed']
                     if self.stats['total_processed'] > 0 else 0)
 
+        improvement_rate = (self.stats['title_improvements'] / max(self.stats['topics_created'], 1)) * 100
+
         return {
             **self.stats,
             'average_processing_time_ms': avg_time,
-            'error_rate': (self.stats['errors'] / max(self.stats['total_processed'], 1)) * 100
+            'error_rate': (self.stats['errors'] / max(self.stats['total_processed'], 1)) * 100,
+            'title_improvement_rate': improvement_rate
         }
 
     def health_check(self) -> Dict[str, Any]:
@@ -638,7 +1046,8 @@ class TopicClusteringService:
             'total_processing_time': 0,
             'topics_created': 0,
             'topics_merged': 0,
-            'errors': 0
+            'errors': 0,
+            'title_improvements': 0
         }
         logger.info("Statistics reset successfully")
 
@@ -673,7 +1082,8 @@ class TopicClusteringService:
                                 entry.original_text) > 200 else entry.original_text,
                             "created_at": entry.created_at.isoformat() if entry.created_at else None,
                             "sentiment": entry.sentiment_data,
-                            "source_type": entry.source_type
+                            "source_type": entry.source_type,
+                            "extracted_entities": entry.extracted_entities
                         } for entry in text_entries
                     ]
                 }
@@ -724,3 +1134,219 @@ class TopicClusteringService:
         except Exception as e:
             logger.error(f"Failed to merge topics {primary_topic_id} and {secondary_topic_id}: {e}")
             return {"success": False, "error": str(e)}
+
+    def regenerate_topic_title(self, topic_id: str, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Regenerate topic title for an existing topic using latest NER analysis"""
+        try:
+            with self.db_manager.get_session() as session:
+                from database.models import Topic, TextEntry
+
+                # Get topic and recent entries
+                topic = session.query(Topic).filter(Topic.id == topic_id).first()
+                if not topic:
+                    return {"success": False, "error": "Topic not found"}
+
+                # Get recent text entries to analyze
+                text_entries = session.query(TextEntry).filter(
+                    TextEntry.topic_id == topic_id
+                ).order_by(TextEntry.created_at.desc()).limit(5).all()
+
+                if not text_entries:
+                    return {"success": False, "error": "No text entries found for topic"}
+
+                # Use the most recent entry for NER analysis
+                latest_entry = text_entries[0]
+
+                # Re-extract NER if needed
+                if latest_entry.extracted_entities:
+                    ner_data = latest_entry.extracted_entities
+                else:
+                    ner_data = self.ner_extractor.extract(latest_entry.original_text)
+
+                # Enhance with categorization
+                enhanced_ner_data = self._enhance_ner_with_categorization(ner_data, latest_entry.original_text)
+
+                # Generate new title
+                old_title = topic.title
+                new_title = self._generate_intelligent_topic_title(
+                    enhanced_ner_data,
+                    topic.primary_language,
+                    latest_entry.original_text
+                )
+
+                # Update topic
+                topic.title = new_title
+                topic.updated_at = func.now()
+
+                # Update vector database metadata
+                self.vector_service.update_topic_metadata(topic_id, {"topic_title": new_title})
+
+                logger.info(f"Regenerated title for topic {topic_id}: '{old_title}' -> '{new_title}'")
+
+                return {
+                    "success": True,
+                    "topic_id": topic_id,
+                    "old_title": old_title,
+                    "new_title": new_title
+                }
+
+        except Exception as e:
+            logger.error(f"Failed to regenerate title for topic {topic_id}: {e}")
+            return {"success": False, "error": str(e)}
+
+    def bulk_regenerate_titles(self, limit: int = 50, user_id: Optional[str] = None) -> Dict[str, Any]:
+        """Bulk regenerate titles for topics with generic titles"""
+        try:
+            with self.db_manager.get_session() as session:
+                from database.models import Topic
+
+                # Find topics with generic titles
+                generic_titles = ["सामान्य विषय", "General Topic", "सामान्य", "Local Incident", "स्थानीय घटना"]
+
+                topics_to_update = session.query(Topic).filter(
+                    Topic.title.in_(generic_titles)
+                ).limit(limit).all()
+
+                updated_count = 0
+                results = []
+
+                for topic in topics_to_update:
+                    result = self.regenerate_topic_title(topic.id, user_id)
+                    if result.get("success"):
+                        updated_count += 1
+                    results.append({
+                        "topic_id": topic.id,
+                        "result": result
+                    })
+
+                logger.info(f"Bulk title regeneration completed: {updated_count}/{len(topics_to_update)} updated")
+
+                return {
+                    "success": True,
+                    "total_processed": len(topics_to_update),
+                    "updated_count": updated_count,
+                    "results": results
+                }
+
+        except Exception as e:
+            logger.error(f"Bulk title regeneration failed: {e}")
+            return {"success": False, "error": str(e)}
+
+    def get_topics_by_category(self, incident_category: str = None, limit: int = 20) -> List[Dict[str, Any]]:
+        """Get topics filtered by incident category"""
+        try:
+            with self.db_manager.get_session() as session:
+                from database.models import Topic, TextEntry
+
+                query = session.query(Topic)
+
+                if incident_category:
+                    # Join with TextEntry to filter by incident category in extracted_entities
+                    query = query.join(TextEntry).filter(
+                        TextEntry.extracted_entities.contains({'incident_category': incident_category})
+                    )
+
+                topics = query.order_by(Topic.updated_at.desc()).limit(limit).all()
+
+                return [
+                    {
+                        "topic_id": topic.id,
+                        "title": topic.title,
+                        "description": topic.description,
+                        "content_count": topic.content_count,
+                        "primary_language": topic.primary_language,
+                        "created_at": topic.created_at.isoformat() if topic.created_at else None,
+                        "updated_at": topic.updated_at.isoformat() if topic.updated_at else None
+                    } for topic in topics
+                ]
+
+        except Exception as e:
+            logger.error(f"Failed to get topics by category {incident_category}: {e}")
+            return []
+
+    def analyze_topic_trends(self, days: int = 30) -> Dict[str, Any]:
+        """Analyze trending topics and incident categories"""
+        try:
+            from datetime import datetime, timedelta
+
+            with self.db_manager.get_session() as session:
+                from database.models import Topic, TextEntry
+
+                # Calculate date range
+                end_date = datetime.now()
+                start_date = end_date - timedelta(days=days)
+
+                # Get recent topics
+                recent_topics = session.query(Topic).filter(
+                    Topic.created_at >= start_date
+                ).all()
+
+                # Get recent text entries with extracted entities
+                recent_entries = session.query(TextEntry).filter(
+                    TextEntry.created_at >= start_date
+                ).all()
+
+                # Analyze incident categories
+                category_counts = {}
+                location_counts = {}
+
+                for entry in recent_entries:
+                    if entry.extracted_entities:
+                        entities = entry.extracted_entities
+
+                        # Count incident categories
+                        category = entities.get('incident_category', 'general')
+                        category_counts[category] = category_counts.get(category, 0) + 1
+
+                        # Count locations
+                        districts = entities.get('district_names', [])
+                        for district in districts:
+                            location_counts[district] = location_counts.get(district, 0) + 1
+
+                # Sort by frequency
+                top_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+                top_locations = sorted(location_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+
+                return {
+                    "analysis_period_days": days,
+                    "total_topics_created": len(recent_topics),
+                    "total_text_entries": len(recent_entries),
+                    "top_incident_categories": [
+                        {"category": cat, "count": count} for cat, count in top_categories
+                    ],
+                    "top_locations": [
+                        {"location": loc, "count": count} for loc, count in top_locations
+                    ],
+                    "daily_topic_creation": self._calculate_daily_trends(recent_topics, days),
+                    "generated_at": datetime.now().isoformat()
+                }
+
+        except Exception as e:
+            logger.error(f"Failed to analyze topic trends: {e}")
+            return {"error": str(e)}
+
+    def _calculate_daily_trends(self, topics: List, days: int) -> List[Dict[str, Any]]:
+        """Calculate daily topic creation trends"""
+        from datetime import datetime, timedelta
+        from collections import defaultdict
+
+        daily_counts = defaultdict(int)
+
+        for topic in topics:
+            if topic.created_at:
+                date_key = topic.created_at.strftime('%Y-%m-%d')
+                daily_counts[date_key] += 1
+
+        # Generate complete date range
+        end_date = datetime.now()
+        trends = []
+
+        for i in range(days):
+            date = end_date - timedelta(days=i)
+            date_key = date.strftime('%Y-%m-%d')
+            trends.append({
+                "date": date_key,
+                "topics_created": daily_counts.get(date_key, 0)
+            })
+
+        return sorted(trends, key=lambda x: x['date'])
