@@ -379,6 +379,162 @@ async def analytics_page(request: Request):
     return templates.TemplateResponse("analytics.html", {"request": request})
 
 
+@app.get("/topics", response_class=HTMLResponse)
+async def topics_page(request: Request):
+    """Topics dashboard page"""
+    return templates.TemplateResponse("topics.html", {"request": request})
+
+
+@app.get("/api/topics-dashboard")
+async def get_topics_dashboard():
+    """Get topics data for dashboard with post counts and contextual understanding"""
+    try:
+        # Import here to avoid circular imports
+        import pymysql
+        from sqlalchemy import create_engine, text
+        from urllib.parse import quote_plus
+        import os
+        
+        # Database configuration for DUMP DATABASE
+        DUMP_DB_CONFIG = {
+            'host': os.getenv('DUMP_DB_HOST', '94.136.189.147'),
+            'database': os.getenv('DUMP_DB_NAME', 'twitter_scrapper'),
+            'user': os.getenv('DUMP_DB_USER', 'gccloud'),
+            'password': os.getenv('DUMP_DB_PASSWORD', 'Gccloud@1489$'),
+            'port': int(os.getenv('DUMP_DB_PORT', '3306'))
+        }
+        
+        # Create database engine for dump database
+        encoded_password = quote_plus(DUMP_DB_CONFIG['password'])
+        DUMP_DATABASE_URL = f"mysql+pymysql://{DUMP_DB_CONFIG['user']}:{encoded_password}@{DUMP_DB_CONFIG['host']}:{DUMP_DB_CONFIG['port']}/{DUMP_DB_CONFIG['database']}"
+        
+        dump_engine = create_engine(DUMP_DATABASE_URL, echo=False, pool_pre_ping=True)
+        
+        with dump_engine.connect() as conn:
+            # Get topics with post counts
+            query = text("""
+                SELECT 
+                    ad.topic_id,
+                    ad.topic_title,
+                    ad.detected_language,
+                    COUNT(*) as post_count
+                FROM analyzed_data ad
+                WHERE ad.topic_id IS NOT NULL 
+                AND ad.topic_title IS NOT NULL
+                GROUP BY ad.topic_id, ad.topic_title, ad.detected_language
+                ORDER BY post_count DESC
+            """)
+            
+            result = conn.execute(query)
+            topics_data = []
+            
+            for row in result:
+                topics_data.append({
+                    'topic_id': row.topic_id,
+                    'title': row.topic_title,
+                    'primary_language': row.detected_language or 'Unknown',
+                    'post_count': row.post_count
+                })
+            
+            # Calculate stats
+            total_topics = len(topics_data)
+            total_posts = sum(topic['post_count'] for topic in topics_data)
+            avg_posts_per_topic = round(total_posts / total_topics, 1) if total_topics > 0 else 0
+            languages = set(topic['primary_language'] for topic in topics_data)
+            language_count = len(languages)
+            
+            stats = {
+                'total_topics': total_topics,
+                'total_posts': total_posts,
+                'avg_posts_per_topic': avg_posts_per_topic,
+                'language_count': language_count
+            }
+            
+            return {
+                'success': True,
+                'topics': topics_data,
+                'stats': stats
+            }
+            
+    except Exception as e:
+        logger.error(f"Failed to get topics dashboard data: {e}")
+        return {
+            'success': False,
+            'error': str(e),
+            'topics': [],
+            'stats': {}
+        }
+
+
+@app.get("/api/topics/{topic_id}/posts")
+async def get_topic_posts(topic_id: str):
+    """Get posts for a specific topic with contextual understanding"""
+    try:
+        # Import here to avoid circular imports
+        import pymysql
+        from sqlalchemy import create_engine, text
+        from urllib.parse import quote_plus
+        import os
+        
+        # Database configuration for DUMP DATABASE
+        DUMP_DB_CONFIG = {
+            'host': os.getenv('DUMP_DB_HOST', '94.136.189.147'),
+            'database': os.getenv('DUMP_DB_NAME', 'twitter_scrapper'),
+            'user': os.getenv('DUMP_DB_USER', 'gccloud'),
+            'password': os.getenv('DUMP_DB_PASSWORD', 'Gccloud@1489$'),
+            'port': int(os.getenv('DUMP_DB_PORT', '3306'))
+        }
+        
+        # Create database engine for dump database
+        encoded_password = quote_plus(DUMP_DB_CONFIG['password'])
+        DUMP_DATABASE_URL = f"mysql+pymysql://{DUMP_DB_CONFIG['user']}:{encoded_password}@{DUMP_DB_CONFIG['host']}:{DUMP_DB_CONFIG['port']}/{DUMP_DB_CONFIG['database']}"
+        
+        dump_engine = create_engine(DUMP_DATABASE_URL, echo=False, pool_pre_ping=True)
+        
+        with dump_engine.connect() as conn:
+            # Get posts for the specific topic
+            query = text("""
+                SELECT 
+                    pb.post_title,
+                    pb.post_snippet,
+                    pb.source,
+                    pb.post_timestamp,
+                    ad.detected_language,
+                    ad.contextual_understanding
+                FROM analyzed_data ad
+                JOIN post_bank pb ON ad.dump_table_id = pb.id
+                WHERE ad.topic_id = :topic_id
+                ORDER BY pb.post_timestamp DESC
+                LIMIT 100
+            """)
+            
+            result = conn.execute(query, {'topic_id': topic_id})
+            posts_data = []
+            
+            for row in result:
+                posts_data.append({
+                    'post_title': row.post_title,
+                    'post_snippet': row.post_snippet,
+                    'source': row.source,
+                    'post_timestamp': row.post_timestamp.isoformat() if row.post_timestamp else None,
+                    'detected_language': row.detected_language,
+                    'contextual_understanding': row.contextual_understanding
+                })
+            
+            return {
+                'success': True,
+                'posts': posts_data
+            }
+            
+    except Exception as e:
+        logger.error(f"Failed to get posts for topic {topic_id}: {e}")
+        return {
+            'success': False,
+            'error': str(e),
+            'posts': []
+        }
+
+
 # === ERROR HANDLERS ===
 
 @app.exception_handler(404)

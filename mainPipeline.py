@@ -230,7 +230,7 @@ class PipelineProcessor:
                 PROCESS_TEXT_ENDPOINT,
                 json=payload,
                 headers={"Content-Type": "application/json"},
-                timeout=30
+                timeout=120
             )
             
             if response.status_code == 200:
