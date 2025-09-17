@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+
+{% block title %}Topics Dashboard - Multilingual Topic Clustering{% endblock %}
+
+{% block extra_head %}
+<style>
+.topic-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid #e9ecef;
+}
+
+.topic-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    border-color: #007bff;
+}
+
+.topic-number {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.topic-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.topic-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.post-count {
+    background: #f8f9fa;
+    color: #495057;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.language-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.lang-hindi { background: #dc3545; color: white; }
+.lang-english { background: #17a2b8; color: white; }
+.lang-hinglish { background: #ffc107; color: #212529; }
+.lang-other { background: #6c757d; color: white; }
+
+.topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.filter-tabs {
+    background: white;
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.filter-tab {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    margin: 0 4px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.filter-tab.active {
+    background: #007bff;
+    color: white;
+}
+
+.filter-tab:hover:not(.active) {
+    background: #f8f9fa;
+}
+
+.stats-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.stats-item {
+    text-align: center;
+}
+
+.stats-number {
+    font-size: 28px;
+    font-weight: bold;
+    display: block;
+}
+
+.stats-label {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-top: 5px;
+}
+
+.detailed-table {
+    display: none;
+    margin-top: 30px;
+}
+
+.detailed-table.show {
+    display: block;
+}
+
+.back-to-cards {
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-layer-group text-primary me-2"></i>
+                    Topics Dashboard
+                </h2>
+                <button class="btn btn-outline-primary" onclick="refreshTopics()">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+            </div>
+
+            <!-- Stats Summary -->
+            <div class="stats-summary">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stats-item">
+                            <span class="stats-number" id="totalTopics">-</span>
+                            <div class="stats-label">Total Topics</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-item">
+                            <span class="stats-number" id="totalPosts">-</span>
+                            <div class="stats-label">Total Posts</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-item">
+                            <span class="stats-number" id="avgPostsPerTopic">-</span>
+                            <div class="stats-label">Avg Posts/Topic</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stats-item">
+                            <span class="stats-number" id="languageCount">-</span>
+                            <div class="stats-label">Languages</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterTopics('all')">All Topics</button>
+                <button class="filter-tab" onclick="filterTopics('hindi')">Hindi</button>
+                <button class="filter-tab" onclick="filterTopics('english')">English</button>
+                <button class="filter-tab" onclick="filterTopics('hinglish')">Hinglish</button>
+                <button class="filter-tab" onclick="filterTopics('other')">Other</button>
+            </div>
+
+            <!-- Topics Cards Grid -->
+            <div id="topicsContainer">
+                <div class="loading-spinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading topics...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Table View (Hidden by default) -->
+            <div id="detailedTable" class="detailed-table">
+                <div class="back-to-cards">
+                    <button class="btn btn-secondary" onclick="showCardsView()">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Topics
+                    </button>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0" id="tableTitle">Topic Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="tableContent" class="table-responsive">
+                            <!-- Table content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentFilter = 'all';
+let topicsData = [];
+
+// Load topics on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadTopics();
+});
+
+async function loadTopics() {
+    try {
+        showLoading();
+        const response = await fetch('/api/topics-dashboard');
+        const data = await response.json();
+        
+        if (data.success) {
+            topicsData = data.topics;
+            updateStats(data.stats);
+            renderTopicsCards(topicsData);
+        } else {
+            showError('Failed to load topics: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error loading topics:', error);
+        showError('Failed to load topics. Please try again.');
+    }
+}
+
+function updateStats(stats) {
+    document.getElementById('totalTopics').textContent = stats.total_topics || 0;
+    document.getElementById('totalPosts').textContent = stats.total_posts || 0;
+    document.getElementById('avgPostsPerTopic').textContent = stats.avg_posts_per_topic || 0;
+    document.getElementById('languageCount').textContent = stats.language_count || 0;
+}
+
+function renderTopicsCards(topics) {
+    const container = document.getElementById('topicsContainer');
+    
+    if (!topics || topics.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-layer-group"></i>
+                <h4>No Topics Found</h4>
+                <p>No topics available for the selected filter.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const cardsHTML = `
+        <div class="topics-grid">
+            ${topics.map((topic, index) => `
+                <div class="topic-card" onclick="showTopicDetails('${topic.topic_id}', '${topic.title}')">
+                    <div class="topic-number">${index + 1}</div>
+                    <div class="topic-title">${topic.title}</div>
+                    <div class="topic-meta">
+                        <span class="post-count">${topic.post_count} posts</span>
+                        <span class="language-badge lang-${topic.primary_language.toLowerCase()}">${topic.primary_language}</span>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    container.innerHTML = cardsHTML;
+}
+
+function filterTopics(language) {
+    currentFilter = language;
+    
+    // Update active tab
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Filter topics
+    let filteredTopics = topicsData;
+    if (language !== 'all') {
+        filteredTopics = topicsData.filter(topic => 
+            topic.primary_language.toLowerCase() === language.toLowerCase()
+        );
+    }
+    
+    renderTopicsCards(filteredTopics);
+}
+
+async function showTopicDetails(topicId, topicTitle) {
+    try {
+        showLoading();
+        
+        const response = await fetch(`/api/topics/${topicId}/posts`);
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('tableTitle').textContent = `Posts in "${topicTitle}"`;
+            renderDetailedTable(data.posts);
+            
+            // Hide cards and show table
+            document.getElementById('topicsContainer').style.display = 'none';
+            document.getElementById('detailedTable').classList.add('show');
+        } else {
+            showError('Failed to load topic details: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error loading topic details:', error);
+        showError('Failed to load topic details. Please try again.');
+    }
+}
+
+function renderDetailedTable(posts) {
+    const tableContent = document.getElementById('tableContent');
+    
+    if (!posts || posts.length === 0) {
+        tableContent.innerHTML = '<p class="text-muted">No posts found for this topic.</p>';
+        return;
+    }
+
+    const tableHTML = `
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Post Title</th>
+                    <th>Post Snippet</th>
+                    <th>Language</th>
+                    <th>Contextual Understanding</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${posts.map((post, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <strong>${post.post_title || 'Untitled'}</strong>
+                            <br><small class="text-muted">${post.source || 'Unknown'}</small>
+                        </td>
+                        <td>
+                            <div style="max-width: 300px;">
+                                ${(post.post_snippet || '').substring(0, 150)}${(post.post_snippet || '').length > 150 ? '...' : ''}
+                            </div>
+                        </td>
+                        <td>
+                            <span class="language-badge lang-${(post.detected_language || 'other').toLowerCase()}">
+                                ${post.detected_language || 'Unknown'}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="max-width: 250px;">
+                                ${post.contextual_understanding || 'Not available'}
+                            </div>
+                        </td>
+                        <td>
+                            <small>${formatDate(post.post_timestamp)}</small>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+    
+    tableContent.innerHTML = tableHTML;
+}
+
+function showCardsView() {
+    document.getElementById('topicsContainer').style.display = 'block';
+    document.getElementById('detailedTable').classList.remove('show');
+}
+
+function showLoading() {
+    const container = document.getElementById('topicsContainer');
+    container.innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+}
+
+function showError(message) {
+    const container = document.getElementById('topicsContainer');
+    container.innerHTML = `
+        <div class="empty-state">
+            <i class="fas fa-exclamation-triangle text-warning"></i>
+            <h4>Error</h4>
+            <p>${message}</p>
+            <button class="btn btn-primary" onclick="loadTopics()">Try Again</button>
+        </div>
+    `;
+}
+
+function refreshTopics() {
+    loadTopics();
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+}
+</script>
+{% endblock %}
