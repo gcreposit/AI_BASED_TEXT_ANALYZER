@@ -321,9 +321,10 @@ class PipelineProcessor:
         try:
             logger.info(f"Processing post ID: {post.id}")
             
-            # Call API with post_snippet
+            # Call API with post_title and post_snippet combined
+            combined_text = f"{post.post_title} - {post.post_snippet}"
             api_response = self.call_process_text_api(
-                text=post.post_snippet,
+                text=combined_text,
                 source_type=post.source.lower() if post.source else "social_media"
             )
             
