@@ -601,6 +601,9 @@ def main():
         
         # Run the pipeline
         with UppcLPipelineProcessor() as processor:
+            # Ensure tables and columns exist before getting stats
+            processor.create_tables()
+            
             # Get initial stats
             initial_stats = processor.get_pipeline_stats()
             logger.info(f"Initial stats: {initial_stats}")
