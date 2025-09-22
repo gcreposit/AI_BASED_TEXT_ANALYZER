@@ -14,7 +14,7 @@ import requests
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple
 
-from sqlalchemy import create_engine, Column, String, Text, DateTime, Float, Integer, JSON, Boolean, ForeignKey
+from sqlalchemy import create_engine, Column, String, Text, DateTime, Float, Integer, JSON, Boolean, ForeignKey, text
 from sqlalchemy.orm import sessionmaker, Session, DeclarativeBase, relationship
 from sqlalchemy.sql import func
 from urllib.parse import quote_plus
@@ -251,33 +251,33 @@ class UppcLPipelineProcessor:
             logger.info("Checking and fixing primary key index...")
             
             # Check if primary key index exists
-            pk_result = self.session.execute("""
+            pk_result = self.session.execute(text("""
                 SELECT COUNT(*) 
                 FROM INFORMATION_SCHEMA.STATISTICS 
                 WHERE TABLE_SCHEMA = DATABASE() 
                 AND TABLE_NAME = 'filtered_awariodata' 
                 AND INDEX_NAME = 'PRIMARY'
-            """)
+            """))
             
             pk_exists = pk_result.scalar() > 0
             
             if not pk_exists:
                 logger.info("Adding primary key constraint to id column...")
                 # Add primary key constraint if missing
-                self.session.execute("""
+                self.session.execute(text("""
                     ALTER TABLE filtered_awariodata 
                     ADD PRIMARY KEY (id)
-                """)
+                """))
                 logger.info("Primary key constraint added successfully")
             
             # Now check if analysisStatus column exists
-            result = self.session.execute("""
+            result = self.session.execute(text("""
                 SELECT COUNT(*) 
                 FROM INFORMATION_SCHEMA.COLUMNS 
                 WHERE TABLE_SCHEMA = DATABASE() 
                 AND TABLE_NAME = 'filtered_awariodata' 
                 AND COLUMN_NAME = 'analysisStatus'
-            """)
+            """))
             
             column_exists = result.scalar() > 0
             
@@ -285,23 +285,23 @@ class UppcLPipelineProcessor:
                 logger.info("Adding missing 'analysisStatus' column to filtered_awariodata table...")
                 
                 # Add the column
-                self.session.execute("""
+                self.session.execute(text("""
                     ALTER TABLE filtered_awariodata 
                     ADD COLUMN analysisStatus VARCHAR(20) DEFAULT 'NOT_ANALYZED'
-                """)
+                """))
                 
                 # Create index
-                self.session.execute("""
+                self.session.execute(text("""
                     CREATE INDEX idx_filtered_awariodata_analysisStatus 
                     ON filtered_awariodata(analysisStatus)
-                """)
+                """))
                 
                 # Update existing records
-                self.session.execute("""
+                self.session.execute(text("""
                     UPDATE filtered_awariodata 
                     SET analysisStatus = 'NOT_ANALYZED' 
                     WHERE analysisStatus IS NULL
-                """)
+                """))
                 
                 logger.info("✅ analysisStatus column added successfully")
             else:
