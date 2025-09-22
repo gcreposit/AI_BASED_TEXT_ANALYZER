@@ -229,14 +229,65 @@ class UppcLPipelineProcessor:
             self.session.close()
     
     def create_tables(self) -> bool:
-        """Create tables if they don't exist"""
+        """Create tables if they don't exist and add missing columns"""
         try:
+            # Create tables if they don't exist
             Base.metadata.create_all(bind=engine)
-            logger.info("Tables created successfully")
+            
+            # Check and add analysisStatus column if missing
+            self._add_analysis_status_column_if_missing()
+            
+            logger.info("Tables created/updated successfully")
             return True
         except Exception as e:
             logger.error(f"Error creating tables: {str(e)}")
             return False
+    
+    def _add_analysis_status_column_if_missing(self):
+        """Add analysisStatus column to filtered_awariodata if it doesn't exist"""
+        try:
+            # Check if column exists
+            result = self.session.execute("""
+                SELECT COUNT(*) 
+                FROM INFORMATION_SCHEMA.COLUMNS 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                AND TABLE_NAME = 'filtered_awariodata' 
+                AND COLUMN_NAME = 'analysisStatus'
+            """)
+            
+            column_exists = result.scalar() > 0
+            
+            if not column_exists:
+                logger.info("Adding missing 'analysisStatus' column to filtered_awariodata table...")
+                
+                # Add the column
+                self.session.execute("""
+                    ALTER TABLE filtered_awariodata 
+                    ADD COLUMN analysisStatus VARCHAR(20) DEFAULT 'NOT_ANALYZED'
+                """)
+                
+                # Create index
+                self.session.execute("""
+                    CREATE INDEX idx_filtered_awariodata_analysisStatus 
+                    ON filtered_awariodata(analysisStatus)
+                """)
+                
+                # Update existing records
+                self.session.execute("""
+                    UPDATE filtered_awariodata 
+                    SET analysisStatus = 'NOT_ANALYZED' 
+                    WHERE analysisStatus IS NULL
+                """)
+                
+                self.session.commit()
+                logger.info("✅ analysisStatus column added successfully")
+            else:
+                logger.info("✅ analysisStatus column already exists")
+                
+        except Exception as e:
+            logger.error(f"Error adding analysisStatus column: {str(e)}")
+            self.session.rollback()
+            raise
     
     def get_unprocessed_posts(self, limit: int = None) -> List[FilteredAwarioData]:
         """
