@@ -244,9 +244,33 @@ class UppcLPipelineProcessor:
             return False
     
     def _add_analysis_status_column_if_missing(self):
-        """Add analysisStatus column to filtered_awariodata if it doesn't exist"""
+        """Add analysisStatus column to filtered_awariodata if it doesn't exist
+        Also ensure proper indexing for foreign key constraints"""
         try:
-            # Check if column exists
+            # First, ensure the primary key has proper indexing
+            logger.info("Checking and fixing primary key index...")
+            
+            # Check if primary key index exists
+            pk_result = self.session.execute("""
+                SELECT COUNT(*) 
+                FROM INFORMATION_SCHEMA.STATISTICS 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                AND TABLE_NAME = 'filtered_awariodata' 
+                AND INDEX_NAME = 'PRIMARY'
+            """)
+            
+            pk_exists = pk_result.scalar() > 0
+            
+            if not pk_exists:
+                logger.info("Adding primary key constraint to id column...")
+                # Add primary key constraint if missing
+                self.session.execute("""
+                    ALTER TABLE filtered_awariodata 
+                    ADD PRIMARY KEY (id)
+                """)
+                logger.info("Primary key constraint added successfully")
+            
+            # Now check if analysisStatus column exists
             result = self.session.execute("""
                 SELECT COUNT(*) 
                 FROM INFORMATION_SCHEMA.COLUMNS 
@@ -279,13 +303,15 @@ class UppcLPipelineProcessor:
                     WHERE analysisStatus IS NULL
                 """)
                 
-                self.session.commit()
                 logger.info("✅ analysisStatus column added successfully")
             else:
                 logger.info("✅ analysisStatus column already exists")
+            
+            self.session.commit()
+            logger.info("Database schema updates completed successfully")
                 
         except Exception as e:
-            logger.error(f"Error adding analysisStatus column: {str(e)}")
+            logger.error(f"Error updating database schema: {str(e)}")
             self.session.rollback()
             raise
     
