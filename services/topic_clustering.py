@@ -146,6 +146,160 @@ class TopicClusteringService:
             self.stats['errors'] += 1
             return self._build_error_result(text, str(e), processing_time)
 
+    async def process_text_batch(self,
+                                 texts: List[str],
+                                 source_type: str = "unknown",
+                                 user_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Process multiple texts in batch for improved performance
+
+        Args:
+            texts: List of text strings to process
+            source_type: Source type for all texts
+            user_id: Optional user identifier
+
+        Returns:
+            List of processing results
+        """
+        start_time = time.time()
+
+        try:
+            # Step 1: Batch language detection and preprocessing
+            batch_processed_data = []
+            for text in texts:
+                if not text or not text.strip() or len(text.strip()) < 3:
+                    batch_processed_data.append({
+                        "error": "Invalid text",
+                        "original_text": text
+                    })
+                    continue
+
+                detected_language, lang_confidence = self.embedding_service.detect_language(text)
+                processed_text = self.embedding_service.preprocess_text(text)
+
+                batch_processed_data.append({
+                    "original_text": text,
+                    "processed_text": processed_text,
+                    "detected_language": detected_language,
+                    "language_confidence": lang_confidence
+                })
+
+            # Step 2: Batch NER extraction
+            valid_texts = [item for item in batch_processed_data if "error" not in item]
+            if valid_texts:
+                logger.info(f"Starting batch NER extraction for {len(valid_texts)} texts")
+
+                # Use the batch extraction method from NER extractor
+                batch_ner_results = self.ner_extractor.extract_batch(
+                    [item["original_text"] for item in valid_texts]
+                )
+
+                # Add NER results to processed data
+                for i, item in enumerate(valid_texts):
+                    item["ner_data"] = batch_ner_results[i] if i < len(batch_ner_results) else {}
+                    item["enhanced_ner_data"] = self._enhance_ner_with_categorization(
+                        item["ner_data"], item["original_text"]
+                    )
+
+            # Step 3: Create enhanced texts and batch embedding generation
+            enhanced_texts = []
+            valid_items = []
+
+            for item in batch_processed_data:
+                if "error" not in item:
+                    enhanced_text = self.embedding_service.create_enhanced_text(
+                        item["processed_text"], item["enhanced_ner_data"]
+                    )
+                    item["enhanced_text"] = enhanced_text
+                    enhanced_texts.append(enhanced_text)
+                    valid_items.append(item)
+
+            # Generate embeddings in batch
+            if enhanced_texts:
+                logger.info(f"Generating embeddings for {len(enhanced_texts)} texts")
+                batch_embeddings = self.embedding_service.generate_embeddings(
+                    enhanced_texts,
+                    batch_size=len(enhanced_texts)  # Process all at once
+                )
+
+                # Add embeddings to items
+                for i, item in enumerate(valid_items):
+                    item["embedding"] = batch_embeddings[i] if i < len(batch_embeddings) else None
+
+            # Step 4: Batch similarity search and topic assignment
+            batch_results = []
+
+            for item in batch_processed_data:
+                if "error" in item:
+                    batch_results.append(self._build_error_result(
+                        item["original_text"], item["error"], 0
+                    ))
+                    continue
+
+                try:
+                    # Find similar topics
+                    similar_topics = self._find_similar_topics_with_ner(
+                        item["embedding"],
+                        item["enhanced_ner_data"],
+                        item["detected_language"],
+                        source_type
+                    )
+
+                    # Assign or create topic
+                    topic_result = self._assign_or_create_topic(
+                        item["original_text"],
+                        item["processed_text"],
+                        item["enhanced_text"],
+                        item["embedding"],
+                        item["enhanced_ner_data"],
+                        similar_topics,
+                        item["detected_language"],
+                        item["language_confidence"],
+                        source_type,
+                        user_id
+                    )
+
+                    # Build result
+                    result = self._build_result(
+                        item["original_text"],
+                        item["processed_text"],
+                        item["enhanced_text"],
+                        topic_result,
+                        item["enhanced_ner_data"],
+                        item["detected_language"],
+                        item["language_confidence"],
+                        source_type,
+                        0  # Individual processing time will be calculated differently
+                    )
+
+                    batch_results.append(result)
+
+                except Exception as e:
+                    logger.error(f"Error processing text in batch: {e}")
+                    batch_results.append(self._build_error_result(
+                        item["original_text"], str(e), 0
+                    ))
+
+            # Update batch processing time for all results
+            total_processing_time = (time.time() - start_time) * 1000
+            avg_processing_time = total_processing_time / len(batch_results) if batch_results else 0
+
+            for result in batch_results:
+                if "error" not in result:
+                    result["processing_time_ms"] = int(avg_processing_time)
+
+            # Update statistics
+            self.stats['total_processed'] += len(texts)
+            self.stats['total_processing_time'] += total_processing_time
+
+            logger.info(f"Batch processing completed: {len(texts)} texts in {total_processing_time:.2f}ms")
+            return batch_results
+
+        except Exception as e:
+            logger.error(f"Batch processing failed: {e}")
+            # Return error results for all texts
+            return [self._build_error_result(text, str(e), 0) for text in texts]
+
     def _enhance_ner_with_categorization(self, ner_data: Dict[str, Any], original_text: str) -> Dict[str, Any]:
         """Enhance NER data with incident categorization"""
         enhanced_data = ner_data.copy()

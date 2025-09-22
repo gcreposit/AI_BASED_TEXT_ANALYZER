@@ -104,7 +104,6 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-
 # === API ENDPOINTS ===
 
 @app.post("/api/process-text", response_model=TopicClusteringResponse)
@@ -133,6 +132,59 @@ async def process_text(text_input: TextInput, background_tasks: BackgroundTasks)
     except Exception as e:
         logger.error(f"Text processing failed: {e}")
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
+
+
+@app.post("/api/process-batch", response_model=BatchProcessResponse)
+async def process_batch(batch_request: BatchProcessRequest, background_tasks: BackgroundTasks):
+    """
+    Process multiple texts in batch for improved performance
+    """
+    try:
+        if not clustering_service:
+            raise HTTPException(status_code=503, detail="Clustering services not initialized")
+
+        start_time = time.time()
+        results = []
+        errors = []
+        successful = 0
+        failed = 0
+
+        # Process all texts in batch
+        batch_results = await clustering_service.process_text_batch(
+            texts=batch_request.texts,
+            source_type=batch_request.source_type,
+            user_id=batch_request.user_id
+        )
+
+        # Process results
+        for i, result in enumerate(batch_results):
+            try:
+                if "error" in result:
+                    errors.append(f"Text {i+1}: {result['error']}")
+                    failed += 1
+                else:
+                    results.append(TopicClusteringResponse(**result))
+                    successful += 1
+            except Exception as e:
+                errors.append(f"Text {i+1}: {str(e)}")
+                failed += 1
+
+        processing_time = int((time.time() - start_time) * 1000)
+
+        return BatchProcessResponse(
+            total_processed=len(batch_request.texts),
+            successful=successful,
+            failed=failed,
+            processing_time_ms=processing_time,
+            results=results,
+            errors=errors
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Batch processing failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Batch processing failed: {str(e)}")
 
 
 @app.get("/api/topics/{topic_id}", response_model=TopicInfo)

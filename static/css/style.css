@@ -446,6 +446,63 @@ pre {
     outline-offset: 2px;
 }
 
+/* Add to your existing style.css file */
+.text-purple { color: #6f42c1 !important; }
+
+.sample-text-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sample-text-card:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.sample-header {
+    margin-bottom: 10px;
+}
+
+.sample-content {
+    margin-bottom: 0;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.result-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    height: 100%;
+}
+
+.stat-box {
+    padding: 10px;
+}
+
+.text-area-item {
+    position: relative;
+}
+
+.batch-textarea {
+    resize: vertical;
+}
+
+.progress {
+    background-color: #e9ecef;
+}
+
+.table th {
+    border-top: none;
+}
+
+.toast-container {
+    z-index: 9999;
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: high) {
     .card {
