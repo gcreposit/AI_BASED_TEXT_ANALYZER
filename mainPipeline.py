@@ -48,6 +48,7 @@ DUMP_DB_CONFIG = {
 # API Configuration
 API_BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:8000')
 PROCESS_TEXT_ENDPOINT = f"{API_BASE_URL}/api/process-text"
+PROCESS_BATCH_ENDPOINT = f"{API_BASE_URL}/api/process-batch"
 
 # Create database engine for dump database
 encoded_password = quote_plus(DUMP_DB_CONFIG['password'])
@@ -100,7 +101,7 @@ class AnalyzedData(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     dump_table_id = Column(Integer, nullable=False)  # Reference to post_bank.id
     
-    # API Response Fields (28 fields)
+    # Text processing fields
     input_text = Column(Text)
     processed_text = Column(Text)
     enhanced_text = Column(Text)
@@ -117,7 +118,7 @@ class AnalyzedData(Base):
     boost_reasons = Column(Text)  # JSON array as text
     timestamp = Column(Float)
     
-    # Extracted Entities (13 fields)
+    # Extracted entities
     person_names = Column(Text)  # JSON array as text
     organisation_names = Column(Text)  # JSON array as text
     location_names = Column(Text)  # JSON array as text
@@ -133,7 +134,18 @@ class AnalyzedData(Base):
     sentiment_confidence = Column(Float)
     contextual_understanding = Column(Text)
     
-    # Metadata
+    # Location fields from incident_location_analysis
+    primary_district = Column(Text)  # JSON array as text - primary districts
+    primary_thana = Column(Text)  # JSON array as text - primary thanas
+    primary_location = Column(Text)  # JSON array as text - primary locations
+    
+    # Category classification fields (ordered for display: category, subcategory, keywords, reasoning)
+    broad_category = Column(Text)  # JSON array as text - broad categories
+    sub_category = Column(Text)  # JSON array as text - sub categories
+    keywords_cloud = Column(Text)  # JSON array as text - keywords
+    category_reasoning = Column(Text)  # JSON array as text - reasoning for categories
+    
+    # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -217,6 +229,46 @@ class PipelineProcessor:
             logger.error(f"Error fetching unanalyzed posts: {str(e)}")
             return []
             
+    def call_process_batch_api(self, texts: List[str], source_type: str = "social_media") -> Optional[Dict[str, Any]]:
+        """
+        Call the batch processing API endpoint
+        
+        Args:
+            texts: List of text strings to process
+            source_type: Type of source (default: social_media)
+            
+        Returns:
+            API response dictionary or None if failed
+        """
+        try:
+            payload = {
+                "texts": texts,
+                "source_type": source_type
+            }
+            
+            logger.info(f"Calling batch API with {len(texts)} texts")
+            response = requests.post(
+                PROCESS_BATCH_ENDPOINT,
+                json=payload,
+                headers={'Content-Type': 'application/json'},
+                timeout=300  # 5 minutes timeout for batch processing
+            )
+            
+            if response.status_code == 200:
+                api_response = response.json()
+                logger.info(f"Batch API call successful. Processed: {api_response.get('total_processed', 0)}")
+                return api_response
+            else:
+                logger.error(f"API call failed with status {response.status_code}: {response.text}")
+                return None
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request error during API call: {str(e)}")
+            return None
+        except Exception as e:
+            logger.error(f"Unexpected error during API call: {str(e)}")
+            return None
+
     def call_process_text_api(self, text: str, source_type: str = "social_media") -> Optional[Dict[str, Any]]:
         """Call the /api/process-text endpoint"""
         try:
@@ -246,6 +298,148 @@ class PipelineProcessor:
             logger.error(f"Unexpected error in API call: {str(e)}")
             return None
             
+    def save_batch_analyzed_data(self, posts: List[PostBank], api_response: Dict[str, Any]) -> bool:
+        """
+        Save batch analyzed data to analyzed_data table and update analysisStatus
+        
+        Args:
+            posts: List of original PostBank objects
+            api_response: API response containing analyzed results
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            results = api_response.get('results', [])
+            
+            if len(results) != len(posts):
+                logger.error(f"Mismatch between posts ({len(posts)}) and results ({len(results)})")
+                return False
+            
+            successfully_processed_post_ids = []
+            
+            for i, (post, result) in enumerate(zip(posts, results)):
+                try:
+                    # Extract sentiment data
+                    entities = result.get('extracted_entities', {})
+                    sentiment_data = entities.get('sentiment', {})
+                    sentiment_label = sentiment_data.get('label', 'neutral')
+                    sentiment_confidence = sentiment_data.get('confidence', 0.0)
+                    
+                    # Extract category classifications and location analysis
+                    category_classifications = entities.get('category_classifications', [])
+                    primary_classification = entities.get('primary_classification', {})
+                    incident_location_analysis = entities.get('incident_location_analysis', {})
+                    
+                    # Extract location data from incident_location_analysis
+                    primary_districts = []
+                    primary_thanas = []
+                    primary_locations = []
+                    
+                    if incident_location_analysis:
+                        primary_districts = incident_location_analysis.get('primary_district', [])
+                        primary_thanas = incident_location_analysis.get('primary_thana', [])
+                        primary_locations = incident_location_analysis.get('primary_location', [])
+                    
+                    # Extract category data (ordered for display: category, subcategory, keywords, reasoning)
+                    broad_categories = []
+                    sub_categories = []
+                    keywords_clouds = []
+                    category_reasonings = []
+                    
+                    # Process category_classifications to extract ordered data
+                    for classification in category_classifications:
+                        if isinstance(classification, dict):
+                            broad_categories.append(classification.get('broad_category', ''))
+                            sub_categories.append(classification.get('sub_category', ''))
+                            keywords_clouds.extend(classification.get('keywords', []))
+                            category_reasonings.append(classification.get('reasoning', ''))
+                    
+                    # Also include primary classification data
+                    if primary_classification:
+                        primary_broad = primary_classification.get('broad_category', '')
+                        primary_sub = primary_classification.get('sub_category', '')
+                        primary_keywords = primary_classification.get('keywords', [])
+                        primary_reasoning = primary_classification.get('reasoning', '')
+                        
+                        if primary_broad and primary_broad not in broad_categories:
+                            broad_categories.insert(0, primary_broad)
+                        if primary_sub and primary_sub not in sub_categories:
+                            sub_categories.insert(0, primary_sub)
+                        if primary_keywords:
+                            keywords_clouds = primary_keywords + keywords_clouds
+                        if primary_reasoning and primary_reasoning not in category_reasonings:
+                            category_reasonings.insert(0, primary_reasoning)
+                    
+                    # Create AnalyzedData record
+                    analyzed_data = AnalyzedData(
+                        dump_table_id=post.id,
+                        input_text=result.get('input_text', ''),
+                        processed_text=result.get('processed_text', ''),
+                        enhanced_text=result.get('enhanced_text', ''),
+                        detected_language=result.get('detected_language', ''),
+                        language_confidence=result.get('language_confidence', 0.0),
+                        action=result.get('action', ''),
+                        topic_title=result.get('topic_title', ''),
+                        topic_id=result.get('topic_id', ''),
+                        similarity_score=result.get('similarity_score', 0.0),
+                        confidence=result.get('confidence', ''),
+                        source_type=result.get('source_type', 'social_media'),
+                        embedding_model=result.get('embedding_model', ''),
+                        processing_time_ms=result.get('processing_time_ms', 0),
+                        boost_reasons=json.dumps(result.get('boost_reasons', []), ensure_ascii=False),
+                        timestamp=result.get('timestamp', 0.0),
+                        
+                        # Extracted entities
+                        person_names=json.dumps(entities.get('person_names', []), ensure_ascii=False),
+                        organisation_names=json.dumps(entities.get('organisation_names', []), ensure_ascii=False),
+                        location_names=json.dumps(entities.get('location_names', []), ensure_ascii=False),
+                        district_names=json.dumps(entities.get('district_names', []), ensure_ascii=False),
+                        thana_names=json.dumps(entities.get('thana_names', []), ensure_ascii=False),
+                        incidents=json.dumps(entities.get('incidents', []), ensure_ascii=False),
+                        caste_names=json.dumps(entities.get('caste_names', []), ensure_ascii=False),
+                        religion_names=json.dumps(entities.get('religion_names', []), ensure_ascii=False),
+                        hashtags=json.dumps(entities.get('hashtags', []), ensure_ascii=False),
+                        mention_ids_extracted=json.dumps(entities.get('mention_ids', []), ensure_ascii=False),
+                        events=json.dumps(entities.get('events', []), ensure_ascii=False),
+                        sentiment_label=sentiment_label,
+                        sentiment_confidence=sentiment_confidence,
+                        contextual_understanding=entities.get('contextual_understanding', ''),
+                        
+                        # Location fields from incident_location_analysis
+                        primary_district=json.dumps(primary_districts, ensure_ascii=False),
+                        primary_thana=json.dumps(primary_thanas, ensure_ascii=False),
+                        primary_location=json.dumps(primary_locations, ensure_ascii=False),
+                        
+                        # Category classification fields (ordered for display: category, subcategory, keywords, reasoning)
+                        broad_category=json.dumps(broad_categories, ensure_ascii=False),
+                        sub_category=json.dumps(sub_categories, ensure_ascii=False),
+                        keywords_cloud=json.dumps(keywords_clouds, ensure_ascii=False),
+                        category_reasoning=json.dumps(category_reasonings, ensure_ascii=False)
+                    )
+                    
+                    self.session.add(analyzed_data)
+                    successfully_processed_post_ids.append(post.id)
+                    
+                except Exception as e:
+                    logger.error(f"Error processing result {i} for post {post.id}: {str(e)}")
+                    continue
+            
+            # Update analysisStatus to 'ANALYZED' for successfully processed posts
+            if successfully_processed_post_ids:
+                for post_id in successfully_processed_post_ids:
+                    self.update_post_status(post_id, 'ANALYZED')
+                logger.info(f"Updated analysisStatus to 'ANALYZED' for {len(successfully_processed_post_ids)} posts")
+            
+            self.session.commit()
+            logger.info(f"Successfully saved {len(results)} analyzed records and updated status")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving batch analyzed data: {str(e)}")
+            self.session.rollback()
+            return False
+
     def save_analyzed_data(self, post_id: int, api_response: Dict[str, Any]) -> bool:
         """Save API response to analyzed_data table"""
         try:
@@ -350,23 +544,63 @@ class PipelineProcessor:
             return False
             
     def process_batch(self, posts: List[PostBank]) -> Tuple[int, int]:
-        """Process a batch of posts"""
+        """Process a batch of posts using batch API"""
         successful = 0
         failed = 0
         
-        for post in posts:
-            try:
-                if self.process_single_post(post):
-                    successful += 1
+        try:
+            # Extract texts from posts
+            texts = []
+            for post in posts:
+                # Combine title and snippet for processing
+                text_content = f"{post.post_title}\n{post.post_snippet}"
+                texts.append(text_content)
+            
+            # Call batch API
+            api_response = self.call_process_batch_api(texts, source_type="social_media")
+            
+            if api_response and api_response.get('successful', 0) > 0:
+                # Save batch results
+                if self.save_batch_analyzed_data(posts, api_response):
+                    successful = api_response.get('successful', 0)
+                    failed = api_response.get('failed', 0)
+                    logger.info(f"Batch processing completed: {successful} successful, {failed} failed")
                 else:
-                    failed += 1
+                    logger.error("Failed to save batch results")
+                    failed = len(posts)
+            else:
+                logger.error("Batch API call failed, falling back to individual processing")
+                # Fallback to individual processing
+                for post in posts:
+                    try:
+                        if self.process_single_post(post):
+                            successful += 1
+                        else:
+                            failed += 1
+                            
+                        # Small delay between posts to avoid overwhelming the API
+                        time.sleep(0.5)
+                        
+                    except Exception as e:
+                        logger.error(f"Unexpected error processing post {post.id}: {str(e)}")
+                        failed += 1
+                        
+        except Exception as e:
+            logger.error(f"Error in batch processing: {str(e)}")
+            # Fallback to individual processing
+            for post in posts:
+                try:
+                    if self.process_single_post(post):
+                        successful += 1
+                    else:
+                        failed += 1
+                        
+                    # Small delay between posts to avoid overwhelming the API
+                    time.sleep(0.5)
                     
-                # Small delay between posts to avoid overwhelming the API
-                time.sleep(0.5)
-                
-            except Exception as e:
-                logger.error(f"Unexpected error processing post {post.id}: {str(e)}")
-                failed += 1
+                except Exception as e:
+                    logger.error(f"Unexpected error processing post {post.id}: {str(e)}")
+                    failed += 1
                 
         return successful, failed
         
