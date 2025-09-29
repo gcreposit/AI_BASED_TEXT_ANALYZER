@@ -337,39 +337,72 @@ class PipelineProcessor:
                     primary_locations = []
                     
                     if incident_location_analysis:
-                        primary_districts = incident_location_analysis.get('primary_district', [])
-                        primary_thanas = incident_location_analysis.get('primary_thana', [])
-                        primary_locations = incident_location_analysis.get('primary_location', [])
+                        # Handle both direct arrays and nested structure
+                        districts_data = incident_location_analysis.get('primary_district', [])
+                        thanas_data = incident_location_analysis.get('primary_thana', [])
+                        locations_data = incident_location_analysis.get('primary_location', [])
+                        
+                        # Ensure we have proper arrays
+                        primary_districts = districts_data if isinstance(districts_data, list) else []
+                        primary_thanas = thanas_data if isinstance(thanas_data, list) else []
+                        primary_locations = locations_data if isinstance(locations_data, list) else []
                     
-                    # Extract category data (ordered for display: category, subcategory, keywords, reasoning)
+                    # Extract category data directly from entities
                     broad_categories = []
                     sub_categories = []
                     keywords_clouds = []
                     category_reasonings = []
                     
-                    # Process category_classifications to extract ordered data
-                    for classification in category_classifications:
-                        if isinstance(classification, dict):
-                            broad_categories.append(classification.get('broad_category', ''))
-                            sub_categories.append(classification.get('sub_category', ''))
-                            keywords_clouds.extend(classification.get('keywords', []))
-                            category_reasonings.append(classification.get('reasoning', ''))
+                    # Check if entities has direct category data
+                    if 'broad_category' in entities:
+                        broad_cat_data = entities.get('broad_category', [])
+                        broad_categories = broad_cat_data if isinstance(broad_cat_data, list) else []
                     
-                    # Also include primary classification data
-                    if primary_classification:
+                    if 'sub_category' in entities:
+                        sub_cat_data = entities.get('sub_category', [])
+                        sub_categories = sub_cat_data if isinstance(sub_cat_data, list) else []
+                    
+                    if 'keywords_cloud' in entities:
+                        keywords_data = entities.get('keywords_cloud', [])
+                        keywords_clouds = keywords_data if isinstance(keywords_data, list) else []
+                    
+                    if 'category_reasoning' in entities:
+                        reasoning_data = entities.get('category_reasoning', [])
+                        category_reasonings = reasoning_data if isinstance(reasoning_data, list) else []
+                    
+                    # Fallback: Process category_classifications if direct data not available
+                    if not broad_categories and category_classifications:
+                        for classification in category_classifications:
+                            if isinstance(classification, dict):
+                                broad_cat = classification.get('broad_category', '')
+                                sub_cat = classification.get('sub_category', '')
+                                keywords = classification.get('keywords', [])
+                                reasoning = classification.get('reasoning', '')
+                                
+                                if broad_cat:
+                                    broad_categories.append(broad_cat)
+                                if sub_cat:
+                                    sub_categories.append(sub_cat)
+                                if keywords:
+                                    keywords_clouds.extend(keywords)
+                                if reasoning:
+                                    category_reasonings.append(reasoning)
+                    
+                    # Also include primary classification data if available
+                    if primary_classification and not broad_categories:
                         primary_broad = primary_classification.get('broad_category', '')
                         primary_sub = primary_classification.get('sub_category', '')
                         primary_keywords = primary_classification.get('keywords', [])
                         primary_reasoning = primary_classification.get('reasoning', '')
                         
-                        if primary_broad and primary_broad not in broad_categories:
-                            broad_categories.insert(0, primary_broad)
-                        if primary_sub and primary_sub not in sub_categories:
-                            sub_categories.insert(0, primary_sub)
+                        if primary_broad:
+                            broad_categories.append(primary_broad)
+                        if primary_sub:
+                            sub_categories.append(primary_sub)
                         if primary_keywords:
-                            keywords_clouds = primary_keywords + keywords_clouds
-                        if primary_reasoning and primary_reasoning not in category_reasonings:
-                            category_reasonings.insert(0, primary_reasoning)
+                            keywords_clouds.extend(primary_keywords)
+                        if primary_reasoning:
+                            category_reasonings.append(primary_reasoning)
                     
                     # Create AnalyzedData record
                     analyzed_data = AnalyzedData(
