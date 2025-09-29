@@ -47,8 +47,49 @@ class SentimentData(BaseModel):
     confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence score")
 
 
+# class ExtractedEntities(BaseModel):
+#     """Schema for NER extracted entities"""
+#     person_names: List[str] = Field(default_factory=list)
+#     organisation_names: List[str] = Field(default_factory=list)
+#     location_names: List[str] = Field(default_factory=list)
+#     district_names: List[str] = Field(default_factory=list)
+#     thana_names: List[str] = Field(default_factory=list)
+#     incidents: List[str] = Field(default_factory=list)
+#     caste_names: List[str] = Field(default_factory=list)
+#     religion_names: List[str] = Field(default_factory=list)
+#     hashtags: List[str] = Field(default_factory=list)
+#     mention_ids: List[str] = Field(default_factory=list)
+#     events: List[str] = Field(default_factory=list)
+#     sentiment: Optional[SentimentData] = None
+#     contextual_understanding: str = Field(default="")
+
+class CategoryClassification(BaseModel):
+    """Schema for individual category classifications"""
+    broad_category: str = Field(..., description="Broad category (CRIME, TRAFFIC RELATED, etc.)")
+    sub_category: str = Field(..., description="Sub category (AGAINST MINORS, MURDER, etc.)")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Classification confidence")
+    matched_keywords: List[str] = Field(default_factory=list, description="Keywords that matched")
+    reasoning: str = Field(default="", description="Reasoning for this classification")
+
+
+class PrimaryClassification(BaseModel):
+    """Schema for primary classification"""
+    broad_category: str = Field(default="", description="Primary broad category")
+    sub_category: str = Field(default="", description="Primary sub category")
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0, description="Primary classification confidence")
+
+
+class IncidentLocationAnalysis(BaseModel):
+    """Schema for incident location analysis"""
+    incident_districts: List[str] = Field(default_factory=list, description="Districts where incident occurred")
+    related_districts: List[str] = Field(default_factory=list, description="Districts mentioned as residence/origin")
+    incident_thanas: List[str] = Field(default_factory=list, description="Police stations handling the case")
+    related_thanas: List[str] = Field(default_factory=list, description="Police stations in other contexts")
+    primary_location: Dict[str, str] = Field(default_factory=dict, description="Primary location details")
+
+
 class ExtractedEntities(BaseModel):
-    """Schema for NER extracted entities"""
+    """Enhanced schema for NER extracted entities with multi-category classification"""
     person_names: List[str] = Field(default_factory=list)
     organisation_names: List[str] = Field(default_factory=list)
     location_names: List[str] = Field(default_factory=list)
@@ -62,6 +103,10 @@ class ExtractedEntities(BaseModel):
     events: List[str] = Field(default_factory=list)
     sentiment: Optional[SentimentData] = None
     contextual_understanding: str = Field(default="")
+    # NEW ENHANCED FIELDS
+    category_classifications: List[CategoryClassification] = Field(default_factory=list, description="All applicable classifications")
+    primary_classification: PrimaryClassification = Field(default_factory=PrimaryClassification, description="Primary classification")
+    incident_location_analysis: IncidentLocationAnalysis = Field(default_factory=IncidentLocationAnalysis, description="Location analysis")
 
 
 class TopicClusteringResponse(BaseModel):

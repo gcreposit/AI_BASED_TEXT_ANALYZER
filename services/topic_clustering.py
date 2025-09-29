@@ -101,11 +101,21 @@ class TopicClusteringService:
 
             logger.info(f"Processing text: language={detected_language}, confidence={lang_confidence:.2f}")
 
-            # Step 3: Enhanced NER extraction with incident categorization
+            # Step 3: Enhanced NER extraction with multi-category classification
             ner_data = self.ner_extractor.extract(text)
+            logger.info(
+                f"NER extraction completed - found {len(ner_data.get('category_classifications', []))} classifications")
 
-            # Step 4: Enhance NER data with incident categorization
+            # Step 4: Enhance NER data with incident categorization (legacy enhancement)
             enhanced_ner_data = self._enhance_ner_with_categorization(ner_data, text)
+
+            # Step 5: Ensure the result has the new classification fields
+            if "category_classifications" not in enhanced_ner_data and "category_classifications" in ner_data:
+                enhanced_ner_data["category_classifications"] = ner_data["category_classifications"]
+            if "primary_classification" not in enhanced_ner_data and "primary_classification" in ner_data:
+                enhanced_ner_data["primary_classification"] = ner_data["primary_classification"]
+            if "incident_location_analysis" not in enhanced_ner_data and "incident_location_analysis" in ner_data:
+                enhanced_ner_data["incident_location_analysis"] = ner_data["incident_location_analysis"]
 
             # Step 5: Create enhanced text representation
             enhanced_text = self.embedding_service.create_enhanced_text(processed_text, enhanced_ner_data)
@@ -1043,7 +1053,10 @@ class TopicClusteringService:
                       topic_result: Dict[str, Any], ner_data: Dict[str, Any],
                       language: str, lang_confidence: float, source_type: str,
                       processing_time: float) -> Dict[str, Any]:
-        """Build comprehensive result object"""
+        """Build comprehensive result object with enhanced NER data"""
+
+        # Ensure all new fields are present in ner_data
+        enhanced_ner_result = self._ensure_enhanced_fields(ner_data)
 
         return {
             "input_text": original_text,
@@ -1059,10 +1072,76 @@ class TopicClusteringService:
             "source_type": source_type,
             "embedding_model": "BAAI/bge-m3",
             "processing_time_ms": int(processing_time),
-            "extracted_entities": ner_data,
+            "extracted_entities": enhanced_ner_result,  # This now includes all new fields
             "boost_reasons": topic_result.get("boost_reasons", []),
             "timestamp": time.time()
         }
+
+    def _ensure_enhanced_fields(self, ner_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Ensure all enhanced fields are present in the NER result"""
+
+        # Create a copy to avoid modifying the original
+        enhanced_result = ner_data.copy()
+
+        # Ensure category_classifications field exists and is properly structured
+        if "category_classifications" not in enhanced_result:
+            enhanced_result["category_classifications"] = []
+
+        # Convert to proper format if needed
+        classifications = enhanced_result["category_classifications"]
+        if isinstance(classifications, list):
+            formatted_classifications = []
+            for cls in classifications:
+                if isinstance(cls, dict):
+                    formatted_classifications.append({
+                        "broad_category": cls.get("broad_category", ""),
+                        "sub_category": cls.get("sub_category", ""),
+                        "confidence": float(cls.get("confidence", 0.0)),
+                        "matched_keywords": cls.get("matched_keywords", []),
+                        "reasoning": cls.get("reasoning", "")
+                    })
+            enhanced_result["category_classifications"] = formatted_classifications
+
+        # Ensure primary_classification field exists
+        if "primary_classification" not in enhanced_result:
+            enhanced_result["primary_classification"] = {
+                "broad_category": "",
+                "sub_category": "",
+                "confidence": 0.0
+            }
+
+        # Format primary classification
+        primary = enhanced_result["primary_classification"]
+        if isinstance(primary, dict):
+            enhanced_result["primary_classification"] = {
+                "broad_category": primary.get("broad_category", ""),
+                "sub_category": primary.get("sub_category", ""),
+                "confidence": float(primary.get("confidence", 0.0))
+            }
+
+        # Ensure incident_location_analysis field exists
+        if "incident_location_analysis" not in enhanced_result:
+            enhanced_result["incident_location_analysis"] = {
+                "incident_districts": [],
+                "related_districts": [],
+                "incident_thanas": [],
+                "related_thanas": [],
+                "primary_location": {}
+            }
+
+        # Format incident location analysis
+        location_analysis = enhanced_result["incident_location_analysis"]
+        if isinstance(location_analysis, dict):
+            enhanced_result["incident_location_analysis"] = {
+                "incident_districts": location_analysis.get("incident_districts", []),
+                "related_districts": location_analysis.get("related_districts", []),
+                "incident_thanas": location_analysis.get("incident_thanas", []),
+                "related_thanas": location_analysis.get("related_thanas", []),
+                "primary_location": location_analysis.get("primary_location", {})
+            }
+
+        return enhanced_result
+
 
     def _build_error_result(self, text: str, error: str, processing_time: float) -> Dict[str, Any]:
         """Build error result object"""

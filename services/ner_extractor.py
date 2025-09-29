@@ -119,7 +119,115 @@ class MistralNERExtractor:
             r"कोतवाली\s+([A-Za-z\u0900-\u097F][A-Za-z\u0900-\u097F\s]*?)(?:\s+(?:पर|में)|[,।\n]|$)"
         ]
 
-        # Enhanced JSON schema with better field descriptions
+        # NEW: Category classification system
+        self.category_keywords = {
+            "CRIME": {
+                "MURDER": [
+                    "हत्या", "murder", "खून", "killing", "मारना", "जान से मारना", "हत्या का मामला",
+                    "मृत्यु", "death", "मौत", "killed", "मारा गया", "मरा हुआ", "लाश", "शव"
+                ],
+                "AGAINST WOMEN": [
+                    "महिलाओं के विरुद्ध", "against women", "दुष्कर्म", "rape", "छेड़छाड़", "harassment",
+                    "बलात्कार", "यौन उत्पीड़न", "sexual assault", "महिला हिंसा", "दहेज", "dowry"
+                ],
+                "COMMUNAL": [
+                    "सांप्रदायिक", "communal", "धर्म", "religion", "दंगा", "riots", "हिंसा",
+                    "सांप्रदायिक तनाव", "communal tension", "religious violence", "धार्मिक हिंसा"
+                ],
+                "CASTEISM": [
+                    "जातिवाद", "casteism", "जाति", "caste", "दलित", "अत्याचार", "atrocity",
+                    "जातीय हिंसा", "caste violence", "अनुसूचित जाति"
+                ],
+                "AGAINST MINORS": [
+                    "नाबालिग", "minor", "बच्चों के विरुद्ध", "child abuse", "पोक्सो", "POCSO",
+                    "बाल यौन शोषण", "child sexual abuse", "नाबालिग से दुष्कर्म"
+                ],
+                "LOVE JIHAAD": [
+                    "लव जिहाद", "love jihad", "धर्म परिवर्तन", "forced conversion",
+                    "प्रेम प्रसंग", "interfaith marriage"
+                ],
+                "AGAINST COW": [
+                    "गौ हत्या", "cow slaughter", "गाय", "cow", "गौ रक्षा", "cow protection",
+                    "गौ तस्करी", "cattle smuggling"
+                ],
+                "ROBBERY": [
+                    "लूट", "robbery", "डकैती", "dacoity", "चोरी", "theft", "सेंधमारी",
+                    "burglary", "लूटपाट", "सम्पत्ति अपराध"
+                ],
+                "LOOT": ["लूटपाट", "looting", "सामान लूटना", "property theft", "धन लूटना"],
+                "THEFT": ["चोरी", "theft", "सेंधमारी", "burglary", "चुराना", "stealing"],
+                "KIDNAPPING": ["अपहरण", "kidnapping", "गुमशुदगी", "missing", "बंधक", "hostage"],
+                "ASSAULT": ["मारपीट", "assault", "हमला", "attack", "पिटाई", "beating", "शारीरिक हिंसा"],
+                "AGAINST ANIMAL": ["पशु हिंसा", "animal cruelty", "पशुओं के विरुद्ध", "against animals"],
+                "PETA": ["पेटा", "PETA", "पशु अधिकार", "animal rights"]
+            },
+            "TRAFFIC RELATED": {
+                "TRAFFIC JAM": ["ट्रैफिक जाम", "traffic jam", "यातायात बाधा", "traffic congestion"],
+                "DIVERSION": ["मार्ग परिवर्तन", "traffic diversion", "रास्ता बंद", "road closure"],
+                "TRAFFIC RULES VIOLATION": ["ट्रैफिक नियम उल्लंघन", "traffic violation", "चालान", "fine"]
+            },
+            "RAILWAY RELATED": {
+                "INVOLVING RAILWAYS": ["रेलवे", "railway", "ट्रेन", "train", "स्टेशन", "station"]
+            },
+            "POLICE MISCONDUCT": {
+                "CORRUPTION": ["भ्रष्टाचार", "corruption", "रिश्वत", "bribe", "घूसखोरी"],
+                "MISCONDUCT": ["कदाचार", "misconduct", "पुलिस कदाचार", "police misconduct"]
+            },
+            "GRIEVANCE": {
+                "EMERGENCY": ["आपातकाल", "emergency", "आपातकालीन सेवा", "emergency service"],
+                "FIR RELATED": ["एफआईआर", "FIR", "प्राथमिकी", "complaint", "शिकायत"],
+                "COMPLAINTS": ["शिकायत", "complaint", "निवेदन", "grievance", "समस्या"],
+                "OFFICIAL SERVICE RELATED": ["सरकारी सेवा", "government service", "अधिकारी", "official"],
+                "FIRE RELATED": ["आग", "fire", "अग्निकांड", "fire incident"],
+                "ACCIDENT": ["दुर्घटना", "accident", "हादसा", "mishap"]
+            },
+            "CYBER CRIME": {
+                "HACKING": ["हैकिंग", "hacking", "साइबर अपराध", "cyber crime"],
+                "PHISING": ["फिशिंग", "phishing", "धोखाधड़ी", "online fraud"],
+                "DIGITAL ARREST": ["डिजिटल गिरफ्तारी", "digital arrest", "ऑनलाइन धोखाधड़ी"],
+                "MONEY FRAUD": ["पैसे की धोखाधड़ी", "money fraud", "वित्तीय धोखाधड़ी"],
+                "EXPLICIT CONTENT": ["अश्लील सामग्री", "explicit content", "पोर्न", "obscene"],
+                "DIGITAL RANSOMI": ["डिजिटल फिरौती", "digital ransom", "रैंसमवेयर"]
+            },
+            "HATE SPEECH": {
+                "AGAINST RELIGION": ["धर्म विरोधी", "against religion", "धार्मिक घृणा", "religious hate"],
+                "AGAINST CASTEISM": ["जाति विरोधी", "against caste", "जातीय घृणा", "caste hate"],
+                "POLITICALLY MOTIVATED": ["राजनीतिक प्रेरित", "politically motivated", "राजनीतिक हिंसा"]
+            },
+            "VIRAL & FACT CHECK": {
+                "VIRAL": ["वायरल", "viral", "सोशल मीडिया", "social media"],
+                "FAKE NEWS": ["फेक न्यूज", "fake news", "झूठी खबर", "false news"],
+                "RUMOURS": ["अफवाह", "rumours", "गलत जानकारी", "misinformation"]
+            },
+            "ELECTION": {
+                "BOOTH CAPTURING": ["बूथ कैप्चरिंग", "booth capturing", "मतदान केंद्र पर कब्जा"],
+                "MCC VIOLATIONS": ["आचार संहिता उल्लंघन", "MCC violation", "election code violation"],
+                "FAKE VOTING": ["फर्जी मतदान", "fake voting", "बोगस वोटिंग"],
+                "BOOTH FACILITIES RELATED ISSUE": ["मतदान सुविधा", "voting facility", "बूथ सुविधा"],
+                "BOOTH MACHINE RELATED ISSUES": ["ईवीएम", "EVM", "मशीन खराब", "machine problem"],
+                "COMPLAIN AGAINST BOOTH OFFICIALS": ["बूथ अधिकारी शिकायत", "booth official complaint"],
+                "HINDRANCE IN ELECTION SERVICES": ["चुनाव में बाधा", "election hindrance", "मतदान में रुकावट"],
+                "ELECTORAL DISPUTES": ["चुनावी विवाद", "electoral dispute", "मतदान विवाद"]
+            },
+            "LAW & ORDER": {
+                "PROTEST": ["प्रदर्शन", "protest", "धरना", "demonstration", "आंदोलन"],
+                "MOVEMENTS": ["आंदोलन", "movement", "अभियान", "campaign"],
+                "CROWD SUMMON": ["भीड़ एकत्रित", "crowd gathering", "जमावड़ा", "assembly"],
+                "ANTI NATIONAL ACTIVITIES": ["राष्ट्र विरोधी", "anti national", "देशद्रोह", "sedition"],
+                "TERRORIST RELATED": ["आतंकवाद", "terrorism", "आतंकी", "terrorist"],
+                "DISASTER RELATED": ["आपदा", "disaster", "प्राकृतिक आपदा", "natural disaster"]
+            },
+            "ANTI NARCOTICS": {
+                "ANTI NARCOTICS": ["नशा निवारण", "anti narcotics", "ड्रग्स", "drugs", "नशीले पदार्थ"]
+            },
+            "FESTIVALS": {
+                "HINDU RELATED": ["हिंदू त्योहार", "hindu festival", "दिवाली", "होली", "दशहरा"],
+                "MUSLIM RELATED": ["मुस्लिम त्योहार", "muslim festival", "ईद", "रमजान", "मुहर्रम"],
+                "GOVERNMENT INITIATIVES": ["सरकारी पहल", "government initiative", "योजना", "scheme"]
+            }
+        }
+
+        # Enhanced JSON schema with MULTIPLE category fields
         self.json_schema = {
             "person_names": [],
             "organisation_names": [],
@@ -133,7 +241,33 @@ class MistralNERExtractor:
             "mention_ids": [],
             "events": [],
             "sentiment": {"label": "neutral", "confidence": 0.5},
-            "contextual_understanding": ""
+            "contextual_understanding": "",
+            # NEW FIELDS - MULTIPLE CLASSIFICATIONS
+            "category_classifications": [
+                {
+                    "broad_category": "",
+                    "sub_category": "",
+                    "confidence": 0.0,
+                    "matched_keywords": [],
+                    "reasoning": ""
+                }
+            ],
+            "primary_classification": {
+                "broad_category": "",
+                "sub_category": "",
+                "confidence": 0.0
+            },
+            "incident_location_analysis": {
+                "incident_districts": [],
+                "related_districts": [],
+                "incident_thanas": [],
+                "related_thanas": [],
+                "primary_location": {
+                    "district": "",
+                    "thana": "",
+                    "specific_location": ""
+                }
+            }
         }
 
         # Load model during initialization
@@ -324,6 +458,269 @@ class MistralNERExtractor:
 
         return self._dedupe(found_keywords)
 
+    def _classify_multiple_categories(self, text: str, extracted_entities: Dict[str, Any]) -> Dict[str, Any]:
+        """Enhanced MULTI-category classification with intersectional analysis"""
+        text_lower = text.lower()
+
+        # Store all potential matches with scores
+        all_matches = []
+
+        # Extract caste-related indicators for intersectional analysis
+        caste_indicators = extracted_entities.get("caste_names", []) or self._find_keywords(text, self.castes)
+        is_caste_related = len(caste_indicators) > 0
+
+        # Extract gender indicators
+        gender_indicators = ["महिला", "लड़की", "औरत", "woman", "girl", "female", "बेटी", "पत्नी", "wife"]
+        is_gender_related = any(indicator in text_lower for indicator in gender_indicators)
+
+        # Extract minor indicators
+        minor_indicators = ["नाबालिग", "minor", "बच्चा", "बच्ची", "child", "छोटा", "छोटी", "किशोर", "किशोरी"]
+        is_minor_related = any(indicator in text_lower for indicator in minor_indicators)
+
+        for broad_category, subcategories in self.category_keywords.items():
+            for sub_category, keywords in subcategories.items():
+                matched_keywords = []
+                base_score = 0
+
+                # Calculate base score from keyword matching
+                for keyword in keywords:
+                    keyword_lower = keyword.lower()
+                    if keyword in text or keyword_lower in text_lower:
+                        matched_keywords.append(keyword)
+                        base_score += 2
+                    elif re.search(r'\b' + re.escape(keyword_lower) + r'\b', text_lower):
+                        matched_keywords.append(keyword)
+                        base_score += 1
+
+                # Apply intersectional bonuses
+                intersectional_score = base_score
+                reasoning_parts = []
+
+                # If base keywords match, check for intersectional aspects
+                if base_score > 0:
+                    reasoning_parts.append(f"Direct keyword matches: {len(matched_keywords)}")
+
+                    # INTERSECTIONAL ANALYSIS
+                    if sub_category == "AGAINST MINORS" and is_minor_related:
+                        intersectional_score += 3
+                        reasoning_parts.append("Minor-related indicators found")
+
+                    if sub_category == "AGAINST WOMEN" and is_gender_related:
+                        intersectional_score += 3
+                        reasoning_parts.append("Gender-related indicators found")
+
+                    if sub_category == "CASTEISM" and is_caste_related:
+                        intersectional_score += 3
+                        reasoning_parts.append("Caste-related indicators found")
+
+                    # Cross-category intersections
+                    if (sub_category in ["AGAINST MINORS", "AGAINST WOMEN", "CASTEISM"] and
+                            is_minor_related and is_gender_related and is_caste_related):
+                        intersectional_score += 2  # Triple intersection bonus
+                        reasoning_parts.append("Triple intersection: caste + gender + minor")
+
+                    elif ((sub_category == "AGAINST MINORS" and is_gender_related) or
+                          (sub_category == "AGAINST WOMEN" and is_minor_related)):
+                        intersectional_score += 1  # Gender-minor intersection
+                        reasoning_parts.append("Gender-minor intersection")
+
+                    elif ((sub_category == "CASTEISM" and is_gender_related) or
+                          (sub_category == "AGAINST WOMEN" and is_caste_related)):
+                        intersectional_score += 1  # Caste-gender intersection
+                        reasoning_parts.append("Caste-gender intersection")
+
+                    elif ((sub_category == "CASTEISM" and is_minor_related) or
+                          (sub_category == "AGAINST MINORS" and is_caste_related)):
+                        intersectional_score += 1  # Caste-minor intersection
+                        reasoning_parts.append("Caste-minor intersection")
+
+                # Boost for specific incident matches
+                incidents_text = " ".join(extracted_entities.get("incidents", []))
+                if "पोक्सो" in incidents_text.lower() or "pocso" in incidents_text.lower():
+                    if sub_category == "AGAINST MINORS":
+                        intersectional_score += 4
+                        reasoning_parts.append("POCSO Act mentioned")
+
+                if "दुष्कर्म" in text_lower or "rape" in text_lower:
+                    if sub_category in ["AGAINST WOMEN", "AGAINST MINORS"]:
+                        intersectional_score += 3
+                        reasoning_parts.append("Sexual assault indicators")
+
+                # Store match if it has any score
+                if intersectional_score > 0:
+                    confidence = min(0.95, intersectional_score / (len(keywords) + 5))  # Normalize confidence
+
+                    match_data = {
+                        "broad_category": broad_category,
+                        "sub_category": sub_category,
+                        "confidence": confidence,
+                        "matched_keywords": matched_keywords[:5],
+                        "reasoning": " | ".join(
+                            reasoning_parts) if reasoning_parts else f"Keywords matched for {sub_category}",
+                        "score": intersectional_score
+                    }
+                    all_matches.append(match_data)
+
+        # Sort by score (descending) and filter meaningful matches
+        all_matches.sort(key=lambda x: x["score"], reverse=True)
+
+        # Define thresholds
+        MIN_SCORE_THRESHOLD = 1  # Minimum score to be considered
+        CONFIDENCE_THRESHOLD = 0.1  # Minimum confidence to include
+
+        # Filter and prepare final results
+        valid_matches = [
+            match for match in all_matches
+            if match["score"] >= MIN_SCORE_THRESHOLD and match["confidence"] >= CONFIDENCE_THRESHOLD
+        ]
+
+        # Remove score from final results (internal use only)
+        for match in valid_matches:
+            del match["score"]
+
+        # Determine primary classification (highest scoring)
+        primary_classification = valid_matches[0] if valid_matches else {
+            "broad_category": "UNCLASSIFIED",
+            "sub_category": "GENERAL",
+            "confidence": 0.0
+        }
+
+        # Limit to top 5 classifications to avoid noise
+        final_classifications = valid_matches[:5] if len(valid_matches) > 5 else valid_matches
+
+        return {
+            "category_classifications": final_classifications,
+            "primary_classification": {
+                "broad_category": primary_classification["broad_category"],
+                "sub_category": primary_classification["sub_category"],
+                "confidence": primary_classification["confidence"]
+            }
+        }
+
+    def _analyze_location_context(self, text: str, districts: List[str], thanas: List[str]) -> Dict[str, Any]:
+        """Enhanced location analysis to separate incident vs related locations"""
+
+        # Keywords that indicate incident location
+        incident_indicators = [
+            "में हुई", "में घटना", "में मामला", "पर दर्ज", "में पंजीकृत", "में गिरफ्तार",
+            "incident in", "case registered in", "arrested in", "happened in", "occurred in"
+        ]
+
+        # Keywords that indicate related/mentioned locations
+        related_indicators = [
+            "निवासी", "रहने वाला", "का रहने वाला", "से आया", "से संबंधित", "का मूल निवासी",
+            "resident of", "belongs to", "native of", "from", "originally from"
+        ]
+
+        result = {
+            "incident_districts": [],
+            "related_districts": [],
+            "incident_thanas": [],
+            "related_thanas": [],
+            "primary_location": {
+                "district": "",
+                "thana": "",
+                "specific_location": ""
+            }
+        }
+
+        text_lower = text.lower()
+
+        # Analyze districts
+        for district in districts:
+            is_incident_location = False
+            is_related_location = False
+
+            # Find district mentions in context
+            district_pattern = re.escape(district.lower())
+
+            # Check for incident indicators before/after district name
+            for indicator in incident_indicators:
+                if re.search(f"{indicator}.*?{district_pattern}|{district_pattern}.*?{indicator}", text_lower):
+                    is_incident_location = True
+                    break
+
+            # Check for related indicators
+            if not is_incident_location:
+                for indicator in related_indicators:
+                    if re.search(f"{indicator}.*?{district_pattern}|{district_pattern}.*?{indicator}", text_lower):
+                        is_related_location = True
+                        break
+
+            # Classify based on analysis
+            if is_incident_location:
+                result["incident_districts"].append(district)
+                if not result["primary_location"]["district"]:
+                    result["primary_location"]["district"] = district
+            elif is_related_location:
+                result["related_districts"].append(district)
+            else:
+                # Default: if mentioned early in text, likely incident location
+                district_position = text_lower.find(district.lower())
+                text_length = len(text)
+                if district_position != -1 and district_position < (text_length * 0.3):
+                    result["incident_districts"].append(district)
+                    if not result["primary_location"]["district"]:
+                        result["primary_location"]["district"] = district
+                else:
+                    result["related_districts"].append(district)
+
+        # Analyze thanas similarly
+        for thana in thanas:
+            is_incident_location = False
+            is_related_location = False
+
+            thana_pattern = re.escape(thana.lower())
+
+            # Thana-specific incident indicators
+            thana_incident_indicators = incident_indicators + [
+                "थाना", "कोतवाली", "पुलिस स्टेशन", "police station", "PS"
+            ]
+
+            for indicator in thana_incident_indicators:
+                if re.search(f"{indicator}.*?{thana_pattern}|{thana_pattern}.*?{indicator}", text_lower):
+                    is_incident_location = True
+                    break
+
+            if not is_incident_location:
+                for indicator in related_indicators:
+                    if re.search(f"{indicator}.*?{thana_pattern}|{thana_pattern}.*?{indicator}", text_lower):
+                        is_related_location = True
+                        break
+
+            if is_incident_location:
+                result["incident_thanas"].append(thana)
+                if not result["primary_location"]["thana"]:
+                    result["primary_location"]["thana"] = thana
+            elif is_related_location:
+                result["related_thanas"].append(thana)
+            else:
+                # Default classification
+                thana_position = text_lower.find(thana.lower())
+                if thana_position != -1 and thana_position < (len(text) * 0.3):
+                    result["incident_thanas"].append(thana)
+                    if not result["primary_location"]["thana"]:
+                        result["primary_location"]["thana"] = thana
+                else:
+                    result["related_thanas"].append(thana)
+
+        # Extract specific location (village, area, etc.)
+        location_patterns = [
+            r"ग्राम\s+([A-Za-z\u0900-\u097F]+)",
+            r"village\s+([A-Za-z]+)",
+            r"मोहल्ला\s+([A-Za-z\u0900-\u097F]+)",
+            r"colony\s+([A-Za-z\s]+)",
+            r"नगर\s+([A-Za-z\u0900-\u097F]+)"
+        ]
+
+        for pattern in location_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match and not result["primary_location"]["specific_location"]:
+                result["primary_location"]["specific_location"] = match.group(1).strip()
+                break
+
+        return result
+
     def _build_enhanced_instruction_prompt(self, text: str) -> str:
         """Enhanced instruction prompt with better structure and examples"""
 
@@ -337,6 +734,8 @@ STRICT REQUIREMENTS:
 2. Follow the exact schema format provided below
 3. Ensure contextual_understanding is ALWAYS in Hindi
 4. Create comprehensive summary that captures ALL events mentioned
+5. 4. Classify content into MULTIPLE categories when applicable (intersectional classification)
+6. Analyze location context to separate incident vs related locations
 
 JSON SCHEMA (EXACT FORMAT REQUIRED):
 {json.dumps(self.json_schema, ensure_ascii=False, indent=2)}
@@ -381,6 +780,37 @@ contextual_understanding:
 - 2-4 sentences in Hindi summarizing ALL key events, people, and outcomes
 - MUST capture complete story including WHO, WHAT, WHERE, WHEN details
 - Include all important context and results
+
+category_classifications:
+- ARRAY of all applicable classifications (can have multiple broad categories and subcategories)
+- Each classification must have: broad_category, sub_category, confidence, matched_keywords, reasoning
+- Include ALL relevant categories even if they overlap
+
+primary_classification:
+- The MOST RELEVANT/HIGHEST CONFIDENCE category
+- Must be one of the categories from category_classifications array
+
+INTERSECTIONAL CLASSIFICATION EXAMPLES:
+- "अनुसूचित जाति की नाबालिग लड़की से दुष्कर्म" → Multiple classifications:
+  * CRIME > AGAINST MINORS (minor involved)  
+  * CRIME > AGAINST WOMEN (female victim)
+  * CRIME > CASTEISM (caste-based crime)
+  
+- "मुस्लिम महिला पर हमला" → Multiple classifications:
+  * CRIME > AGAINST WOMEN (gender-based)
+  * HATE SPEECH > AGAINST RELIGION (religious targeting)
+
+- "दलित बच्चे की हत्या" → Multiple classifications:
+  * CRIME > MURDER (killing)
+  * CRIME > AGAINST MINORS (child victim)
+  * CRIME > CASTEISM (caste motivation)
+
+CLASSIFICATION GUIDELINES:
+- Always check for intersectional aspects (caste + gender + age + religion)
+- If keywords from multiple categories match, include ALL relevant classifications
+- Higher confidence for categories with more keyword matches
+- Consider context from incidents, events, and extracted entities
+- Primary classification should be the most severe/relevant crime category
 
 LANGUAGE HANDLING:
 - Process Hindi, English, and Hinglish text
@@ -503,6 +933,35 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
             # Fallback: create basic context from extracted entities
             result["contextual_understanding"] = "दी गई जानकारी से मुख्य घटनाओं और व्यक्तियों का विवरण मिलता है।"
 
+        # NEW: Handle multiple category classifications
+        llm_classifications = llm_json.get("category_classifications", [])
+        llm_primary = llm_json.get("primary_classification", {})
+
+        if isinstance(llm_classifications, list) and llm_classifications:
+            # Use LLM classifications if available
+            result["category_classifications"] = llm_classifications
+            result["primary_classification"] = llm_primary if llm_primary else llm_classifications[0]
+        else:
+            # Fallback: use rule-based multi-classification
+            multi_classification = self._classify_multiple_categories(
+                regex_extractions.get("original_text", ""), result
+            )
+            result["category_classifications"] = multi_classification["category_classifications"]
+            result["primary_classification"] = multi_classification["primary_classification"]
+
+        # NEW: Handle location analysis
+        llm_location = llm_json.get("incident_location_analysis", {})
+        if isinstance(llm_location, dict) and (
+                llm_location.get("incident_districts") or llm_location.get("incident_thanas")):
+            result["incident_location_analysis"] = llm_location
+        else:
+            # Fallback: use rule-based location analysis
+            result["incident_location_analysis"] = self._analyze_location_context(
+                regex_extractions.get("original_text", ""),
+                result["district_names"],
+                result["thana_names"]
+            )
+
         return result
 
     def extract(self, text: str, max_tokens: int = 1500, temperature: float = 0.1) -> Dict[str, Any]:
@@ -515,6 +974,7 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
 
         try:
             # Step 1: Enhanced regex-based extractions
+            # Step 1: Enhanced regex-based extractions (include original text for analysis)
             regex_extractions = {
                 "hashtags": self._find_hashtags(text),
                 "mention_ids": self._find_mentions(text),
@@ -522,6 +982,7 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                 "thana_names": self._find_thana(text),
                 "caste_names": self._find_keywords(text, self.castes),
                 "religion_names": self._find_keywords(text, self.religions),
+                "original_text": text  # Store original text for analysis
             }
 
             # Step 2: LLM-based extraction
@@ -611,7 +1072,12 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                     logger.error(f"LLM generation failed: {e}")
 
             # Step 3: Merge results
+            # Step 3: Enhanced merge with new fields
             final_result = self._merge_results(llm_json, regex_extractions)
+
+            # Remove original_text from final result
+            if "original_text" in final_result:
+                del final_result["original_text"]
 
             processing_time = (time.time() - start_time) * 1000
             logger.info(f"Enhanced NER extraction completed in {processing_time:.2f}ms")
@@ -784,7 +1250,10 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
             "cache_dir": self.cache_dir,
             "vllm_available": VLLM_AVAILABLE,
             "mlx_available": MLX_AVAILABLE,
-            "transformers_available": TRANSFORMERS_AVAILABLE
+            "transformers_available": TRANSFORMERS_AVAILABLE,
+            "total_broad_categories": len(self.category_keywords),
+            "total_subcategories": sum(len(subs) for subs in self.category_keywords.values()),
+            "intersectional_analysis": True
         }
 
 
@@ -894,6 +1363,75 @@ def check_dependencies():
     return dependencies
 
 
+def test_multi_classification(self, test_cases: List[str] = None) -> Dict[str, Any]:
+    """Test the multi-classification system with various intersectional cases"""
+    if test_cases is None:
+        test_cases = [
+            "अनुसूचित जाति की नाबालिग लड़की से दुष्कर्म का मामला दर्ज",
+            "दलित बच्चे की हत्या, पोक्सो एक्ट लगाया गया",
+            "मुस्लिम महिला पर जातीय हमला",
+            "ट्रैफिक जाम के कारण रास्ता बंद",
+            "पुलिस अधिकारी पर भ्रष्टाचार का आरोप"
+        ]
+
+    results = {}
+
+    for i, test_text in enumerate(test_cases):
+        print(f"\n--- Test Case {i + 1} ---")
+        print(f"Text: {test_text}")
+
+        result = self.extract(test_text)
+
+        classifications = result.get("category_classifications", [])
+        primary = result.get("primary_classification", {})
+
+        print(
+            f"Primary: {primary.get('broad_category', 'N/A')} > {primary.get('sub_category', 'N/A')} (confidence: {primary.get('confidence', 0):.2f})")
+
+        print("All Classifications:")
+        for j, cls in enumerate(classifications):
+            print(f"  {j + 1}. {cls.get('broad_category', 'N/A')} > {cls.get('sub_category', 'N/A')} "
+                  f"(confidence: {cls.get('confidence', 0):.2f})")
+            print(f"     Keywords: {cls.get('matched_keywords', [])}")
+            print(f"     Reasoning: {cls.get('reasoning', 'N/A')}")
+
+        results[f"test_{i + 1}"] = {
+            "text": test_text,
+            "classifications": classifications,
+            "primary": primary
+        }
+
+    return results
+
+
+def quick_test_multi_classification():
+    """Quick test to verify multi-classification works"""
+    extractor = MistralNERExtractor(
+        model_path="/Users/pankajkumar/.cache/huggingface/hub/models--mlx-community--Dolphin-Mistral-24B-Venice-Edition-4bit/snapshots/7674b37fe24022cf79e77d204fac5b9582b0dc40",
+        model_id="mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit"
+    )
+
+    test_cases = [
+        "अनुसूचित जाति की नाबालिग लड़की से दुष्कर्म",
+        "दलित बच्चे की हत्या",
+        "ट्रैफिक जाम के कारण देरी"
+    ]
+
+    for text in test_cases:
+        result = extractor.extract(text)
+        classifications = result.get("category_classifications", [])
+        primary = result.get("primary_classification", {})
+
+        print(f"\nText: {text}")
+        print(f"Primary: {primary.get('broad_category')} > {primary.get('sub_category')}")
+        print(f"Total Classifications: {len(classifications)}")
+        for cls in classifications:
+            print(f"  - {cls.get('broad_category')} > {cls.get('sub_category')} ({cls.get('confidence'):.2f})")
+
+
+# Uncomment to run quick test
+# quick_test_multi_classification()
+
 if __name__ == "__main__":
     print("=" * 60)
     print("Enhanced Mistral NER Extractor with Improved Prompting")
@@ -948,6 +1486,31 @@ if __name__ == "__main__":
 
         print("Extraction Results:")
         print(json.dumps(test_result, ensure_ascii=False, indent=2))
+
+        # Test multi-classification specifically
+        print("\n8. Testing Multi-Classification System...")
+        print("-" * 30)
+
+        # Test intersectional case
+        intersectional_text = "अनुसूचित जाति की नाबालिग लड़की से दुष्कर्म का मामला, अमरोहा थाना रजबपुर"
+        intersectional_result = extractor.extract(intersectional_text)
+
+        print("Intersectional Test Case:")
+        print(f"Text: {intersectional_text}")
+        print("\nClassifications:")
+        for i, cls in enumerate(intersectional_result.get("category_classifications", [])):
+            print(f"  {i + 1}. {cls.get('broad_category')} > {cls.get('sub_category')} "
+                  f"(confidence: {cls.get('confidence', 0):.2f})")
+            print(f"     Keywords: {cls.get('matched_keywords', [])}")
+            print(f"     Reasoning: {cls.get('reasoning', '')}")
+
+        print(f"\nPrimary Classification: {intersectional_result.get('primary_classification', {})}")
+
+        print("\nLocation Analysis:")
+        location_analysis = intersectional_result.get("incident_location_analysis", {})
+        print(f"  Incident Districts: {location_analysis.get('incident_districts', [])}")
+        print(f"  Incident Thanas: {location_analysis.get('incident_thanas', [])}")
+        print(f"  Primary Location: {location_analysis.get('primary_location', {})}")
 
         # Test batch processing
         print("\n6. Testing Batch Processing...")

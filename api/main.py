@@ -17,6 +17,8 @@ from fastapi.middleware.cors import CORSMiddleware
 # Import services and dependencies
 from config import config
 from database.connection import db_manager
+# from services import news_extract
+from services.news_extract import NewsExtractor
 from services.ner_extractor import MistralNERExtractor
 from services.embedding_service import EmbeddingService
 from services.vector_service import VectorService
@@ -30,13 +32,17 @@ embedding_service = None
 ner_extractor = None
 vector_service = None
 clustering_service = None
+news_extractor = None
+
+
+# In the lifespan function, add this after clustering_service initialization:
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan management"""
     # Startup
-    global embedding_service, ner_extractor, vector_service, clustering_service
+    global embedding_service, ner_extractor, vector_service, clustering_service, news_extractor
 
     logger.info("🚀 Initializing Multilingual Topic Clustering System...")
 
@@ -61,10 +67,11 @@ async def lifespan(app: FastAPI):
         logger.info("✅ ChromaDB vector services initialized")
 
         # Initialize clustering services
-        clustering_service = TopicClusteringService(
-            embedding_service, ner_extractor, vector_service, db_manager
-        )
+        clustering_service = TopicClusteringService(embedding_service, ner_extractor, vector_service, db_manager)
         logger.info("✅ Topic clustering services initialized")
+
+        news_extractor = NewsExtractor(ner_extractor)
+        logger.info("✅ News extraction service initialized")
 
         logger.info("🎉 All services initialized successfully!")
 
@@ -103,6 +110,7 @@ app.add_middleware(
 # Mount static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
 
 # === API ENDPOINTS ===
 
@@ -160,13 +168,13 @@ async def process_batch(batch_request: BatchProcessRequest, background_tasks: Ba
         for i, result in enumerate(batch_results):
             try:
                 if "error" in result:
-                    errors.append(f"Text {i+1}: {result['error']}")
+                    errors.append(f"Text {i + 1}: {result['error']}")
                     failed += 1
                 else:
                     results.append(TopicClusteringResponse(**result))
                     successful += 1
             except Exception as e:
-                errors.append(f"Text {i+1}: {str(e)}")
+                errors.append(f"Text {i + 1}: {str(e)}")
                 failed += 1
 
         processing_time = int((time.time() - start_time) * 1000)
@@ -433,7 +441,7 @@ async def get_topics_dashboard():
         from sqlalchemy import create_engine, text
         from urllib.parse import quote_plus
         import os
-        
+
         # Database configuration for DUMP DATABASE
         DUMP_DB_CONFIG = {
             'host': os.getenv('DUMP_DB_HOST', '94.136.189.147'),
@@ -442,13 +450,13 @@ async def get_topics_dashboard():
             'password': os.getenv('DUMP_DB_PASSWORD', 'Gccloud@1489$'),
             'port': int(os.getenv('DUMP_DB_PORT', '3306'))
         }
-        
+
         # Create database engine for dump database
         encoded_password = quote_plus(DUMP_DB_CONFIG['password'])
         DUMP_DATABASE_URL = f"mysql+pymysql://{DUMP_DB_CONFIG['user']}:{encoded_password}@{DUMP_DB_CONFIG['host']}:{DUMP_DB_CONFIG['port']}/{DUMP_DB_CONFIG['database']}"
-        
+
         dump_engine = create_engine(DUMP_DATABASE_URL, echo=False, pool_pre_ping=True)
-        
+
         with dump_engine.connect() as conn:
             # Get topics with post counts
             query = text("""
@@ -463,10 +471,10 @@ async def get_topics_dashboard():
                 GROUP BY ad.topic_id, ad.topic_title, ad.detected_language
                 ORDER BY post_count DESC
             """)
-            
+
             result = conn.execute(query)
             topics_data = []
-            
+
             for row in result:
                 topics_data.append({
                     'topic_id': row.topic_id,
@@ -474,27 +482,27 @@ async def get_topics_dashboard():
                     'primary_language': row.detected_language or 'Unknown',
                     'post_count': row.post_count
                 })
-            
+
             # Calculate stats
             total_topics = len(topics_data)
             total_posts = sum(topic['post_count'] for topic in topics_data)
             avg_posts_per_topic = round(total_posts / total_topics, 1) if total_topics > 0 else 0
             languages = set(topic['primary_language'] for topic in topics_data)
             language_count = len(languages)
-            
+
             stats = {
                 'total_topics': total_topics,
                 'total_posts': total_posts,
                 'avg_posts_per_topic': avg_posts_per_topic,
                 'language_count': language_count
             }
-            
+
             return {
                 'success': True,
                 'topics': topics_data,
                 'stats': stats
             }
-            
+
     except Exception as e:
         logger.error(f"Failed to get topics dashboard data: {e}")
         return {
@@ -514,7 +522,7 @@ async def get_topic_posts(topic_id: str):
         from sqlalchemy import create_engine, text
         from urllib.parse import quote_plus
         import os
-        
+
         # Database configuration for DUMP DATABASE
         DUMP_DB_CONFIG = {
             'host': os.getenv('DUMP_DB_HOST', '94.136.189.147'),
@@ -523,13 +531,13 @@ async def get_topic_posts(topic_id: str):
             'password': os.getenv('DUMP_DB_PASSWORD', 'Gccloud@1489$'),
             'port': int(os.getenv('DUMP_DB_PORT', '3306'))
         }
-        
+
         # Create database engine for dump database
         encoded_password = quote_plus(DUMP_DB_CONFIG['password'])
         DUMP_DATABASE_URL = f"mysql+pymysql://{DUMP_DB_CONFIG['user']}:{encoded_password}@{DUMP_DB_CONFIG['host']}:{DUMP_DB_CONFIG['port']}/{DUMP_DB_CONFIG['database']}"
-        
+
         dump_engine = create_engine(DUMP_DATABASE_URL, echo=False, pool_pre_ping=True)
-        
+
         with dump_engine.connect() as conn:
             # Get posts for the specific topic
             query = text("""
@@ -546,10 +554,10 @@ async def get_topic_posts(topic_id: str):
                 ORDER BY pb.post_timestamp DESC
                 LIMIT 100
             """)
-            
+
             result = conn.execute(query, {'topic_id': topic_id})
             posts_data = []
-            
+
             for row in result:
                 posts_data.append({
                     'post_title': row.post_title,
@@ -559,12 +567,12 @@ async def get_topic_posts(topic_id: str):
                     'detected_language': row.detected_language,
                     'contextual_understanding': row.contextual_understanding
                 })
-            
+
             return {
                 'success': True,
                 'posts': posts_data
             }
-            
+
     except Exception as e:
         logger.error(f"Failed to get posts for topic {topic_id}: {e}")
         return {
@@ -573,6 +581,79 @@ async def get_topic_posts(topic_id: str):
             'posts': []
         }
 
+
+@app.post("/api/extract-news")
+async def extract_news(request: Request):
+    try:
+        if not news_extractor:
+            raise HTTPException(status_code=503, detail="News extraction service not initialized")
+
+        data = await request.json()
+        raw_text = data.get("raw_text", "")
+        max_tokens = data.get("max_tokens", 4000)
+        temperature = data.get("temperature", 0.1)
+
+        result = news_extractor.extract_news(raw_text, max_tokens, temperature)  # Use instance, not class
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/extract-news-batch")
+async def extract_news_batch(request: Request):
+    try:
+        if not news_extractor:
+            raise HTTPException(status_code=503, detail="News extraction service not initialized")
+
+        data = await request.json()
+        raw_texts = data.get("raw_texts", [])
+        max_tokens = data.get("max_tokens", 4000)
+        temperature = data.get("temperature", 0.1)
+
+        results = news_extractor.extract_news_batch(raw_texts, max_tokens, temperature)  # Use instance
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/test-enhanced-extraction")
+async def test_enhanced_extraction(request: Request):
+    """Test endpoint to verify enhanced NER extraction is working"""
+    try:
+        data = await request.json()
+        text = data.get("text", "अनुसूचित जाति की नाबालिग लड़की से दुष्कर्म का मामला")
+
+        if not ner_extractor:
+            raise HTTPException(status_code=503, detail="NER service not available")
+
+        # Test direct NER extraction
+        ner_result = ner_extractor.extract(text)
+
+        # Test through clustering service
+        clustering_result = clustering_service.process_text(text)
+
+        return {
+            "success": True,
+            "test_text": text,
+            "direct_ner_result": {
+                "has_category_classifications": "category_classifications" in ner_result,
+                "has_primary_classification": "primary_classification" in ner_result,
+                "has_incident_location_analysis": "incident_location_analysis" in ner_result,
+                "category_count": len(ner_result.get("category_classifications", [])),
+                "categories": ner_result.get("category_classifications", []),
+                "primary": ner_result.get("primary_classification", {}),
+                "location_analysis": ner_result.get("incident_location_analysis", {})
+            },
+            "clustering_service_result": {
+                "has_enhanced_entities": "extracted_entities" in clustering_result,
+                "entities_have_classifications": "category_classifications" in clustering_result.get(
+                    "extracted_entities", {}),
+                "extracted_entities": clustering_result.get("extracted_entities", {})
+            }
+        }
+
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 # === ERROR HANDLERS ===
 
