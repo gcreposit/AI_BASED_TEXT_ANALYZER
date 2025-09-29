@@ -337,15 +337,40 @@ class PipelineProcessor:
                     primary_locations = []
                     
                     if incident_location_analysis:
-                        # Handle both direct arrays and nested structure
+                        # Handle nested primary_location structure
+                        primary_location_data = incident_location_analysis.get('primary_location', {})
+                        
+                        if isinstance(primary_location_data, dict):
+                            # Extract from nested structure: {"district": "बुलंदशहर", "thana": "", "specific_location": "", "matched_keywords": ["keyword1", "keyword2"]}
+                            district = primary_location_data.get('district', '')
+                            thana = primary_location_data.get('thana', '')
+                            specific_location = primary_location_data.get('specific_location', '')
+                            location_matched_keywords = primary_location_data.get('matched_keywords', [])
+                            
+                            # Store district in primary_district
+                            if district:
+                                primary_districts.append(district)
+                            # Store thana in primary_thana
+                            if thana:
+                                primary_thanas.append(thana)
+                            # Store only specific_location in primary_location
+                            if specific_location:
+                                primary_locations.append(specific_location)
+                            
+                            # Store matched_keywords from primary_location for later use in keywords_cloud
+                            primary_location_keywords = location_matched_keywords if isinstance(location_matched_keywords, list) else []
+                        elif isinstance(primary_location_data, list):
+                            # Handle if it's still an array format (backward compatibility)
+                            primary_locations = primary_location_data
+                        
+                        # Also check for direct arrays (backward compatibility)
                         districts_data = incident_location_analysis.get('primary_district', [])
                         thanas_data = incident_location_analysis.get('primary_thana', [])
-                        locations_data = incident_location_analysis.get('primary_location', [])
                         
-                        # Ensure we have proper arrays
-                        primary_districts = districts_data if isinstance(districts_data, list) else []
-                        primary_thanas = thanas_data if isinstance(thanas_data, list) else []
-                        primary_locations = locations_data if isinstance(locations_data, list) else []
+                        if isinstance(districts_data, list) and districts_data:
+                            primary_districts.extend(districts_data)
+                        if isinstance(thanas_data, list) and thanas_data:
+                            primary_thanas.extend(thanas_data)
                     
                     # Extract category data directly from entities
                     broad_categories = []
@@ -364,7 +389,14 @@ class PipelineProcessor:
                     
                     if 'keywords_cloud' in entities:
                         keywords_data = entities.get('keywords_cloud', [])
-                        keywords_clouds = keywords_data if isinstance(keywords_data, list) else []
+                        if isinstance(keywords_data, dict) and 'matched_keywords' in keywords_data:
+                            # Handle nested structure: {"matched_keywords": ["keyword1", "keyword2"]}
+                            keywords_clouds = keywords_data.get('matched_keywords', [])
+                        elif isinstance(keywords_data, list):
+                            # Handle direct array format
+                            keywords_clouds = keywords_data
+                        else:
+                            keywords_clouds = []
                     
                     if 'category_reasoning' in entities:
                         reasoning_data = entities.get('category_reasoning', [])
@@ -376,31 +408,38 @@ class PipelineProcessor:
                             if isinstance(classification, dict):
                                 broad_cat = classification.get('broad_category', '')
                                 sub_cat = classification.get('sub_category', '')
-                                keywords = classification.get('keywords', [])
+                                # Handle nested matched_keywords structure
+                                matched_keywords_data = classification.get('matched_keywords', [])
                                 reasoning = classification.get('reasoning', '')
                                 
                                 if broad_cat:
                                     broad_categories.append(broad_cat)
                                 if sub_cat:
                                     sub_categories.append(sub_cat)
-                                if keywords:
-                                    keywords_clouds.extend(keywords)
+                                
+                                # Handle nested matched_keywords structure
+                                if isinstance(matched_keywords_data, dict) and 'matched_keywords' in matched_keywords_data:
+                                    # Handle nested structure: {"matched_keywords": ["keyword1", "keyword2"]}
+                                    nested_keywords = matched_keywords_data.get('matched_keywords', [])
+                                    if nested_keywords:
+                                        keywords_clouds.extend(nested_keywords)
+                                elif isinstance(matched_keywords_data, list) and matched_keywords_data:
+                                    # Handle direct array format
+                                    keywords_clouds.extend(matched_keywords_data)
+                                
                                 if reasoning:
                                     category_reasonings.append(reasoning)
                     
-                    # Also include primary classification data if available
+                    # Also include primary classification data if available (but NOT keywords)
                     if primary_classification and not broad_categories:
                         primary_broad = primary_classification.get('broad_category', '')
                         primary_sub = primary_classification.get('sub_category', '')
-                        primary_keywords = primary_classification.get('keywords', [])
                         primary_reasoning = primary_classification.get('reasoning', '')
                         
                         if primary_broad:
                             broad_categories.append(primary_broad)
                         if primary_sub:
                             sub_categories.append(primary_sub)
-                        if primary_keywords:
-                            keywords_clouds.extend(primary_keywords)
                         if primary_reasoning:
                             category_reasonings.append(primary_reasoning)
                     
