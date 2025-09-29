@@ -553,7 +553,7 @@ class PipelineProcessor:
             texts = []
             for post in posts:
                 # Combine title and snippet for processing
-                text_content = f"{post.post_title}\n{post.post_snippet}"
+                text_content = f"{post.post_title} -{post.post_snippet}"
                 texts.append(text_content)
             
             # Call batch API
@@ -569,6 +569,7 @@ class PipelineProcessor:
                     logger.error("Failed to save batch results")
                     failed = len(posts)
             else:
+                # THIS IS FOR FAILING CASE
                 logger.error("Batch API call failed, falling back to individual processing")
                 # Fallback to individual processing
                 for post in posts:
