@@ -157,20 +157,12 @@ class AnalyzedData(Base):
     post_bank_author_name = Column(String(255))  # Author name from PostBank
     post_bank_author_username = Column(String(255))  # Author username from PostBank
     post_bank_author_id = Column(String(255))  # Author ID from PostBank
-    
+
     # PostBank fields - Language and location
     post_bank_post_language = Column(String(50))  # Post language from PostBank
     post_bank_post_location = Column(String(255))  # Post location from PostBank
     post_bank_post_type = Column(String(100))  # Post type from PostBank
-    post_bank_post_sentiment = Column(String(50))  # Post sentiment from PostBank
-    post_bank_sentiment_score = Column(Float, default=0.0)  # Sentiment score from PostBank
-    post_bank_keywords = Column(Text)  # Keywords from PostBank
-    post_bank_hashtags = Column(Text)  # Hashtags from PostBank
-    post_bank_mentions = Column(Text)  # Mentions from PostBank
-    post_bank_entities = Column(Text)  # Entities from PostBank
-    post_bank_message_id = Column(String(255))  # Message ID from PostBank
-    post_bank_analysisStatus = Column(String(50))  # Analysis status from PostBank
-    
+
     # PostBank fields - Social media metrics
     post_bank_retweets = Column(Integer, default=0)  # Retweets from PostBank
     post_bank_bookmarks = Column(Integer, default=0)  # Bookmarks from PostBank
@@ -291,8 +283,7 @@ class PipelineProcessor:
                 
         except Exception as e:
             logger.error(f"Error adding analysisStatus column: {str(e)}")
-            self.session.rollback()
-            
+
     def get_unanalyzed_posts(self, limit: int = None) -> List[PostBank]:
         """Get posts that haven't been analyzed yet"""
         try:
@@ -671,8 +662,6 @@ class PipelineProcessor:
                     # Create AnalyzedData record
                     analyzed_data = AnalyzedData(
                         dump_table_id=post.id,
-                        topic_id=topic_id,  # Set the topic_id for 1:M relationship
-                        common_attachment_id=common_attachment_id,  # Set common_attachment_id
                         input_text=result.get('input_text', ''),
                         processed_text=result.get('processed_text', ''),
                         enhanced_text=result.get('enhanced_text', ''),
@@ -680,6 +669,7 @@ class PipelineProcessor:
                         language_confidence=result.get('language_confidence', 0.0),
                         action=result.get('action', ''),
                         topic_title=result.get('topic_title', ''),
+                        topic_id=result.get('topic_id', ''),
                         similarity_score=result.get('similarity_score', 0.0),
                         confidence=result.get('confidence', ''),
                         source_type=result.get('source_type', 'social_media'),
@@ -687,53 +677,6 @@ class PipelineProcessor:
                         processing_time_ms=result.get('processing_time_ms', 0),
                         boost_reasons=json.dumps(result.get('boost_reasons', []), ensure_ascii=False),
                         timestamp=result.get('timestamp', 0.0),
-                        
-                        # New fields from logs.txt model
-                        post_date=getattr(post, 'post_date', ''),
-                        post_time=getattr(post, 'post_time', ''),
-                        mobile_number=getattr(post, 'mobile_number', ''),
-                        group_id=getattr(post, 'group_id', ''),
-                        reply_to_message_id=getattr(post, 'reply_to_message_id', ''),
-                        reply_text=getattr(post, 'reply_text', ''),
-                        photo_attachment=getattr(post, 'photo_attachment', False),
-                        video_attachment=getattr(post, 'video_attachment', False),
-                        
-                        # PostBank fields with post_bank_ prefix
-                        post_bank_post_title=getattr(post, 'post_title', ''),
-                        post_bank_post_snippet=getattr(post, 'post_snippet', ''),
-                        post_bank_post_url=getattr(post, 'post_url', ''),
-                        post_bank_core_source=getattr(post, 'core_source', ''),
-                        post_bank_source=getattr(post, 'source', ''),
-                        post_bank_post_timestamp=getattr(post, 'post_timestamp', ''),
-                        post_bank_author_name=getattr(post, 'author_name', ''),
-                        post_bank_author_username=getattr(post, 'author_username', ''),
-                        post_bank_author_id=getattr(post, 'author_id', ''),
-                        post_bank_post_language=getattr(post, 'post_language', ''),
-                        post_bank_post_location=getattr(post, 'post_location', ''),
-                        post_bank_post_type=getattr(post, 'post_type', ''),
-                        post_bank_post_sentiment=getattr(post, 'post_sentiment', ''),
-                        post_bank_sentiment_score=getattr(post, 'sentiment_score', 0.0),
-                        post_bank_keywords=getattr(post, 'keywords', ''),
-                        post_bank_hashtags=getattr(post, 'hashtags', ''),
-                        post_bank_mentions=getattr(post, 'mentions', ''),
-                        post_bank_entities=getattr(post, 'entities', ''),
-                        post_bank_message_id=getattr(post, 'message_id', ''),
-                        post_bank_retweets=getattr(post, 'retweets', 0),
-                        post_bank_bookmarks=getattr(post, 'bookmarks', 0),
-                        post_bank_comments=getattr(post, 'comments', 0),
-                        post_bank_likes=getattr(post, 'likes', 0),
-                        post_bank_views=getattr(post, 'views', 0),
-                        post_bank_attachments=getattr(post, 'attachments', ''),
-                        post_bank_mention_ids=getattr(post, 'mention_ids', ''),
-                        post_bank_mention_hashtags=getattr(post, 'mention_hashtags', ''),
-                        post_bank_keyword=getattr(post, 'keyword', ''),
-                        post_bank_unique_hash=getattr(post, 'unique_hash', ''),
-                        post_bank_video_id=getattr(post, 'video_id', ''),
-                        post_bank_duration=getattr(post, 'duration', 0),
-                        post_bank_category_id=getattr(post, 'category_id', 0),
-                        post_bank_channel_id=getattr(post, 'channel_id', ''),
-                        post_bank_post_id=getattr(post, 'post_id', ''),
-                        post_bank_analysisStatus=getattr(post, 'analysisStatus', ''),
                         
                         # Extracted entities
                         person_names=json.dumps(entities.get('person_names', []), ensure_ascii=False),
