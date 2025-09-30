@@ -407,9 +407,42 @@ class PipelineProcessor:
             primary_locations = []
             
             if incident_location:
-                primary_districts = incident_location.get('primary_districts', [])
-                primary_thanas = incident_location.get('primary_thanas', [])
-                primary_locations = incident_location.get('primary_locations', [])
+                # Extract from incident_districts and incident_thanas (correct field names)
+                incident_districts = incident_location.get('incident_districts', [])
+                incident_thanas = incident_location.get('incident_thanas', [])
+                
+                # Extract from primary_location object
+                primary_location_data = incident_location.get('primary_location', {})
+                
+                # Add incident districts to primary_districts (ensure uniqueness)
+                if isinstance(incident_districts, list) and incident_districts:
+                    for district in incident_districts:
+                        if district and district not in primary_districts:
+                            primary_districts.append(district)
+                
+                # Add incident thanas to primary_thanas (ensure uniqueness)
+                if isinstance(incident_thanas, list) and incident_thanas:
+                    for thana in incident_thanas:
+                        if thana and thana not in primary_thanas:
+                            primary_thanas.append(thana)
+                
+                # Extract from primary_location object structure
+                if isinstance(primary_location_data, dict):
+                    district = primary_location_data.get('district', '')
+                    thana = primary_location_data.get('thana', '')
+                    specific_location = primary_location_data.get('specific_location', '')
+                    
+                    # Add district to primary_districts if not already present
+                    if district and district not in primary_districts:
+                        primary_districts.append(district)
+                    
+                    # Add thana to primary_thanas if not already present
+                    if thana and thana not in primary_thanas:
+                        primary_thanas.append(thana)
+                    
+                    # Add specific_location to primary_locations if not already present
+                    if specific_location and specific_location not in primary_locations:
+                        primary_locations.append(specific_location)
             
             # Extract category data
             broad_categories = []
@@ -683,6 +716,34 @@ class PipelineProcessor:
                         processing_time_ms=result.get('processing_time_ms', 0),
                         boost_reasons=json.dumps(result.get('boost_reasons', []), ensure_ascii=False),
                         timestamp=result.get('timestamp', 0.0),
+                        
+                        # Copy post_bank data to analyzed_data
+                        post_bank_post_title=post.post_title,
+                        post_bank_post_snippet=post.post_snippet,
+                        post_bank_post_url=post.post_url,
+                        post_bank_core_source=post.core_source,
+                        post_bank_source=post.source,
+                        post_bank_post_timestamp=post.post_timestamp,
+                        post_bank_author_name=post.author_name,
+                        post_bank_author_username=post.author_username,
+                        post_bank_post_language=post.post_language,
+                        post_bank_post_location=post.post_location,
+                        post_bank_post_type=post.post_type,
+                        post_bank_retweets=post.retweets,
+                        post_bank_bookmarks=post.bookmarks,
+                        post_bank_comments=post.comments,
+                        post_bank_likes=post.likes,
+                        post_bank_views=post.views,
+                        post_bank_attachments=post.attachments,
+                        post_bank_mention_ids=post.mention_ids,
+                        post_bank_mention_hashtags=post.mention_hashtags,
+                        post_bank_keyword=post.keyword,
+                        post_bank_unique_hash=post.unique_hash,
+                        post_bank_video_id=post.video_id,
+                        post_bank_duration=post.duration,
+                        post_bank_category_id=post.category_id,
+                        post_bank_channel_id=post.channel_id,
+                        common_attachment_id=common_attachment_id,
                         
                         # Extracted entities
                         person_names=json.dumps(entities.get('person_names', []), ensure_ascii=False),
