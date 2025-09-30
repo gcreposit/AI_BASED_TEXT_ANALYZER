@@ -89,6 +89,7 @@ class PostBank(Base):
     duration = Column(String(20))
     category_id = Column(String(10))
     channel_id = Column(String(50))
+    mobile_number = Column(String(20))  # Mobile number field
     
     # Analysis status column
     analysisStatus = Column(String(20), default='NOT_ANALYZED')
@@ -222,6 +223,9 @@ class AnalyzedData(Base):
     sub_category = Column(Text)  # JSON array as text - sub categories
     keywords_cloud = Column(Text)  # JSON array as text - keywords
     category_reasoning = Column(Text)  # JSON array as text - reasoning for categories
+    
+    # Read status field
+    read_status = Column(String(20), default='UNREAD')  # Read status with default as UNREAD
     
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -743,6 +747,7 @@ class PipelineProcessor:
                         post_bank_duration=post.duration,
                         post_bank_category_id=post.category_id,
                         post_bank_channel_id=post.channel_id,
+                        mobile_number=getattr(post, 'mobile_number', None),  # Copy mobile_number from PostBank
                         common_attachment_id=common_attachment_id,
                         
                         # Extracted entities
