@@ -377,7 +377,8 @@ class PipelineProcessor:
             # Extract topic fields from API response
             entities = topic_data.get('extracted_entities', {})
             incident_location = entities.get('incident_location_analysis', {})
-            category_classifications = entities.get('category_classifications', {})
+            category_classifications = entities.get('category_classifications', [])
+            primary_classification = entities.get('primary_classification', {})
             
             # Extract primary location data
             primary_districts = []
@@ -395,18 +396,44 @@ class PipelineProcessor:
             keywords_clouds = []
             category_reasonings = []
             
-            if category_classifications:
-                broad_categories = category_classifications.get('broad_category', [])
-                sub_categories = category_classifications.get('sub_category', [])
+            # Handle category_classifications as list
+            if isinstance(category_classifications, list) and category_classifications:
+                for classification in category_classifications:
+                    if isinstance(classification, dict):
+                        broad_cat = classification.get('broad_category', '')
+                        sub_cat = classification.get('sub_category', '')
+                        reasoning = classification.get('reasoning', '')
+                        
+                        # Handle nested matched_keywords structure
+                        matched_keywords_data = classification.get('matched_keywords', [])
+                        
+                        if broad_cat:
+                            broad_categories.append(broad_cat)
+                        if sub_cat:
+                            sub_categories.append(sub_cat)
+                        if reasoning:
+                            category_reasonings.append(reasoning)
+                        
+                        # Handle nested matched_keywords structure
+                        if isinstance(matched_keywords_data, dict) and 'matched_keywords' in matched_keywords_data:
+                            nested_keywords = matched_keywords_data.get('matched_keywords', [])
+                            if nested_keywords:
+                                keywords_clouds.extend(nested_keywords)
+                        elif isinstance(matched_keywords_data, list) and matched_keywords_data:
+                            keywords_clouds.extend(matched_keywords_data)
+            
+            # Also include primary classification data if available
+            if primary_classification and not broad_categories:
+                primary_broad = primary_classification.get('broad_category', '')
+                primary_sub = primary_classification.get('sub_category', '')
+                primary_reasoning = primary_classification.get('reasoning', '')
                 
-                # Extract keywords_cloud from nested matched_keywords
-                keywords_cloud_data = category_classifications.get('keywords_cloud', [])
-                if isinstance(keywords_cloud_data, dict) and 'matched_keywords' in keywords_cloud_data:
-                    keywords_clouds = keywords_cloud_data['matched_keywords']
-                elif isinstance(keywords_cloud_data, list):
-                    keywords_clouds = keywords_cloud_data
-                
-                category_reasonings = category_classifications.get('category_reasoning', [])
+                if primary_broad:
+                    broad_categories.append(primary_broad)
+                if primary_sub:
+                    sub_categories.append(primary_sub)
+                if primary_reasoning:
+                    category_reasonings.append(primary_reasoning)
             
             # Extract hashtags and mention_ids
             hashtags = entities.get('hashtags', [])
