@@ -16,7 +16,7 @@ from typing import List, Dict, Any, Optional, Tuple
 from collections import deque
 
 import pymysql
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Float, Boolean, BigInteger
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Float, Boolean, BigInteger, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from urllib.parse import quote_plus
@@ -94,12 +94,40 @@ class PostBank(Base):
     analysisStatus = Column(String(20), default='NOT_ANALYZED')
 
 
+class Topic(Base):
+    """Model for topic table to store unique topic combinations"""
+    __tablename__ = 'topic'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    
+    # Topic identification fields (stored as JSON arrays in longTEXT format)
+    primary_districts = Column(Text)  # longTEXT - stored as [,,,,] format
+    primary_thana = Column(Text)  # longTEXT - stored as [,,,,] format  
+    primary_location = Column(Text)  # longTEXT - stored as [,,,,] format
+    broad_category = Column(Text)  # longTEXT - stored as [,,,,] format
+    sub_category = Column(Text)  # longTEXT - stored as [,,,,] format
+    keywords_cloud = Column(Text)  # longTEXT - stored as [,,,,] format
+    category_reasoning = Column(Text)  # longTEXT - stored as [,,,,] format
+    hashtags = Column(Text)  # longTEXT - stored as [,,,,] format
+    mention_id_extraction = Column(Text)  # longTEXT - stored as [,,,,] format
+    
+    # Count fields
+    read_count = Column(Integer, default=0)  # Default to 0
+    unread_count = Column(Integer, default=0)  # Increments when topic appears in analyzed_data
+    total_no_of_post = Column(Integer, default=0)  # Increments when topic appears in analyzed_data
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class AnalyzedData(Base):
     """Model for analyzed_data table to store API response data"""
     __tablename__ = 'analyzed_data'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     dump_table_id = Column(Integer, nullable=False)  # Reference to post_bank.id
+    topic_id = Column(Integer, nullable=True)  # Foreign key to topic table (1:M relationship)
     
     # Text processing fields
     input_text = Column(Text)
@@ -109,7 +137,6 @@ class AnalyzedData(Base):
     language_confidence = Column(Float)
     action = Column(String(50))
     topic_title = Column(Text)
-    topic_id = Column(String(100))
     similarity_score = Column(Float)
     confidence = Column(String(20))
     source_type = Column(String(50))
@@ -117,6 +144,53 @@ class AnalyzedData(Base):
     processing_time_ms = Column(Integer)
     boost_reasons = Column(Text)  # JSON array as text
     timestamp = Column(Float)
+    
+    # PostBank fields with post_bank_ prefix - Core content fields
+    post_bank_post_title = Column(Text)  # Post title from PostBank
+    post_bank_post_snippet = Column(Text)  # Post snippet/content from PostBank
+    post_bank_post_url = Column(Text)  # Post URL from PostBank
+    post_bank_core_source = Column(String(255))  # Core source from PostBank
+    post_bank_source = Column(String(255))  # Source from PostBank
+    post_bank_post_timestamp = Column(DateTime)  # Original timestamp from PostBank
+    
+    # PostBank fields - Author information
+    post_bank_author_name = Column(String(255))  # Author name from PostBank
+    post_bank_author_username = Column(String(255))  # Author username from PostBank
+    
+    # PostBank fields - Language and location
+    post_bank_post_language = Column(String(50))  # Post language from PostBank
+    post_bank_post_location = Column(String(255))  # Post location from PostBank
+    post_bank_post_type = Column(String(100))  # Post type from PostBank
+    
+    # PostBank fields - Social media metrics
+    post_bank_retweets = Column(Integer, default=0)  # Retweets from PostBank
+    post_bank_bookmarks = Column(Integer, default=0)  # Bookmarks from PostBank
+    post_bank_comments = Column(Integer, default=0)  # Comments from PostBank
+    post_bank_likes = Column(Integer, default=0)  # Likes from PostBank
+    post_bank_views = Column(BigInteger, default=0)  # Views from PostBank
+    
+    # PostBank fields - Metadata
+    post_bank_attachments = Column(Text)  # Attachments from PostBank
+    post_bank_mention_ids = Column(Text)  # Mention IDs from PostBank
+    post_bank_mention_hashtags = Column(Text)  # Mention hashtags from PostBank
+    post_bank_keyword = Column(String(255))  # Keyword from PostBank
+    post_bank_unique_hash = Column(String(32))  # Unique hash from PostBank
+    post_bank_video_id = Column(String(50))  # Video ID from PostBank
+    post_bank_duration = Column(String(20))  # Duration from PostBank
+    post_bank_category_id = Column(String(10))  # Category ID from PostBank
+    post_bank_channel_id = Column(String(50))  # Channel ID from PostBank
+    post_bank_post_id = Column(String(100))  # Post ID from PostBank
+    
+    # Additional fields from logs.txt model (WhatsApp specific)
+    post_date = Column(String(20))  # Date in dd/mm/yyyy format
+    post_time = Column(String(20))  # Time in 24-hour format
+    mobile_number = Column(String(20))  # Mobile number from WhatsApp
+    group_id = Column(String(100))  # WhatsApp group ID
+    reply_to_message_id = Column(String(100))  # ID of message being replied to
+    reply_text = Column(Text)  # Text of the message being replied to
+    photo_attachment = Column(Boolean, default=False)  # Indicates photo attachment
+    video_attachment = Column(Boolean, default=False)  # Indicates video attachment
+    common_attachment_id = Column(Integer)  # Reference to common_attachments table
     
     # Extracted entities
     person_names = Column(Text)  # JSON array as text
@@ -188,28 +262,27 @@ class PipelineProcessor:
     def _add_analysis_status_column(self):
         """Add analysisStatus column to post_bank table"""
         try:
-            from sqlalchemy import text
-            with engine.connect() as conn:
-                # Check if column exists
-                result = conn.execute(
-                    text("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
-                         "WHERE TABLE_SCHEMA = :schema AND TABLE_NAME = 'post_bank' "
-                         "AND COLUMN_NAME = 'analysisStatus'"),
-                    {'schema': DUMP_DB_CONFIG['database']}
+            # Check if column exists
+            result = self.session.execute(
+                text("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                     "WHERE TABLE_SCHEMA = :schema AND TABLE_NAME = 'post_bank' "
+                     "AND COLUMN_NAME = 'analysisStatus'"),
+                {'schema': DUMP_DB_CONFIG['database']}
+            )
+            
+            if result.fetchone()[0] == 0:
+                # Column doesn't exist, add it
+                self.session.execute(
+                    text("ALTER TABLE post_bank ADD COLUMN analysisStatus VARCHAR(20) DEFAULT 'NOT_ANALYZED'")
                 )
+                self.session.commit()
+                logger.info("Added analysisStatus column to post_bank table")
+            else:
+                logger.info("analysisStatus column already exists in post_bank table")
                 
-                if result.fetchone()[0] == 0:
-                    # Column doesn't exist, add it
-                    conn.execute(
-                        text("ALTER TABLE post_bank ADD COLUMN analysisStatus VARCHAR(20) DEFAULT 'NOT_ANALYZED'")
-                    )
-                    conn.commit()
-                    logger.info("Added analysisStatus column to post_bank table")
-                else:
-                    logger.info("analysisStatus column already exists in post_bank table")
-                    
         except Exception as e:
             logger.error(f"Error adding analysisStatus column: {str(e)}")
+            self.session.rollback()
             
     def get_unanalyzed_posts(self, limit: int = None) -> List[PostBank]:
         """Get posts that haven't been analyzed yet"""
@@ -298,6 +371,116 @@ class PipelineProcessor:
             logger.error(f"Unexpected error in API call: {str(e)}")
             return None
             
+    def get_or_create_topic(self, topic_data: Dict[str, Any]) -> Optional[int]:
+        """Get existing topic or create new one based on unique combination of fields"""
+        try:
+            # Extract topic fields from API response
+            entities = topic_data.get('extracted_entities', {})
+            incident_location = entities.get('incident_location_analysis', {})
+            category_classifications = entities.get('category_classifications', {})
+            
+            # Extract primary location data
+            primary_districts = []
+            primary_thanas = []
+            primary_locations = []
+            
+            if incident_location:
+                primary_districts = incident_location.get('primary_districts', [])
+                primary_thanas = incident_location.get('primary_thanas', [])
+                primary_locations = incident_location.get('primary_locations', [])
+            
+            # Extract category data
+            broad_categories = []
+            sub_categories = []
+            keywords_clouds = []
+            category_reasonings = []
+            
+            if category_classifications:
+                broad_categories = category_classifications.get('broad_category', [])
+                sub_categories = category_classifications.get('sub_category', [])
+                
+                # Extract keywords_cloud from nested matched_keywords
+                keywords_cloud_data = category_classifications.get('keywords_cloud', [])
+                if isinstance(keywords_cloud_data, dict) and 'matched_keywords' in keywords_cloud_data:
+                    keywords_clouds = keywords_cloud_data['matched_keywords']
+                elif isinstance(keywords_cloud_data, list):
+                    keywords_clouds = keywords_cloud_data
+                
+                category_reasonings = category_classifications.get('category_reasoning', [])
+            
+            # Extract hashtags and mention_ids
+            hashtags = entities.get('hashtags', [])
+            mention_ids = entities.get('mention_ids', [])
+            
+            # Convert arrays to [,,,,] format for storage
+            primary_districts_str = json.dumps(primary_districts, ensure_ascii=False) if primary_districts else "[]"
+            primary_thanas_str = json.dumps(primary_thanas, ensure_ascii=False) if primary_thanas else "[]"
+            primary_locations_str = json.dumps(primary_locations, ensure_ascii=False) if primary_locations else "[]"
+            broad_categories_str = json.dumps(broad_categories, ensure_ascii=False) if broad_categories else "[]"
+            sub_categories_str = json.dumps(sub_categories, ensure_ascii=False) if sub_categories else "[]"
+            keywords_clouds_str = json.dumps(keywords_clouds, ensure_ascii=False) if keywords_clouds else "[]"
+            category_reasonings_str = json.dumps(category_reasonings, ensure_ascii=False) if category_reasonings else "[]"
+            hashtags_str = json.dumps(hashtags, ensure_ascii=False) if hashtags else "[]"
+            mention_ids_str = json.dumps(mention_ids, ensure_ascii=False) if mention_ids else "[]"
+            
+            # Check if topic already exists with same unique combination
+            existing_topic = self.session.query(Topic).filter(
+                Topic.primary_districts == primary_districts_str,
+                Topic.broad_category == broad_categories_str,
+                Topic.sub_category == sub_categories_str,
+                Topic.keywords_cloud == keywords_clouds_str,
+                Topic.category_reasoning == category_reasonings_str,
+                Topic.hashtags == hashtags_str,
+                Topic.mention_id_extraction == mention_ids_str
+            ).first()
+            
+            if existing_topic:
+                # Update counts for existing topic
+                existing_topic.unread_count += 1
+                existing_topic.total_no_of_post += 1
+                self.session.commit()
+                logger.info(f"Updated existing topic {existing_topic.id} - unread_count: {existing_topic.unread_count}, total_posts: {existing_topic.total_no_of_post}")
+                return existing_topic.id
+            else:
+                # Create new topic
+                new_topic = Topic(
+                    primary_districts=primary_districts_str,
+                    primary_thana=primary_thanas_str,
+                    primary_location=primary_locations_str,
+                    broad_category=broad_categories_str,
+                    sub_category=sub_categories_str,
+                    keywords_cloud=keywords_clouds_str,
+                    category_reasoning=category_reasonings_str,
+                    hashtags=hashtags_str,
+                    mention_id_extraction=mention_ids_str,
+                    read_count=0,
+                    unread_count=1,  # First occurrence
+                    total_no_of_post=1  # First occurrence
+                )
+                
+                self.session.add(new_topic)
+                self.session.flush()  # Get the ID without committing
+                logger.info(f"Created new topic {new_topic.id} with initial counts")
+                return new_topic.id
+                
+        except Exception as e:
+            logger.error(f"Error in get_or_create_topic: {str(e)}")
+            return None
+
+    def get_common_attachment_id(self, post_bank_id: int) -> Optional[int]:
+        """Get common_attachment_id from common_attachments table based on post_bank_id"""
+        try:
+            result = self.session.execute(text("""
+                SELECT id FROM common_attachments WHERE post_bank_id = :post_bank_id LIMIT 1
+            """), {"post_bank_id": post_bank_id})
+            
+            row = result.fetchone()
+            return row[0] if row else None
+            
+        except Exception as e:
+            logger.error(f"Error getting common_attachment_id for post_bank_id {post_bank_id}: {str(e)}")
+            return None
+
     def save_batch_analyzed_data(self, posts: List[PostBank], api_response: Dict[str, Any]) -> bool:
         """
         Save batch analyzed data to analyzed_data table and update analysisStatus
@@ -443,9 +626,17 @@ class PipelineProcessor:
                         if primary_reasoning:
                             category_reasonings.append(primary_reasoning)
                     
+                    # Get or create topic and get topic_id
+                    topic_id = self.get_or_create_topic(result)
+                    
+                    # Get common_attachment_id from common_attachments table
+                    common_attachment_id = self.get_common_attachment_id(post.id)
+                    
                     # Create AnalyzedData record
                     analyzed_data = AnalyzedData(
                         dump_table_id=post.id,
+                        topic_id=topic_id,  # Set the topic_id for 1:M relationship
+                        common_attachment_id=common_attachment_id,  # Set common_attachment_id
                         input_text=result.get('input_text', ''),
                         processed_text=result.get('processed_text', ''),
                         enhanced_text=result.get('enhanced_text', ''),
@@ -453,7 +644,6 @@ class PipelineProcessor:
                         language_confidence=result.get('language_confidence', 0.0),
                         action=result.get('action', ''),
                         topic_title=result.get('topic_title', ''),
-                        topic_id=result.get('topic_id', ''),
                         similarity_score=result.get('similarity_score', 0.0),
                         confidence=result.get('confidence', ''),
                         source_type=result.get('source_type', 'social_media'),
@@ -461,6 +651,53 @@ class PipelineProcessor:
                         processing_time_ms=result.get('processing_time_ms', 0),
                         boost_reasons=json.dumps(result.get('boost_reasons', []), ensure_ascii=False),
                         timestamp=result.get('timestamp', 0.0),
+                        
+                        # New fields from logs.txt model
+                        post_date=getattr(post, 'post_date', ''),
+                        post_time=getattr(post, 'post_time', ''),
+                        mobile_number=getattr(post, 'mobile_number', ''),
+                        group_id=getattr(post, 'group_id', ''),
+                        reply_to_message_id=getattr(post, 'reply_to_message_id', ''),
+                        reply_text=getattr(post, 'reply_text', ''),
+                        photo_attachment=getattr(post, 'photo_attachment', False),
+                        video_attachment=getattr(post, 'video_attachment', False),
+                        
+                        # PostBank fields with post_bank_ prefix
+                        post_bank_post_title=getattr(post, 'post_title', ''),
+                        post_bank_post_snippet=getattr(post, 'post_snippet', ''),
+                        post_bank_post_url=getattr(post, 'post_url', ''),
+                        post_bank_core_source=getattr(post, 'core_source', ''),
+                        post_bank_source=getattr(post, 'source', ''),
+                        post_bank_post_timestamp=getattr(post, 'post_timestamp', ''),
+                        post_bank_author_name=getattr(post, 'author_name', ''),
+                        post_bank_author_username=getattr(post, 'author_username', ''),
+                        post_bank_author_id=getattr(post, 'author_id', ''),
+                        post_bank_post_language=getattr(post, 'post_language', ''),
+                        post_bank_post_location=getattr(post, 'post_location', ''),
+                        post_bank_post_type=getattr(post, 'post_type', ''),
+                        post_bank_post_sentiment=getattr(post, 'post_sentiment', ''),
+                        post_bank_sentiment_score=getattr(post, 'sentiment_score', 0.0),
+                        post_bank_keywords=getattr(post, 'keywords', ''),
+                        post_bank_hashtags=getattr(post, 'hashtags', ''),
+                        post_bank_mentions=getattr(post, 'mentions', ''),
+                        post_bank_entities=getattr(post, 'entities', ''),
+                        post_bank_message_id=getattr(post, 'message_id', ''),
+                        post_bank_retweets=getattr(post, 'retweets', 0),
+                        post_bank_bookmarks=getattr(post, 'bookmarks', 0),
+                        post_bank_comments=getattr(post, 'comments', 0),
+                        post_bank_likes=getattr(post, 'likes', 0),
+                        post_bank_views=getattr(post, 'views', 0),
+                        post_bank_attachments=getattr(post, 'attachments', ''),
+                        post_bank_mention_ids=getattr(post, 'mention_ids', ''),
+                        post_bank_mention_hashtags=getattr(post, 'mention_hashtags', ''),
+                        post_bank_keyword=getattr(post, 'keyword', ''),
+                        post_bank_unique_hash=getattr(post, 'unique_hash', ''),
+                        post_bank_video_id=getattr(post, 'video_id', ''),
+                        post_bank_duration=getattr(post, 'duration', 0),
+                        post_bank_category_id=getattr(post, 'category_id', 0),
+                        post_bank_channel_id=getattr(post, 'channel_id', ''),
+                        post_bank_post_id=getattr(post, 'post_id', ''),
+                        post_bank_analysisStatus=getattr(post, 'analysisStatus', ''),
                         
                         # Extracted entities
                         person_names=json.dumps(entities.get('person_names', []), ensure_ascii=False),
