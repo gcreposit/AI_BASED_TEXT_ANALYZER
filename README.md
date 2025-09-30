@@ -99,13 +99,13 @@ curl "http://localhost:8000/api/stats"
 
 Key environment variables in `.env`:
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `MYSQL_PASSWORD` | Database password | `password` |
-| `BGE_MODEL_NAME` | Embedding model | `BAAI/bge-m3` |
-| `MISTRAL_MODEL_NAME` | NER model | `mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit` |
+| Variable               | Description | Default |
+|------------------------|-------------|---------|
+| `MYSQL_PASSWORD`       | Database password | `password` |
+| `EMBEDDING_MODEL_NAME` | Embedding model | `BAAI/bge-m3` |
+| `MISTRAL_MODEL_NAME`   | NER model | `mlx-community/Dolphin-Mistral-24B-Venice-Edition-4bit` |
 | `SIMILARITY_THRESHOLD` | Clustering threshold | `0.80` |
-| `CHROMA_PERSIST_DIR` | Vector DB directory | `./chroma_db` |
+| `CHROMA_PERSIST_DIR`   | Vector DB directory | `./chroma_db` |
 
 ## 📊 Performance Metrics
 
