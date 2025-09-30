@@ -102,7 +102,9 @@ class Topic(Base):
     
     # Topic identification fields (stored as JSON arrays in longTEXT format)
     primary_districts = Column(Text)  # longTEXT - stored as [,,,,] format
-    primary_thana = Column(Text)  # longTEXT - stored as [,,,,] format  
+    unique_topic_id = Column(Text)  # longTEXT - stores topic_id from API response
+    topic_title = Column(Text)  # longTEXT - stores topic_title from API response
+    primary_thana = Column(Text)  # longTEXT - stored as [,,,,] format
     primary_location = Column(Text)  # longTEXT - stored as [,,,,] format
     broad_category = Column(Text)  # longTEXT - stored as [,,,,] format
     sub_category = Column(Text)  # longTEXT - stored as [,,,,] format
@@ -137,6 +139,7 @@ class AnalyzedData(Base):
     language_confidence = Column(Float)
     action = Column(String(50))
     topic_title = Column(Text)
+    unique_topic_id = Column(Text)  # longTEXT - stores topic_id from API response
     similarity_score = Column(Float)
     confidence = Column(String(20))
     source_type = Column(String(50))
@@ -372,9 +375,27 @@ class PipelineProcessor:
             return None
             
     def get_or_create_topic(self, topic_data: Dict[str, Any]) -> Optional[int]:
-        """Get existing topic or create new one based on unique combination of fields"""
+        """Get existing topic or create new one based on unique_topic_id from API response"""
         try:
-            # Extract topic fields from API response
+            # Extract unique_topic_id and topic_title from API response
+            unique_topic_id = topic_data.get('topic_id', '')
+            topic_title = topic_data.get('topic_title', '')
+            
+            # First check if topic exists by unique_topic_id
+            if unique_topic_id:
+                existing_topic = self.session.query(Topic).filter(
+                    Topic.unique_topic_id == unique_topic_id
+                ).first()
+                
+                if existing_topic:
+                    # Update counts for existing topic
+                    existing_topic.unread_count += 1
+                    existing_topic.total_no_of_post += 1
+                    self.session.commit()
+                    logger.info(f"Updated existing topic {existing_topic.id} with unique_topic_id {unique_topic_id} - unread_count: {existing_topic.unread_count}, total_posts: {existing_topic.total_no_of_post}")
+                    return existing_topic.id
+            
+            # Extract topic fields from API response for new topic creation
             entities = topic_data.get('extracted_entities', {})
             incident_location = entities.get('incident_location_analysis', {})
             category_classifications = entities.get('category_classifications', [])
@@ -440,6 +461,7 @@ class PipelineProcessor:
             mention_ids = entities.get('mention_ids', [])
             
             # Convert arrays to [,,,,] format for storage
+            unique_topic_id_str = unique_topic_id if unique_topic_id else ""
             primary_districts_str = json.dumps(primary_districts, ensure_ascii=False) if primary_districts else "[]"
             primary_thanas_str = json.dumps(primary_thanas, ensure_ascii=False) if primary_thanas else "[]"
             primary_locations_str = json.dumps(primary_locations, ensure_ascii=False) if primary_locations else "[]"
@@ -450,45 +472,28 @@ class PipelineProcessor:
             hashtags_str = json.dumps(hashtags, ensure_ascii=False) if hashtags else "[]"
             mention_ids_str = json.dumps(mention_ids, ensure_ascii=False) if mention_ids else "[]"
             
-            # Check if topic already exists with same unique combination
-            existing_topic = self.session.query(Topic).filter(
-                Topic.primary_districts == primary_districts_str,
-                Topic.broad_category == broad_categories_str,
-                Topic.sub_category == sub_categories_str,
-                Topic.keywords_cloud == keywords_clouds_str,
-                Topic.category_reasoning == category_reasonings_str,
-                Topic.hashtags == hashtags_str,
-                Topic.mention_id_extraction == mention_ids_str
-            ).first()
+            # Create new topic with unique_topic_id and topic_title
+            new_topic = Topic(
+                unique_topic_id=unique_topic_id_str,
+                topic_title=topic_title,
+                primary_districts=primary_districts_str,
+                primary_thana=primary_thanas_str,
+                primary_location=primary_locations_str,
+                broad_category=broad_categories_str,
+                sub_category=sub_categories_str,
+                keywords_cloud=keywords_clouds_str,
+                category_reasoning=category_reasonings_str,
+                hashtags=hashtags_str,
+                mention_id_extraction=mention_ids_str,
+                read_count=0,
+                unread_count=1,  # First occurrence
+                total_no_of_post=1  # First occurrence
+            )
             
-            if existing_topic:
-                # Update counts for existing topic
-                existing_topic.unread_count += 1
-                existing_topic.total_no_of_post += 1
-                self.session.commit()
-                logger.info(f"Updated existing topic {existing_topic.id} - unread_count: {existing_topic.unread_count}, total_posts: {existing_topic.total_no_of_post}")
-                return existing_topic.id
-            else:
-                # Create new topic
-                new_topic = Topic(
-                    primary_districts=primary_districts_str,
-                    primary_thana=primary_thanas_str,
-                    primary_location=primary_locations_str,
-                    broad_category=broad_categories_str,
-                    sub_category=sub_categories_str,
-                    keywords_cloud=keywords_clouds_str,
-                    category_reasoning=category_reasonings_str,
-                    hashtags=hashtags_str,
-                    mention_id_extraction=mention_ids_str,
-                    read_count=0,
-                    unread_count=1,  # First occurrence
-                    total_no_of_post=1  # First occurrence
-                )
-                
-                self.session.add(new_topic)
-                self.session.flush()  # Get the ID without committing
-                logger.info(f"Created new topic {new_topic.id} with initial counts")
-                return new_topic.id
+            self.session.add(new_topic)
+            self.session.flush()  # Get the ID without committing
+            logger.info(f"Created new topic {new_topic.id} with unique_topic_id {unique_topic_id_str} and initial counts")
+            return new_topic.id
                 
         except Exception as e:
             logger.error(f"Error in get_or_create_topic: {str(e)}")
@@ -669,6 +674,7 @@ class PipelineProcessor:
                         language_confidence=result.get('language_confidence', 0.0),
                         action=result.get('action', ''),
                         topic_title=result.get('topic_title', ''),
+                        unique_topic_id=result.get('topic_id', ''),  # Store topic_id from API response
                         topic_id=result.get('topic_id', ''),
                         similarity_score=result.get('similarity_score', 0.0),
                         confidence=result.get('confidence', ''),
