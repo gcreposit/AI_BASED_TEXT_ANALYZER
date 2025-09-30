@@ -310,7 +310,7 @@ class MistralNERExtractor:
                             trust_remote_code=True,
                             dtype="auto",
                             gpu_memory_utilization=0.75,
-                            max_model_len=8192,
+                            max_model_len=32768,
                             tensor_parallel_size=2,
                             disable_log_stats=True,
                             enforce_eager=False,
