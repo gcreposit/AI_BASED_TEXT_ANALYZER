@@ -156,11 +156,20 @@ class AnalyzedData(Base):
     # PostBank fields - Author information
     post_bank_author_name = Column(String(255))  # Author name from PostBank
     post_bank_author_username = Column(String(255))  # Author username from PostBank
+    post_bank_author_id = Column(String(255))  # Author ID from PostBank
     
     # PostBank fields - Language and location
     post_bank_post_language = Column(String(50))  # Post language from PostBank
     post_bank_post_location = Column(String(255))  # Post location from PostBank
     post_bank_post_type = Column(String(100))  # Post type from PostBank
+    post_bank_post_sentiment = Column(String(50))  # Post sentiment from PostBank
+    post_bank_sentiment_score = Column(Float, default=0.0)  # Sentiment score from PostBank
+    post_bank_keywords = Column(Text)  # Keywords from PostBank
+    post_bank_hashtags = Column(Text)  # Hashtags from PostBank
+    post_bank_mentions = Column(Text)  # Mentions from PostBank
+    post_bank_entities = Column(Text)  # Entities from PostBank
+    post_bank_message_id = Column(String(255))  # Message ID from PostBank
+    post_bank_analysisStatus = Column(String(50))  # Analysis status from PostBank
     
     # PostBank fields - Social media metrics
     post_bank_retweets = Column(Integer, default=0)  # Retweets from PostBank
