@@ -884,6 +884,28 @@ class PipelineProcessor:
             logger.error(f"Error updating post status for id {post_id}: {str(e)}")
             self.session.rollback()
             return False
+    
+    def mark_posts_as_insufficient_content(self, posts: List[PostBank]) -> bool:
+        """Mark multiple posts as INSUFFICIENT_CONTENT in the database"""
+        try:
+            post_ids = [post.id for post in posts]
+            
+            # Update all posts in a single query for efficiency
+            updated_count = self.session.query(PostBank).filter(
+                PostBank.id.in_(post_ids)
+            ).update(
+                {PostBank.analysisStatus: 'INSUFFICIENT_CONTENT'}, 
+                synchronize_session=False
+            )
+            
+            self.session.commit()
+            logger.info(f"Successfully marked {updated_count} posts as INSUFFICIENT_CONTENT")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error marking posts as INSUFFICIENT_CONTENT: {str(e)}")
+            self.session.rollback()
+            return False
             
     def process_single_post(self, post: PostBank) -> bool:
         """Process a single post through the pipeline"""
@@ -927,17 +949,17 @@ class PipelineProcessor:
             # Filter and extract texts from posts
             valid_posts = []
             texts = []
-            skipped_posts = 0
+            insufficient_content_posts = []
             
             for post in posts:
                 # Check if post has valid content
                 title = post.post_title.strip() if post.post_title else ""
                 snippet = post.post_snippet.strip() if post.post_snippet else ""
                 
-                # Skip posts with blank or insufficient content
+                # Mark posts with blank or insufficient content as INSUFFICIENT_CONTENT
                 if not title and not snippet:
-                    logger.warning(f"Skipping post {post.id}: Both title and snippet are empty")
-                    skipped_posts += 1
+                    logger.warning(f"Marking post {post.id} as INSUFFICIENT_CONTENT: Both title and snippet are empty")
+                    insufficient_content_posts.append(post)
                     continue
                 
                 # Combine title and snippet for processing
@@ -945,21 +967,26 @@ class PipelineProcessor:
                 
                 # Check if combined text meets minimum requirements (at least 3 characters)
                 if len(text_content.strip()) < 3 or text_content.strip() in ["-", " -", "- ", " - "]:
-                    logger.warning(f"Skipping post {post.id}: Text too short or invalid ('{text_content.strip()}')")
-                    skipped_posts += 1
+                    logger.warning(f"Marking post {post.id} as INSUFFICIENT_CONTENT: Text too short or invalid ('{text_content.strip()}')")
+                    insufficient_content_posts.append(post)
                     continue
                 
                 valid_posts.append(post)
                 texts.append(text_content)
             
+            # Update posts with insufficient content in database
+            if insufficient_content_posts:
+                self.mark_posts_as_insufficient_content(insufficient_content_posts)
+                logger.info(f"Marked {len(insufficient_content_posts)} posts as INSUFFICIENT_CONTENT in database")
+            
             # Log filtering results
-            if skipped_posts > 0:
-                logger.info(f"Filtered out {skipped_posts} posts with insufficient content. Processing {len(valid_posts)} valid posts.")
+            if insufficient_content_posts:
+                logger.info(f"Filtered out {len(insufficient_content_posts)} posts with insufficient content. Processing {len(valid_posts)} valid posts.")
             
             # If no valid posts, return early
             if not valid_posts:
                 logger.warning("No valid posts to process after filtering")
-                return 0, len(posts)
+                return 0, len(insufficient_content_posts)
             
             # Call batch API with valid texts only
             api_response = self.call_process_batch_api(texts, source_type="social_media")
