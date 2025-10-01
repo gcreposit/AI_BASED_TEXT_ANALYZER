@@ -924,30 +924,60 @@ class PipelineProcessor:
         failed = 0
         
         try:
-            # Extract texts from posts
+            # Filter and extract texts from posts
+            valid_posts = []
             texts = []
+            skipped_posts = 0
+            
             for post in posts:
+                # Check if post has valid content
+                title = post.post_title.strip() if post.post_title else ""
+                snippet = post.post_snippet.strip() if post.post_snippet else ""
+                
+                # Skip posts with blank or insufficient content
+                if not title and not snippet:
+                    logger.warning(f"Skipping post {post.id}: Both title and snippet are empty")
+                    skipped_posts += 1
+                    continue
+                
                 # Combine title and snippet for processing
-                text_content = f"{post.post_title} -{post.post_snippet}"
+                text_content = f"{title} - {snippet}" if title and snippet else (title or snippet)
+                
+                # Check if combined text meets minimum requirements (at least 3 characters)
+                if len(text_content.strip()) < 3 or text_content.strip() in ["-", " -", "- ", " - "]:
+                    logger.warning(f"Skipping post {post.id}: Text too short or invalid ('{text_content.strip()}')")
+                    skipped_posts += 1
+                    continue
+                
+                valid_posts.append(post)
                 texts.append(text_content)
             
-            # Call batch API
+            # Log filtering results
+            if skipped_posts > 0:
+                logger.info(f"Filtered out {skipped_posts} posts with insufficient content. Processing {len(valid_posts)} valid posts.")
+            
+            # If no valid posts, return early
+            if not valid_posts:
+                logger.warning("No valid posts to process after filtering")
+                return 0, len(posts)
+            
+            # Call batch API with valid texts only
             api_response = self.call_process_batch_api(texts, source_type="social_media")
             
             if api_response and api_response.get('successful', 0) > 0:
-                # Save batch results
-                if self.save_batch_analyzed_data(posts, api_response):
+                # Save batch results using valid_posts instead of original posts
+                if self.save_batch_analyzed_data(valid_posts, api_response):
                     successful = api_response.get('successful', 0)
                     failed = api_response.get('failed', 0)
                     logger.info(f"Batch processing completed: {successful} successful, {failed} failed")
                 else:
                     logger.error("Failed to save batch results")
-                    failed = len(posts)
+                    failed = len(valid_posts)
             else:
                 # THIS IS FOR FAILING CASE
                 logger.error("Batch API call failed, falling back to individual processing")
-                # Fallback to individual processing
-                for post in posts:
+                # Fallback to individual processing for valid posts only
+                for post in valid_posts:
                     try:
                         if self.process_single_post(post):
                             successful += 1
@@ -963,8 +993,8 @@ class PipelineProcessor:
                         
         except Exception as e:
             logger.error(f"Error in batch processing: {str(e)}")
-            # Fallback to individual processing
-            for post in posts:
+            # Fallback to individual processing for valid posts only
+            for post in valid_posts if 'valid_posts' in locals() else posts:
                 try:
                     if self.process_single_post(post):
                         successful += 1
@@ -977,6 +1007,10 @@ class PipelineProcessor:
                 except Exception as e:
                     logger.error(f"Unexpected error processing post {post.id}: {str(e)}")
                     failed += 1
+                
+        # Add skipped posts to failed count for accurate reporting
+        if 'skipped_posts' in locals():
+            failed += skipped_posts
                 
         return successful, failed
         
