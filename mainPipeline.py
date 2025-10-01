@@ -565,12 +565,21 @@ class PipelineProcessor:
             results = api_response.get('results', [])
             
             if len(results) != len(posts):
-                logger.error(f"Mismatch between posts ({len(posts)}) and results ({len(results)})")
-                return False
+                logger.warning(f"Mismatch between posts ({len(posts)}) and results ({len(results)})")
+                logger.info(f"Processing available {len(results)} results out of {len(posts)} posts")
+                
+                # Handle partial results - only process the available results
+                if len(results) == 0:
+                    logger.error("No results to process")
+                    return False
             
             successfully_processed_post_ids = []
             
-            for i, (post, result) in enumerate(zip(posts, results)):
+            # Process only the available results, matching by index
+            for i in range(min(len(posts), len(results))):
+                post = posts[i]
+                result = results[i]
+                
                 try:
                     # Extract sentiment data
                     entities = result.get('extracted_entities', {})
@@ -792,8 +801,14 @@ class PipelineProcessor:
                 logger.info(f"Updated analysisStatus to 'ANALYZED' for {len(successfully_processed_post_ids)} posts")
             
             self.session.commit()
-            logger.info(f"Successfully saved {len(results)} analyzed records and updated status")
-            return True
+            logger.info(f"Successfully saved {len(successfully_processed_post_ids)} analyzed records and updated status")
+            
+            # Log information about unprocessed posts
+            unprocessed_count = len(posts) - len(successfully_processed_post_ids)
+            if unprocessed_count > 0:
+                logger.warning(f"{unprocessed_count} posts were not processed due to missing or invalid results")
+            
+            return len(successfully_processed_post_ids) > 0  # Return True if at least one post was processed
             
         except Exception as e:
             logger.error(f"Error saving batch analyzed data: {str(e)}")
