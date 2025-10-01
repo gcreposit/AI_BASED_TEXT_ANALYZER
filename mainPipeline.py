@@ -296,7 +296,7 @@ class PipelineProcessor:
         try:
             query = self.session.query(PostBank).filter(
                 PostBank.analysisStatus == 'NOT_ANALYZED'
-            )
+            ).order_by(PostBank.id.desc())
             
             if limit:
                 query = query.limit(limit)
