@@ -90,9 +90,25 @@ class PostBank(Base):
     category_id = Column(String(10))
     channel_id = Column(String(50))
     mobile_number = Column(String(20))  # Mobile number field
+    author_user_id = Column(Integer)  # NEW: Reference to post_users.id
+    
+    # NEW: Additional fields from MY_MODELS (using original field names)
+    photo_attachment = Column(String(255))  # photo_attachment
+    post_date = Column(DateTime)  # post_date  
+    post_id = Column(String(255))  # post_id
+    post_time = Column(DateTime)  # post_time
+    video_attachment = Column(String(255))  # video_attachment
+    quoted_or_reply_link = Column(String(255))  # quoted_or_reply_link
+    rule_id = Column(String(255))  # rule_id
+    tweet_type = Column(String(255))  # tweet_type
+    create_by = Column(String(255))  # create_by
+    tag = Column(String(255))  # tag
+    searched_term = Column(Text)  # searched_term
+    query_tag = Column(String(500))  # query_tag
+    replies_since_id = Column(String(255))  # replies_since_id
     
     # Analysis status column
-    analysisStatus = Column(String(20), default='NOT_ANALYZED')
+    analysis_status = Column(String(20), default='NOT_ANALYZED')
 
 
 class Topic(Base):
@@ -131,11 +147,10 @@ class AnalyzedData(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     dump_table_id = Column(Integer, nullable=False)  # Reference to post_bank.id
     topic_id = Column(Integer, nullable=True)  # Foreign key to topic table (1:M relationship)
+    post_user_id = Column(Integer, nullable=True)  # Reference to post_users.id from post_bank
     
-    # Text processing fields
+    # Text processing fields - UPDATED: Only input_text now
     input_text = Column(Text)
-    processed_text = Column(Text)
-    enhanced_text = Column(Text)
     detected_language = Column(String(10))
     language_confidence = Column(Float)
     action = Column(String(50))
@@ -148,6 +163,14 @@ class AnalyzedData(Base):
     processing_time_ms = Column(Integer)
     boost_reasons = Column(Text)  # JSON array as text
     timestamp = Column(Float)
+    
+    # NEW: Temporal info fields
+    temporal_incident_date = Column(String(50))  # incident_date
+    temporal_incident_time = Column(String(50))  # incident_time
+    temporal_phrase = Column(Text)  # temporal_phrase
+    temporal_type = Column(String(50))  # temporal_type
+    temporal_confidence = Column(Float)  # confidence
+    temporal_days_ago = Column(Integer)  # days_ago
     
     # PostBank fields with post_bank_ prefix - Core content fields
     post_bank_post_title = Column(Text)  # Post title from PostBank
@@ -185,6 +208,21 @@ class AnalyzedData(Base):
     post_bank_category_id = Column(String(10))  # Category ID from PostBank
     post_bank_channel_id = Column(String(50))  # Channel ID from PostBank
     post_bank_post_id = Column(String(100))  # Post ID from PostBank
+    
+    # NEW: Additional PostBank fields
+    post_bank_photo_attachment = Column(String(255))  # photo_attachment from PostBank
+    post_bank_post_date = Column(DateTime)  # post_date from PostBank
+    post_bank_post_id_new = Column(String(255))  # post_id from PostBank (new field)
+    post_bank_post_time = Column(DateTime)  # post_time from PostBank
+    post_bank_video_attachment = Column(String(255))  # video_attachment from PostBank
+    post_bank_quoted_or_reply_link = Column(String(255))  # quoted_or_reply_link from PostBank
+    post_bank_rule_id = Column(String(255))  # rule_id from PostBank
+    post_bank_tweet_type = Column(String(255))  # tweet_type from PostBank
+    post_bank_create_by = Column(String(255))  # create_by from PostBank
+    post_bank_tag = Column(String(255))  # tag from PostBank
+    post_bank_searched_term = Column(Text)  # searched_term from PostBank
+    post_bank_query_tag = Column(String(500))  # query_tag from PostBank
+    post_bank_replies_since_id = Column(String(255))  # replies_since_id from PostBank
     
     # Additional fields from logs.txt model (WhatsApp specific)
     post_date = Column(String(20))  # Date in dd/mm/yyyy format
@@ -232,6 +270,178 @@ class AnalyzedData(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class SentimentEntity(Base):
+    """Model for sentiment_entities table to store advanced sentiment data"""
+    __tablename__ = 'sentiment_entities'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    analyzed_data_id = Column(Integer, nullable=False)  # Reference to analyzed_data.id
+    entity_name = Column(String(500), nullable=False)  # Entity name
+    entity_type = Column(String(50), nullable=False)  # castes, religions, organisations, political_parties, other_aspects
+    stance = Column(String(20), nullable=False)  # pro, against, neutral
+    confidence = Column(Float, nullable=False)  # 0.0 to 1.0
+    reasoning = Column(Text)  # Reasoning for this stance
+    source = Column(String(20), nullable=False)  # llm, rule_based
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class PostUser(Base):
+    """Model for post_users table"""
+    __tablename__ = 'post_users'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    platform = Column(String(20), nullable=False)
+    platform_user_id = Column(String(100), nullable=False)
+    username = Column(String(255))
+    display_name = Column(String(255), nullable=False)
+    bio_description = Column(Text)
+    profile_image_url = Column(Text)
+    banner_image_url = Column(Text)
+    website_url = Column(String(500))
+    location = Column(String(255))
+    followers_count = Column(BigInteger)
+    following_count = Column(BigInteger)
+    posts_count = Column(Integer)
+    total_engagement = Column(BigInteger)
+    is_verified = Column(Boolean)
+    is_private = Column(Boolean)
+    is_business = Column(Boolean)
+    account_status = Column(String(50))
+    platform_specific_data = Column(Text)
+    profile_created_at = Column(DateTime)
+    last_post_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Additional fields
+    is_blue_verified = Column(Boolean)
+    verified_type = Column(String(50))
+    favourites_count = Column(BigInteger)
+    media_count = Column(Integer)
+    statuses_count = Column(Integer)
+    fast_followers_count = Column(Integer)
+    has_custom_timelines = Column(Boolean)
+    is_translator = Column(Boolean)
+    can_dm = Column(Boolean)
+    can_media_tag = Column(Boolean)
+    possibly_sensitive = Column(Boolean)
+    pinned_tweet_ids = Column(Text)
+    withheld_in_countries = Column(Text)
+    is_automated = Column(Boolean)
+    automated_by = Column(String(255))
+
+
+class Reply(Base):
+    """Model for reply table"""
+    __tablename__ = 'reply'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    post_bank_id = Column(Integer, nullable=False)
+    post_user_id = Column(Integer, nullable=True)
+    analyzed_data_id = Column(Integer, nullable=True)  # NEW: Reference to analyzed_data
+    
+    reply_tweet_id = Column(String(255), nullable=False)
+    reply_text = Column(Text, nullable=True)
+    reply_created_at = Column(DateTime, nullable=True)
+    reply_lang = Column(String(10), nullable=True)
+    
+    # Reply author information
+    reply_author_platform_user_id = Column(String(255), nullable=True)
+    reply_author_username = Column(String(255), nullable=True)
+    reply_author_display_name = Column(String(255), nullable=True)
+    reply_author_profile_image_url = Column(Text, nullable=True)
+    reply_author_bio_description = Column(Text, nullable=True)
+    reply_author_location = Column(String(255), nullable=True)
+    reply_author_is_verified = Column(Boolean, default=False)
+    reply_author_is_blue_verified = Column(Boolean, default=False)
+    
+    # Reply author metrics
+    reply_author_followers_count = Column(Integer, nullable=True)
+    reply_author_following_count = Column(Integer, nullable=True)
+    reply_author_posts_count = Column(Integer, nullable=True)
+    reply_author_likes_count = Column(Integer, nullable=True)
+    
+    # Reply metrics
+    reply_retweet_count = Column(Integer, default=0)
+    reply_like_count = Column(Integer, default=0)
+    reply_quote_count = Column(Integer, default=0)
+    reply_bookmark_count = Column(Integer, default=0)
+    reply_impression_count = Column(Integer, default=0)
+    
+    attachments = Column(Text, nullable=True)
+    reply_url = Column(Text, nullable=True)
+    conversation_id = Column(String(255), nullable=True)
+    in_reply_to_user_id = Column(String(255), nullable=True)
+    reply_type = Column(String(50), default='reply')
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Retweet(Base):
+    """Model for retweet table"""
+    __tablename__ = 'retweet'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    post_bank_id = Column(Integer, nullable=False)
+    post_user_id = Column(Integer, nullable=False)
+    analyzed_data_id = Column(Integer, nullable=True)  # NEW: Reference to analyzed_data
+    
+    tweet_id = Column(String(100), nullable=False)
+    retweeter_platform_user_id = Column(String(100), nullable=False)
+    retweeter_username = Column(String(255))
+    retweeter_display_name = Column(String(255))
+    retweeter_profile_image_url = Column(Text)
+    retweeter_followers_count = Column(BigInteger)
+    retweeter_following_count = Column(BigInteger)
+    retweeter_posts_count = Column(Integer)
+    retweeter_is_verified = Column(Boolean)
+    retweeter_is_blue_verified = Column(Boolean)
+    retweeter_bio_description = Column(Text)
+    retweeter_location = Column(String(255))
+    retweeter_like_count = Column(BigInteger)
+    retweeter_media_count = Column(BigInteger)
+    
+    created_at_utc = Column(DateTime, nullable=False)
+    created_at_ist = Column(DateTime, nullable=False)
+    retweet_type = Column(String(50), default='retweet')
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class CommonAttachment(Base):
+    """Model for common_attachments table"""
+    __tablename__ = 'common_attachments'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    post_bank_id = Column(Integer, nullable=False)
+    analyzed_data_id = Column(Integer, nullable=True)  # NEW: Reference to analyzed_data
+    
+    attachment_type = Column(String(50), nullable=False)
+    platform_name = Column(String(50), nullable=False)
+    image_attachment_path = Column(Text, nullable=True)
+    document_attachment_path = Column(Text, nullable=True)
+    video_attachment_path = Column(Text, nullable=True)
+    audio_attachment_path = Column(Text, nullable=True)
+    link_metadata = Column(Text, nullable=True)
+    reply_attachment_type = Column(String(50), nullable=True)
+    reply_attachment_path = Column(Text, nullable=True)
+    mime_type = Column(String(100), nullable=True)
+    timestamp = Column(DateTime, nullable=True)
+    group_id = Column(String(100), nullable=True)
+    mobile_number = Column(String(20), nullable=True)
+    download_status = Column(String(20), default='PENDING')
+    processing_status = Column(String(20), default='NOT_PROCESSED')
+    error_message = Column(Text, nullable=True)
+    
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 class PipelineProcessor:
     """Main pipeline processor class"""
     
@@ -268,34 +478,34 @@ class PipelineProcessor:
             return False
             
     def _add_analysis_status_column(self):
-        """Add analysisStatus column to post_bank table"""
+        """Add analysis_status column to post_bank table"""
         try:
             # Check if column exists
             result = self.session.execute(
                 text("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
                      "WHERE TABLE_SCHEMA = :schema AND TABLE_NAME = 'post_bank' "
-                     "AND COLUMN_NAME = 'analysisStatus'"),
+                     "AND COLUMN_NAME = 'analysis_status'"),
                 {'schema': DUMP_DB_CONFIG['database']}
             )
             
             if result.fetchone()[0] == 0:
                 # Column doesn't exist, add it
                 self.session.execute(
-                    text("ALTER TABLE post_bank ADD COLUMN analysisStatus VARCHAR(20) DEFAULT 'NOT_ANALYZED'")
+                    text("ALTER TABLE post_bank ADD COLUMN analysis_status VARCHAR(20) DEFAULT 'NOT_ANALYZED'")
                 )
                 self.session.commit()
-                logger.info("Added analysisStatus column to post_bank table")
+                logger.info("Added analysis_status column to post_bank table")
             else:
-                logger.info("analysisStatus column already exists in post_bank table")
+                logger.info("analysis_status column already exists in post_bank table")
                 
         except Exception as e:
-            logger.error(f"Error adding analysisStatus column: {str(e)}")
+            logger.error(f"Error adding analysis_status column: {str(e)}")
 
     def get_unanalyzed_posts(self, limit: int = None) -> List[PostBank]:
         """Get posts that haven't been analyzed yet"""
         try:
             query = self.session.query(PostBank).filter(
-                PostBank.analysisStatus == 'NOT_ANALYZED'
+                PostBank.analysis_status == 'NOT_ANALYZED'
             ).order_by(PostBank.id.desc())
             
             if limit:
@@ -550,6 +760,82 @@ class PipelineProcessor:
             logger.error(f"Error getting common_attachment_id for post_bank_id {post_bank_id}: {str(e)}")
             return None
 
+    def get_post_user_id(self, post_bank_id: int) -> Optional[int]:
+        """Get post_user_id from post_bank table"""
+        try:
+            result = self.session.execute(text("""
+                SELECT author_user_id FROM post_bank WHERE id = :post_bank_id LIMIT 1
+            """), {"post_bank_id": post_bank_id})
+            
+            row = result.fetchone()
+            return row[0] if row else None
+            
+        except Exception as e:
+            logger.error(f"Error getting post_user_id for post_bank_id {post_bank_id}: {str(e)}")
+            return None
+
+    def save_sentiment_entities(self, analyzed_data_id: int, advanced_sentiment: Dict[str, Any]) -> bool:
+        """Save sentiment entities to sentiment_entities table"""
+        try:
+            # Process all three stance categories
+            for stance_key in ['pro_towards', 'against_towards', 'neutral_towards']:
+                stance_data = advanced_sentiment.get(stance_key, {})
+                
+                # Extract stance from key (pro_towards -> pro)
+                stance = stance_key.split('_')[0]
+                
+                # Process all entity types
+                for entity_type in ['castes', 'religions', 'organisations', 'political_parties', 'other_aspects']:
+                    entities = stance_data.get(entity_type, [])
+                    
+                    for entity in entities:
+                        if isinstance(entity, dict) and entity.get('name'):
+                            sentiment_entity = SentimentEntity(
+                                analyzed_data_id=analyzed_data_id,
+                                entity_name=entity.get('name', ''),
+                                entity_type=entity_type,
+                                stance=stance,
+                                confidence=entity.get('confidence', 0.0),
+                                reasoning=entity.get('reasoning', ''),
+                                source=entity.get('source', 'llm')
+                            )
+                            self.session.add(sentiment_entity)
+            
+            logger.info(f"Saved sentiment entities for analyzed_data_id: {analyzed_data_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving sentiment entities for analyzed_data_id {analyzed_data_id}: {str(e)}")
+            return False
+
+    def update_related_tables_with_analyzed_data_id(self, post_bank_id: int, analyzed_data_id: int) -> bool:
+        """Update related tables with analyzed_data_id"""
+        try:
+            # Update replies table
+            self.session.execute(text("""
+                UPDATE reply SET analyzed_data_id = :analyzed_data_id 
+                WHERE post_bank_id = :post_bank_id
+            """), {"analyzed_data_id": analyzed_data_id, "post_bank_id": post_bank_id})
+            
+            # Update retweet table
+            self.session.execute(text("""
+                UPDATE retweet SET analyzed_data_id = :analyzed_data_id 
+                WHERE post_bank_id = :post_bank_id
+            """), {"analyzed_data_id": analyzed_data_id, "post_bank_id": post_bank_id})
+            
+            # Update common_attachments table
+            self.session.execute(text("""
+                UPDATE common_attachments SET analyzed_data_id = :analyzed_data_id 
+                WHERE post_bank_id = :post_bank_id
+            """), {"analyzed_data_id": analyzed_data_id, "post_bank_id": post_bank_id})
+            
+            logger.info(f"Updated related tables with analyzed_data_id {analyzed_data_id} for post_bank_id {post_bank_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error updating related tables: {str(e)}")
+            return False
+
     def save_batch_analyzed_data(self, posts: List[PostBank], api_response: Dict[str, Any]) -> bool:
         """
         Save batch analyzed data to analyzed_data table and update analysisStatus
@@ -586,6 +872,12 @@ class PipelineProcessor:
                     sentiment_data = entities.get('sentiment', {})
                     sentiment_label = sentiment_data.get('label', 'neutral')
                     sentiment_confidence = sentiment_data.get('confidence', 0.0)
+                    
+                    # Extract temporal info - NEW
+                    temporal_info = result.get('temporal_info', {})
+                    
+                    # Extract advanced sentiment - NEW
+                    advanced_sentiment = result.get('advanced_sentiment', {})
                     
                     # Extract category classifications and location analysis
                     category_classifications = entities.get('category_classifications', [])
@@ -710,12 +1002,14 @@ class PipelineProcessor:
                     # Get common_attachment_id from common_attachments table
                     common_attachment_id = self.get_common_attachment_id(post.id)
                     
-                    # Create AnalyzedData record
+                    # Get post_user_id from post_bank
+                    post_user_id = self.get_post_user_id(post.id)
+                    
+                    # Create AnalyzedData record - UPDATED: Only input_text, added temporal fields
                     analyzed_data = AnalyzedData(
                         dump_table_id=post.id,
-                        input_text=result.get('input_text', ''),
-                        processed_text=result.get('processed_text', ''),
-                        enhanced_text=result.get('enhanced_text', ''),
+                        post_user_id=post_user_id,  # NEW: Add post_user_id
+                        input_text=result.get('input_text', ''),  # Only input_text now
                         detected_language=result.get('detected_language', ''),
                         language_confidence=result.get('language_confidence', 0.0),
                         action=result.get('action', ''),
@@ -729,6 +1023,14 @@ class PipelineProcessor:
                         processing_time_ms=result.get('processing_time_ms', 0),
                         boost_reasons=json.dumps(result.get('boost_reasons', []), ensure_ascii=False),
                         timestamp=result.get('timestamp', 0.0),
+                        
+                        # NEW: Temporal info fields
+                        temporal_incident_date=temporal_info.get('incident_date', ''),
+                        temporal_incident_time=temporal_info.get('incident_time', ''),
+                        temporal_phrase=temporal_info.get('temporal_phrase', ''),
+                        temporal_type=temporal_info.get('temporal_type', ''),
+                        temporal_confidence=temporal_info.get('confidence', 0.0),
+                        temporal_days_ago=temporal_info.get('days_ago'),
                         
                         # Copy post_bank data to analyzed_data
                         post_bank_post_title=post.post_title,
@@ -759,6 +1061,21 @@ class PipelineProcessor:
                         mobile_number=getattr(post, 'mobile_number', None),  # Copy mobile_number from PostBank
                         common_attachment_id=common_attachment_id,
                         
+                        # NEW: Copy additional PostBank fields (13 fields total)
+                        post_bank_photo_attachment=post.photo_attachment,
+                        post_bank_post_date=post.post_date,
+                        post_bank_post_id_new=post.post_id,
+                        post_bank_post_time=post.post_time,
+                        post_bank_video_attachment=post.video_attachment,
+                        post_bank_quoted_or_reply_link=post.quoted_or_reply_link,
+                        post_bank_rule_id=post.rule_id,
+                        post_bank_tweet_type=post.tweet_type,
+                        post_bank_create_by=post.create_by,
+                        post_bank_tag=post.tag,
+                        post_bank_searched_term=post.searched_term,
+                        post_bank_query_tag=post.query_tag,
+                        post_bank_replies_since_id=post.replies_since_id,
+                        
                         # Extracted entities
                         person_names=json.dumps(entities.get('person_names', []), ensure_ascii=False),
                         organisation_names=json.dumps(entities.get('organisation_names', []), ensure_ascii=False),
@@ -788,6 +1105,15 @@ class PipelineProcessor:
                     )
                     
                     self.session.add(analyzed_data)
+                    self.session.flush()  # Get the ID for sentiment entities
+                    
+                    # Save sentiment entities to separate table - NEW
+                    if advanced_sentiment:
+                        self.save_sentiment_entities(analyzed_data.id, advanced_sentiment)
+                    
+                    # Update related tables with analyzed_data_id - NEW
+                    self.update_related_tables_with_analyzed_data_id(post.id, analyzed_data.id)
+                    
                     successfully_processed_post_ids.append(post.id)
                     
                 except Exception as e:
@@ -798,7 +1124,7 @@ class PipelineProcessor:
             if successfully_processed_post_ids:
                 for post_id in successfully_processed_post_ids:
                     self.update_post_status(post_id, 'ANALYZED')
-                logger.info(f"Updated analysisStatus to 'ANALYZED' for {len(successfully_processed_post_ids)} posts")
+                logger.info(f"Updated analysis_status to 'ANALYZED' for {len(successfully_processed_post_ids)} posts")
             
             self.session.commit()
             logger.info(f"Successfully saved {len(successfully_processed_post_ids)} analyzed records and updated status")
@@ -816,17 +1142,34 @@ class PipelineProcessor:
             return False
 
     def save_analyzed_data(self, post_id: int, api_response: Dict[str, Any]) -> bool:
-        """Save API response to analyzed_data table"""
+        """Save API response to analyzed_data table - UPDATED for new format"""
         try:
             # Extract entities data
             entities = api_response.get('extracted_entities', {})
             sentiment = entities.get('sentiment', {})
             
+            # Extract temporal info - NEW
+            temporal_info = api_response.get('temporal_info', {})
+            
+            # Extract advanced sentiment - NEW
+            advanced_sentiment = api_response.get('advanced_sentiment', {})
+            
+            # Get post_user_id from post_bank
+            post_user_id = self.get_post_user_id(post_id)
+            
+            # Get PostBank record to copy all fields
+            post = self.session.query(PostBank).filter(PostBank.id == post_id).first()
+            if not post:
+                logger.error(f"PostBank record not found for post_id: {post_id}")
+                return False
+            
+            # Get common_attachment_id from common_attachments table
+            common_attachment_id = self.get_common_attachment_id(post_id)
+            
             analyzed_data = AnalyzedData(
                 dump_table_id=post_id,
-                input_text=api_response.get('input_text'),
-                processed_text=api_response.get('processed_text'),
-                enhanced_text=api_response.get('enhanced_text'),
+                post_user_id=post_user_id,  # NEW: Add post_user_id
+                input_text=api_response.get('input_text'),  # Only input_text now
                 detected_language=api_response.get('detected_language'),
                 language_confidence=api_response.get('language_confidence'),
                 action=api_response.get('action'),
@@ -839,6 +1182,58 @@ class PipelineProcessor:
                 processing_time_ms=api_response.get('processing_time_ms'),
                 boost_reasons=json.dumps(api_response.get('boost_reasons', []), ensure_ascii=False),
                 timestamp=api_response.get('timestamp'),
+                
+                # NEW: Temporal info fields
+                temporal_incident_date=temporal_info.get('incident_date', ''),
+                temporal_incident_time=temporal_info.get('incident_time', ''),
+                temporal_phrase=temporal_info.get('temporal_phrase', ''),
+                temporal_type=temporal_info.get('temporal_type', ''),
+                temporal_confidence=temporal_info.get('confidence', 0.0),
+                temporal_days_ago=temporal_info.get('days_ago'),
+                
+                # Copy post_bank data to analyzed_data
+                post_bank_post_title=post.post_title,
+                post_bank_post_snippet=post.post_snippet,
+                post_bank_post_url=post.post_url,
+                post_bank_core_source=post.core_source,
+                post_bank_source=post.source,
+                post_bank_post_timestamp=post.post_timestamp,
+                post_bank_author_name=post.author_name,
+                post_bank_author_username=post.author_username,
+                post_bank_post_language=post.post_language,
+                post_bank_post_location=post.post_location,
+                post_bank_post_type=post.post_type,
+                post_bank_retweets=post.retweets,
+                post_bank_bookmarks=post.bookmarks,
+                post_bank_comments=post.comments,
+                post_bank_likes=post.likes,
+                post_bank_views=post.views,
+                post_bank_attachments=post.attachments,
+                post_bank_mention_ids=post.mention_ids,
+                post_bank_mention_hashtags=post.mention_hashtags,
+                post_bank_keyword=post.keyword,
+                post_bank_unique_hash=post.unique_hash,
+                post_bank_video_id=post.video_id,
+                post_bank_duration=post.duration,
+                post_bank_category_id=post.category_id,
+                post_bank_channel_id=post.channel_id,
+                mobile_number=getattr(post, 'mobile_number', None),
+                common_attachment_id=common_attachment_id,
+                
+                # NEW: Copy additional PostBank fields (13 fields total)
+                post_bank_photo_attachment=post.photo_attachment,
+                post_bank_post_date=post.post_date,
+                post_bank_post_id_new=post.post_id,
+                post_bank_post_time=post.post_time,
+                post_bank_video_attachment=post.video_attachment,
+                post_bank_quoted_or_reply_link=post.quoted_or_reply_link,
+                post_bank_rule_id=post.rule_id,
+                post_bank_tweet_type=post.tweet_type,
+                post_bank_create_by=post.create_by,
+                post_bank_tag=post.tag,
+                post_bank_searched_term=post.searched_term,
+                post_bank_query_tag=post.query_tag,
+                post_bank_replies_since_id=post.replies_since_id,
                 
                 # Extracted entities
                 person_names=json.dumps(entities.get('person_names', []), ensure_ascii=False),
@@ -858,6 +1253,15 @@ class PipelineProcessor:
             )
             
             self.session.add(analyzed_data)
+            self.session.flush()  # Get the ID for sentiment entities
+            
+            # Save sentiment entities to separate table - NEW
+            if advanced_sentiment:
+                self.save_sentiment_entities(analyzed_data.id, advanced_sentiment)
+            
+            # Update related tables with analyzed_data_id - NEW
+            self.update_related_tables_with_analyzed_data_id(post_id, analyzed_data.id)
+            
             self.session.commit()
             logger.info(f"Saved analyzed data for post_id: {post_id}")
             return True
@@ -868,11 +1272,11 @@ class PipelineProcessor:
             return False
             
     def update_post_status(self, post_id: int, status: str = "ANALYZED") -> bool:
-        """Update the analysisStatus of a post"""
+        """Update the analysis_status of a post"""
         try:
             post = self.session.query(PostBank).filter(PostBank.id == post_id).first()
             if post:
-                post.analysisStatus = status
+                post.analysis_status = status
                 self.session.commit()
                 logger.info(f"Updated post {post_id} status to {status}")
                 return True
@@ -894,7 +1298,7 @@ class PipelineProcessor:
             updated_count = self.session.query(PostBank).filter(
                 PostBank.id.in_(post_ids)
             ).update(
-                {PostBank.analysisStatus: 'INSUFFICIENT_CONTENT'}, 
+                {PostBank.analysis_status: 'INSUFFICIENT_CONTENT'}, 
                 synchronize_session=False
             )
             
@@ -1100,10 +1504,10 @@ class PipelineProcessor:
         try:
             total_posts = self.session.query(PostBank).count()
             analyzed_posts = self.session.query(PostBank).filter(
-                PostBank.analysisStatus == 'ANALYZED'
+                PostBank.analysis_status == 'ANALYZED'
             ).count()
             unanalyzed_posts = self.session.query(PostBank).filter(
-                PostBank.analysisStatus == 'NOT_ANALYZED'
+                PostBank.analysis_status == 'NOT_ANALYZED'
             ).count()
             
             return {
