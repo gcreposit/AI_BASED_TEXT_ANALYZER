@@ -505,7 +505,8 @@ class PipelineProcessor:
         """Get posts that haven't been analyzed yet"""
         try:
             query = self.session.query(PostBank).filter(
-                PostBank.analysis_status == 'NOT_ANALYZED'
+                PostBank.analysis_status == 'NOT_ANALYZED',
+                PostBank.core_source == 'TWITTER'
             ).order_by(PostBank.id.desc())
             
             if limit:
