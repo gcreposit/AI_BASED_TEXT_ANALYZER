@@ -110,6 +110,7 @@ class VectorService:
                               n_results: int = 10,
                               threshold: float = 0.8,
                               filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+
         """
         Search for similar topics in the vector database
 
@@ -117,7 +118,7 @@ class VectorService:
             query_embedding: Query embedding vector
             n_results: Maximum number of results
             threshold: Minimum similarity threshold
-            filters: Optional metadata filters
+            filters: Optional metadata filters (ALREADY FORMATTED ChromaDB where clause)
 
         Returns:
             List of similar topics with metadata
@@ -134,11 +135,19 @@ class VectorService:
                 "include": ['documents', 'metadatas', 'distances']
             }
 
-            # Add filters if provided
+            # ✅ CRITICAL FIX: Check if filters is already a ChromaDB where clause
             if filters:
-                where_clause = self._build_where_clause(filters)
-                if where_clause:
-                    query_params["where"] = where_clause
+                # Check if it's already a properly formatted ChromaDB filter
+                if any(key.startswith('$') for key in filters.keys()):
+                    # It's already a ChromaDB operator filter, use directly
+                    logger.debug(f"Using pre-formatted filter: {filters}")
+                    query_params["where"] = filters
+                else:
+                    # It's a simple key-value filter, build where clause
+                    logger.debug(f"Building where clause from simple filters: {filters}")
+                    where_clause = self._build_where_clause(filters)
+                    if where_clause:
+                        query_params["where"] = where_clause
 
             # Execute search
             results = self.collection.query(**query_params)
@@ -167,7 +176,7 @@ class VectorService:
             return similar_topics
 
         except Exception as e:
-            logger.error(f"Vector search failed: {e}")
+            logger.error(f"Vector search failed: {e}", exc_info=True)
             return []
 
     def update_topic(self,
@@ -440,3 +449,45 @@ class VectorService:
                 "error": str(e),
                 "timestamp": time.time()
             }
+
+    def update_topic_metadata(self, topic_id: str, metadata_updates: Dict[str, Any]) -> bool:
+        """
+        Update metadata for an existing topic in ChromaDB
+
+        Args:
+            topic_id: Topic identifier
+            metadata_updates: Dictionary of metadata fields to update
+
+        Returns:
+            Success status
+        """
+        try:
+            # Get existing topic
+            existing = self.collection.get(
+                ids=[topic_id],
+                include=['metadatas', 'documents', 'embeddings']
+            )
+
+            if not existing['ids'] or len(existing['ids']) == 0:
+                logger.warning(f"Topic {topic_id} not found for metadata update")
+                return False
+
+            # Merge existing metadata with updates
+            current_metadata = existing['metadatas'][0]
+            updated_metadata = {**current_metadata, **metadata_updates}
+
+            # Prepare for ChromaDB
+            safe_metadata = self._prepare_metadata(updated_metadata)
+
+            # Update in collection
+            self.collection.update(
+                ids=[topic_id],
+                metadatas=[safe_metadata]
+            )
+
+            logger.info(f"✅ Updated metadata for topic {topic_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to update topic metadata: {e}")
+            return False

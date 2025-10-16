@@ -1,0 +1,63 @@
+{
+  "CRIME": {
+    "MURDER": [
+      "हत्या", "murder", "खून", "killing", "मारना", "जान से मारना", "हत्या का मामला",
+      "मृत्यु", "death", "मौत", "killed", "मारा गया", "मरा हुआ", "लाश", "शव"
+    ],
+    "AGAINST WOMEN": [
+      "महिलाओं के विरुद्ध", "against women", "दुष्कर्म", "rape", "छेड़छाड़", "harassment",
+      "बलात्कार", "यौन उत्पीड़न", "sexual assault", "महिला हिंसा", "दहेज", "dowry"
+    ],
+    "COMMUNAL": [
+      "सांप्रदायिक", "communal", "धर्म", "religion", "दंगा", "riots", "हिंसा",
+      "सांप्रदायिक तनाव", "communal tension", "religious violence", "धार्मिक हिंसा"
+    ],
+    "CASTEISM": [
+      "जातिवाद", "casteism", "जाति", "caste", "दलित", "अत्याचार", "atrocity",
+      "जातीय हिंसा", "caste violence", "अनुसूचित जाति"
+    ],
+    "AGAINST MINORS": [
+      "नाबालिग", "minor", "बच्चों के विरुद्ध", "child abuse", "पोक्सो", "POCSO",
+      "बाल यौन शोषण", "child sexual abuse", "नाबालिग से दुष्कर्म"
+    ],
+    "ROBBERY": [
+      "लूट", "robbery", "डकैती", "dacoity", "लूटपाट", "सम्पत्ति अपराध"
+    ],
+    "THEFT": [
+      "चोरी", "theft", "सेंधमारी", "burglary", "चुराना", "stealing"
+    ],
+    "KIDNAPPING": [
+      "अपहरण", "kidnapping", "गुमशुदगी", "missing", "बंधक", "hostage"
+    ],
+    "ASSAULT": [
+      "मारपीट", "assault", "हमला", "attack", "पिटाई", "beating", "शारीरिक हिंसा"
+    ]
+  },
+  "POLICE MISCONDUCT": {
+    "CORRUPTION": [
+      "भ्रष्टाचार", "corruption", "रिश्वत", "bribe", "घूसखोरी"
+    ],
+    "MISCONDUCT": [
+      "कदाचार", "misconduct", "पुलिस कदाचार", "police misconduct", "अत्याचार"
+    ]
+  },
+  "TRAFFIC RELATED": {
+    "TRAFFIC JAM": [
+      "ट्रैफिक जाम", "traffic jam", "यातायात बाधा", "traffic congestion"
+    ],
+    "DIVERSION": [
+      "मार्ग परिवर्तन", "traffic diversion", "रास्ता बंद", "road closure"
+    ]
+  },
+  "GRIEVANCE": {
+    "FIR RELATED": [
+      "एफआईआर", "FIR", "प्राथमिकी", "शिकायत दर्ज"
+    ],
+    "COMPLAINTS": [
+      "शिकायत", "complaint", "निवेदन", "grievance", "समस्या"
+    ],
+    "ACCIDENT": [
+      "दुर्घटना", "accident", "हादसा", "mishap"
+    ]
+  }
+}

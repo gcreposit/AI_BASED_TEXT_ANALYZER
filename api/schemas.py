@@ -110,24 +110,191 @@ class ExtractedEntities(BaseModel):
 
 
 class TopicClusteringResponse(BaseModel):
-    """Schema for topic clustering response"""
+    """Schema for enhanced topic clustering response with temporal and sentiment analysis"""
+
+    # Basic text processing
     input_text: str = Field(..., description="Original input text")
-    processed_text: str = Field(..., description="Preprocessed text")
-    enhanced_text: Optional[str] = Field(None, description="Enhanced text with entity context")
+    # processed_text: str = Field(..., description="Preprocessed text")
+    # enhanced_text: Optional[str] = Field(None, description="Enhanced text with entity context")
+
+    # Language detection
     detected_language: str = Field(..., description="Detected language")
     language_confidence: float = Field(..., ge=0.0, le=1.0, description="Language detection confidence")
-    action: str = Field(..., description="Action taken (grouped, new_topic_created, etc.)")
+
+    # Topic assignment
+    action: str = Field(..., description="Action taken (grouped, new_topic_created, assigned_to_unassigned, error)")
     topic_title: str = Field(..., description="Generated or assigned topic title")
     topic_id: str = Field(..., description="Unique topic identifier")
     similarity_score: float = Field(..., ge=0.0, le=1.0, description="Similarity score to matched topic")
-    confidence: str = Field(..., description="Overall confidence level (high, medium, low)")
+    confidence: str = Field(..., description="Overall confidence level (high, medium, low, unassigned)")
+
+    # Processing metadata
     source_type: str = Field(..., description="Source type of the text")
     embedding_model: str = Field(default="BAAI/bge-m3", description="Embedding model used")
     processing_time_ms: int = Field(..., description="Processing time in milliseconds")
-    extracted_entities: ExtractedEntities = Field(..., description="Extracted entities and metadata")
-    boost_reasons: List[str] = Field(default_factory=list, description="Reasons for similarity boost")
     timestamp: float = Field(..., description="Processing timestamp")
 
+    # ✅ NEW: Root-level enhanced fields
+    temporal_info: Optional[Dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Temporal information about the incident (when it occurred)"
+    )
+
+    advanced_sentiment: Optional[Dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Advanced sentiment analysis with stance detection"
+    )
+
+    category_classifications: Optional[List[Dict[str, Any]]] = Field(
+        default_factory=list,
+        description="Multiple category classifications with confidence scores (filtered >= 0.6)"
+    )
+
+    primary_classification: Optional[Dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Primary category classification"
+    )
+
+    incident_location_analysis: Optional[Dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Detailed location analysis separating incident vs related locations"
+    )
+
+    # Complete extracted entities (no duplicates with root-level fields)
+    extracted_entities: ExtractedEntities = Field(
+        ...,
+        description="Extracted entities (excluding fields promoted to root level)"
+    )
+
+    # Topic matching metadata
+    boost_reasons: List[str] = Field(
+        default_factory=list,
+        description="Reasons for similarity boost in matching"
+    )
+    temporal_distance_days: Optional[int] = Field(
+        None,
+        description="Days between current and matched topic incidents"
+    )
+    incident_match_score: Optional[float] = Field(
+        None,
+        ge=0.0,
+        le=1.0,
+        description="Incident type similarity score"
+    )
+
+    # User interaction
+    can_reassign: bool = Field(
+        default=False,
+        description="Whether user can manually reassign this text to another topic"
+    )
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "input_text": "लखनऊ के गोमती नगर थाने में पुलिस कदाचार की शिकायत दर्ज की गई।",
+                "processed_text": "लखनऊ के गोमती नगर थाने में पुलिस कदाचार की शिकायत दर्ज की गई।",
+                "enhanced_text": "लखनऊ के गोमती नगर थाने में पुलिस कदाचार की शिकायत दर्ज की गई। | घटनाएं: पुलिस कदाचार की शिकायत | स्थान: लखनऊ, गोमती नगर | जिला: Lucknow",
+                "detected_language": "hindi",
+                "language_confidence": 0.9,
+                "action": "new_topic_created",
+                "topic_title": "लखनऊ - पुलिस कदाचार की शिकायत",
+                "topic_id": "uuid-here",
+                "similarity_score": 0.0,
+                "confidence": "high",
+                "source_type": "social_media",
+                "embedding_model": "BAAI/bge-m3",
+                "processing_time_ms": 25000,
+                "timestamp": 1234567890.0,
+                "temporal_info": {
+                    "incident_date": "",
+                    "incident_time": "",
+                    "temporal_phrase": "",
+                    "temporal_type": "not_provided",
+                    "confidence": 0.0,
+                    "days_ago": None
+                },
+                "advanced_sentiment": {
+                    "overall_stance": "against",
+                    "overall_confidence": 0.9,
+                    "pro_towards": {
+                        "castes": [],
+                        "religions": [],
+                        "organisations": [],
+                        "political_parties": [],
+                        "other_aspects": []
+                    },
+                    "against_towards": {
+                        "castes": [],
+                        "religions": [],
+                        "organisations": [
+                            {
+                                "name": "पुलिस",
+                                "stance": "against",
+                                "confidence": 0.9
+                            }
+                        ],
+                        "political_parties": [],
+                        "other_aspects": []
+                    },
+                    "neutral_towards": {
+                        "castes": [],
+                        "religions": [],
+                        "organisations": [],
+                        "political_parties": [],
+                        "other_aspects": []
+                    },
+                    "analysis_method": "hybrid_rule_llm",
+                    "reasoning": "Against police misconduct"
+                },
+                "category_classifications": [
+                    {
+                        "broad_category": "POLICE MISCONDUCT",
+                        "sub_category": "MISCONDUCT",
+                        "confidence": 0.6,
+                        "matched_keywords": ["कदाचार", "पुलिस कदाचार"],
+                        "reasoning": "Matched keywords related to police misconduct"
+                    }
+                ],
+                "primary_classification": {
+                    "broad_category": "POLICE MISCONDUCT",
+                    "sub_category": "MISCONDUCT",
+                    "confidence": 0.6
+                },
+                "incident_location_analysis": {
+                    "incident_districts": ["Lucknow"],
+                    "related_districts": [],
+                    "incident_thanas": ["गोमती नगर"],
+                    "related_thanas": [],
+                    "primary_location": {
+                        "district": "Lucknow",
+                        "thana": "गोमती नगर",
+                        "specific_location": ""
+                    }
+                },
+                "extracted_entities": {
+                    "person_names": ["राम शर्मा"],
+                    "organisation_names": ["उत्तर प्रदेश पुलिस"],
+                    "location_names": ["लखनऊ", "गोमती नगर"],
+                    "district_names": ["Lucknow"],
+                    "thana_names": ["गोमती नगर"],
+                    "incidents": ["पुलिस कदाचार की शिकायत"],
+                    "caste_names": [],
+                    "religion_names": [],
+                    "hashtags": ["#यूपीपुलिस", "#न्याय"],
+                    "mention_ids": [],
+                    "events": [],
+                    "sentiment": {
+                        "label": "negative",
+                        "confidence": 0.8
+                    },
+                    "contextual_understanding": "लखनऊ में पुलिस कदाचार की शिकायत दर्ज की गई।"
+                },
+                "boost_reasons": [],
+                "temporal_distance_days": None,
+                "incident_match_score": None,
+                "can_reassign": False
+            }
+        }
 
 class TopicInfo(BaseModel):
     """Schema for topic information"""

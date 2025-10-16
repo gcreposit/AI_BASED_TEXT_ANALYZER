@@ -1,3 +1,4 @@
+import datetime
 import os
 import re
 import json
@@ -5,6 +6,10 @@ import time
 import logging
 from typing import Dict, Any, List, Optional, Tuple
 from pathlib import Path
+from district_normalizer import DistrictNormalizer
+from sentiment_analyzer import AdvancedSentimentAnalyzer
+from datetime import datetime, timedelta
+import traceback
 
 # Required imports for vLLM, MLX and Hugging Face models
 try:
@@ -97,7 +102,10 @@ class MistralNERExtractor:
             "उन्नाव", "कन्नौज", "हमीरपुर", "महोबा", "जालौन", "झांसी", "ललितपुर", "चित्रकूट",
             "मिर्जापुर", "सोनभद्र", "चंदौली", "भदोही", "गाजीपुर", "मऊ", "आजमगढ़", "बलिया",
             "अकबरपुर", "अमरोहा", "औरैया", "बागपत", "बुलंदशहर", "हापुड़", "मथुरा", "हाथरस",
-            "कासगंज", "मैनपुरी", "इटावा", "फतेहपुर", "कौशांबी", "संभल",
+            "कासगंज", "मैनपुरी", "इटावा", "फतेहपुर", "कौशांबी", "संभल", "बाराबंकी", "गौतम बुद्ध नगर", "कानपुर देहात", "शामली",
+            "इलाहाबाद", "प्रयागराज", "फैज़ाबाद", "अयोध्या", "ज्योतिबा फुले नगर", "अमरोहा", "पंचशील नगर", "हापुड़",
+            "भीम नगर", "संभल", "संत रविदास नगर", "भदोही"
+
 
             # English names
             "Agra", "Aligarh", "Ayodhya", "Banda", "Bareilly", "Lucknow", "Varanasi", "Gorakhpur",
@@ -109,7 +117,10 @@ class MistralNERExtractor:
             "Unnao", "Kannauj", "Hamirpur", "Mahoba", "Jalaun", "Jhansi", "Lalitpur", "Chitrakoot",
             "Mirzapur", "Sonbhadra", "Chandauli", "Bhadohi", "Ghazipur", "Mau", "Azamgarh", "Ballia",
             "Akbarpur", "Amroha", "Auraiya", "Bagpat", "Bulandshahr", "Hapur", "Mathura", "Hathras",
-            "Kasganj", "Mainpuri", "Etawah", "Fatehpur", "Kaushambi", "Sambhal"
+            "Kasganj", "Mainpuri", "Etawah", "Fatehpur", "Kaushambi", "Sambhal", "Barabanki", "Gautam Buddha Nagar", "Kanpur Dehat", "Shamli",
+            "Allahabad", "Prayagraj", "Faizabad", "Ayodhya", "J. P. Nagar", "Amroha", "Panchsheel Nagar", "Hapur",
+            "Bhim Nagar", "Sambhal", "Sant Ravidas Nagar", "Bhadohi"
+
         ]
 
         # Enhanced thana patterns - more flexible
@@ -242,21 +253,6 @@ class MistralNERExtractor:
             "events": [],
             "sentiment": {"label": "neutral", "confidence": 0.5},
             "contextual_understanding": "",
-            # NEW FIELDS - MULTIPLE CLASSIFICATIONS
-            "category_classifications": [
-                {
-                    "broad_category": "",
-                    "sub_category": "",
-                    "confidence": 0.0,
-                    "matched_keywords": [],
-                    "reasoning": ""
-                }
-            ],
-            "primary_classification": {
-                "broad_category": "",
-                "sub_category": "",
-                "confidence": 0.0
-            },
             "incident_location_analysis": {
                 "incident_districts": [],
                 "related_districts": [],
@@ -267,6 +263,41 @@ class MistralNERExtractor:
                     "thana": "",
                     "specific_location": ""
                 }
+            },
+            "temporal_info": {
+                "incident_date": "",  # YYYY-MM-DD format
+                "incident_time": "",  # Time if mentioned
+                "temporal_phrase": "",  # Original phrase
+                "temporal_type": "",  # "absolute" or "relative"
+                "confidence": 0.0,
+                "days_ago": None  # Days from current date
+            },
+            "advanced_sentiment": {
+                "overall_stance": "neutral",  # pro/against/neutral
+                "overall_confidence": 0.0,
+                "pro_towards": {
+                    "castes": [],
+                    "religions": [],
+                    "organisations": [],
+                    "political_parties": [],
+                    "other_aspects": []
+                },
+                "against_towards": {
+                    "castes": [],
+                    "religions": [],
+                    "organisations": [],
+                    "political_parties": [],
+                    "other_aspects": []
+                },
+                "neutral_towards": {
+                    "castes": [],
+                    "religions": [],
+                    "organisations": [],
+                    "political_parties": [],
+                    "other_aspects": []
+                },
+                "analysis_method": "",
+                "reasoning": ""
             }
         }
 
@@ -444,19 +475,122 @@ class MistralNERExtractor:
         return self._dedupe(found_thanas)
 
     def _find_keywords(self, text: str, vocabulary: List[str]) -> List[str]:
-        """Enhanced keyword finding with word boundary matching"""
-        found_keywords = []
+        """
+        Enhanced keyword finding with strict handling for acronyms SC/ST/OBC.
+
+        - Matches SC, ST, OBC only as standalone tokens (optionally prefixed by '#'),
+          surrounded by non-letters. This prevents false positives like 'IST' -> 'ST'.
+        - For all other keywords, uses case-insensitive whole-word matching with Unicode support.
+        """
+        found = set()
         text_lower = text.lower()
 
-        for keyword in vocabulary:
-            keyword_lower = keyword.lower()
-            # Direct match or word boundary match
-            if keyword in text or keyword_lower in text_lower:
-                found_keywords.append(keyword)
-            elif re.search(r'\b' + re.escape(keyword_lower) + r'\b', text_lower):
-                found_keywords.append(keyword)
+        # Special-case acronyms: treat them as strict tokens (avoid matching inside words like 'IST')
+        ACRONYMS = {"SC", "ST", "OBC"}
 
-        return self._dedupe(found_keywords)
+        for keyword in vocabulary:
+            # --- Strict handling for SC/ST/OBC ---
+            if keyword.upper() in ACRONYMS:
+                token = keyword.upper()
+                # Optional leading '#', and MUST NOT be surrounded by letters (A-Z only) to avoid 'IST', 'CASTE', etc.
+                # Examples matched: "SC", "#SC", "(SC)", "SC/ST", "OBC,", "—ST", " ST "
+                # Examples NOT matched: "IST", "CASTE", "obc123x" (letter on either side blocks it)
+                pattern = rf'(?<![A-Za-z])#?{token}(?![A-Za-z])'
+                if re.search(pattern, text):
+                    # return canonical acronym casing
+                    found.add(token)
+                continue
+
+            # --- General keywords (Hindi/English phrases, full words) ---
+            kw = keyword
+            kw_lower = kw.lower()
+
+            # First try fast contains check (kept from your original) but still enforce word boundaries
+            if kw in text or kw_lower in text_lower:
+                # Use Unicode-safe word boundary: (?<!\w) and (?!\w) with IGNORECASE
+                if re.search(rf'(?<!\w){re.escape(kw)}(?!\w)', text, re.IGNORECASE):
+                    found.add(kw)
+                    continue
+
+            # If not caught above, try explicit lower-case boundary match
+            if re.search(rf'(?<!\w){re.escape(kw_lower)}(?!\w)', text_lower, re.IGNORECASE):
+                found.add(kw)
+
+        return self._dedupe(list(found))
+
+    def _has_devanagari(self, text: str) -> bool:
+        """Check if the text contains Devanagari characters."""
+        devanagari_pattern = re.compile(r'[\u0900-\u097F]')  # Unicode range for Devanagari characters
+        return bool(devanagari_pattern.search(text))
+
+    def _extract_temporal_info(self, text: str) -> Dict[str, Any]:
+        """Extract temporal information from text"""
+
+        result = {
+            "incident_date": "",
+            "incident_time": "",
+            "temporal_phrase": "",
+            "temporal_type": "",
+            "confidence": 0.0,
+            "days_ago": None
+        }
+
+        text_lower = text.lower()
+
+        # Relative dates
+        relative_dates = {
+            'आज': 0, 'today': 0,
+            'कल': 1, 'yesterday': 1, 'कल रात': 1,
+            'परसों': 2, 'day before yesterday': 2,
+            'बीते': 1, 'last': 1, 'गत': 1, 'पिछले': 1,
+        }
+
+        # Check for relative dates
+        for phrase, days_ago in relative_dates.items():
+            if phrase in text_lower:
+                result['temporal_phrase'] = phrase
+                result['temporal_type'] = 'relative'
+                result['days_ago'] = days_ago
+                incident_date = datetime.now() - timedelta(days=days_ago)
+                result['incident_date'] = incident_date.strftime('%Y-%m-%d')
+                result['confidence'] = 0.8
+                break
+
+        # Check for absolute dates if no relative date found
+        if not result['incident_date']:
+            date_patterns = [
+                r'\d{1,2}[-/]\d{1,2}[-/]\d{2,4}',
+                r'दिनांक\s*(\d{1,2}[./]\d{1,2}[./]\d{2,4})',
+            ]
+
+            for pattern in date_patterns:
+                match = re.search(pattern, text)
+                if match:
+                    date_str = match.group(1) if match.lastindex else match.group(0)
+                    result['temporal_phrase'] = date_str
+                    result['temporal_type'] = 'absolute'
+
+                    # Parse date
+                    for fmt in ['%d-%m-%Y', '%d/%m/%Y', '%d.%m.%Y', '%d-%m-%y', '%d/%m/%y']:
+                        try:
+                            parsed_date = datetime.strptime(date_str.replace('.', '/').replace('-', '/'), fmt)
+                            result['incident_date'] = parsed_date.strftime('%Y-%m-%d')
+                            result['days_ago'] = (datetime.now() - parsed_date).days
+                            result['confidence'] = 0.9
+                            break
+                        except:
+                            continue
+                    break
+
+        # ✅ MODIFIED: If no date found, return EMPTY instead of assuming
+        if not result['incident_date']:
+            result['temporal_phrase'] = ""  # ❌ NOT "हाल ही में"
+            result['temporal_type'] = "not_provided"  # ✅ Clear indicator
+            result['days_ago'] = None  # ❌ NOT 3
+            result['incident_date'] = ""  # ❌ NOT fake date
+            result['confidence'] = 0.0
+
+        return result
 
     def _classify_multiple_categories(self, text: str, extracted_entities: Dict[str, Any]) -> Dict[str, Any]:
         """Enhanced MULTI-category classification with intersectional analysis"""
@@ -734,8 +868,7 @@ STRICT REQUIREMENTS:
 2. Follow the exact schema format provided below
 3. Ensure contextual_understanding is ALWAYS in Hindi
 4. Create comprehensive summary that captures ALL events mentioned
-5. 4. Classify content into MULTIPLE categories when applicable (intersectional classification)
-6. Analyze location context to separate incident vs related locations
+5. Analyze location context to separate incident vs related locations
 
 JSON SCHEMA (EXACT FORMAT REQUIRED):
 {json.dumps(self.json_schema, ensure_ascii=False, indent=2)}
@@ -781,41 +914,48 @@ contextual_understanding:
 - MUST capture complete story including WHO, WHAT, WHERE, WHEN details
 - Include all important context and results
 
-category_classifications:
-- ARRAY of all applicable classifications (can have multiple broad categories and subcategories)
-- Each classification must have: broad_category, sub_category, confidence, matched_keywords, reasoning
-- Include ALL relevant categories even if they overlap
-
-primary_classification:
-- The MOST RELEVANT/HIGHEST CONFIDENCE category
-- Must be one of the categories from category_classifications array
-
-INTERSECTIONAL CLASSIFICATION EXAMPLES:
-- "अनुसूचित जाति की नाबालिग लड़की से दुष्कर्म" → Multiple classifications:
-  * CRIME > AGAINST MINORS (minor involved)  
-  * CRIME > AGAINST WOMEN (female victim)
-  * CRIME > CASTEISM (caste-based crime)
-  
-- "मुस्लिम महिला पर हमला" → Multiple classifications:
-  * CRIME > AGAINST WOMEN (gender-based)
-  * HATE SPEECH > AGAINST RELIGION (religious targeting)
-
-- "दलित बच्चे की हत्या" → Multiple classifications:
-  * CRIME > MURDER (killing)
-  * CRIME > AGAINST MINORS (child victim)
-  * CRIME > CASTEISM (caste motivation)
-
-CLASSIFICATION GUIDELINES:
-- Always check for intersectional aspects (caste + gender + age + religion)
-- If keywords from multiple categories match, include ALL relevant classifications
-- Higher confidence for categories with more keyword matches
-- Consider context from incidents, events, and extracted entities
-- Primary classification should be the most severe/relevant crime category
-
 LANGUAGE HANDLING:
 - Process Hindi, English, and Hinglish text
 - Maintain original script in extracted entities
 - contextual_understanding MUST be in Hindi regardless of input language
+
+temporal_info:
+- incident_date: Extract date in YYYY-MM-DD format (e.g., "2025-01-15")
+- incident_time: Extract time if mentioned (e.g., "10:30 PM", "रात 9 बजे")
+- temporal_phrase: Original temporal phrase from text (e.g., "कल रात", "08.09.2025", "yesterday")
+- temporal_type: "absolute" (specific date) or "relative" (yesterday, last week)
+- confidence: 0.0-1.0 based on clarity of temporal information
+- days_ago: Number of days from current date (null if future/unclear)
+
+TEMPORAL EXTRACTION RULES:
+- "आज" / "today" → days_ago: 0
+- "कल" / "yesterday" → days_ago: 1
+- "परसों" → days_ago: 2
+- "दिनांक 08.09.2025" → Parse to YYYY-MM-DD format
+- If no temporal info found, set temporal_type: "NOT PROVIDED", days_ago: 0
+
+TEMPORAL EXAMPLES:
+✅ "कल रात घटना हुई" → {{"temporal_phrase": "कल रात", "temporal_type": "relative", "days_ago": 1, "incident_date": "{(datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')}"}}
+✅ "दिनांक 08.09.2025 को" → {{"temporal_phrase": "08.09.2025", "temporal_type": "absolute", "incident_date": "2025-09-08", "days_ago": ...}}
+✅ "बीती रात" → {{"temporal_phrase": "बीती रात", "temporal_type": "relative", "days_ago": 1}}
+
+advanced_sentiment:
+- overall_stance: "pro", "against", or "neutral"
+- overall_confidence: 0.0-1.0
+- pro_towards: {{"castes": [], "religions": [], "organisations": [], "political_parties": [], "other_aspects": []}}
+- against_towards: {{"castes": [], "religions": [], "organisations": [], "political_parties": [], "other_aspects": []}}
+- reasoning: Brief explanation of sentiment analysis
+
+SENTIMENT ANALYSIS RULES:
+- Identify if text is supportive (PRO), opposed (AGAINST), or neutral towards entities
+- Look for keywords: समर्थन, पक्ष (pro) vs विरोध, खिलाफ (against)
+- Check context around caste/religion/organization mentions
+- Political parties: BJP, Congress, SP, BSP, etc.
+
+SENTIMENT EXAMPLES:
+✅ "दलितों के साथ अन्याय हुआ" → against_towards.castes: ["दलित"]
+✅ "मुस्लिम समुदाय का समर्थन" → pro_towards.religions: ["मुस्लिम"]
+✅ "सरकार की आलोचना" → against_towards.other_aspects: ["सरकार"]
 
 TEXT TO PROCESS:
 {text.strip()}
@@ -934,20 +1074,29 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
             result["contextual_understanding"] = "दी गई जानकारी से मुख्य घटनाओं और व्यक्तियों का विवरण मिलता है।"
 
         # NEW: Handle multiple category classifications
-        llm_classifications = llm_json.get("category_classifications", [])
-        llm_primary = llm_json.get("primary_classification", {})
+        # llm_classifications = llm_json.get("category_classifications", [])
+        # llm_primary = llm_json.get("primary_classification", {})
+        #
+        # if isinstance(llm_classifications, list) and llm_classifications:
+        #     # Use LLM classifications if available
+        #     result["category_classifications"] = llm_classifications
+        #     result["primary_classification"] = llm_primary if llm_primary else llm_classifications[0]
+        # else:
+        #     # Fallback: use rule-based multi-classification
+        #     multi_classification = self._classify_multiple_categories(
+        #         regex_extractions.get("original_text", ""), result
+        #     )
+        #     result["category_classifications"] = multi_classification["category_classifications"]
+        #     result["primary_classification"] = multi_classification["primary_classification"]
 
-        if isinstance(llm_classifications, list) and llm_classifications:
-            # Use LLM classifications if available
-            result["category_classifications"] = llm_classifications
-            result["primary_classification"] = llm_primary if llm_primary else llm_classifications[0]
-        else:
-            # Fallback: use rule-based multi-classification
-            multi_classification = self._classify_multiple_categories(
-                regex_extractions.get("original_text", ""), result
-            )
-            result["category_classifications"] = multi_classification["category_classifications"]
-            result["primary_classification"] = multi_classification["primary_classification"]
+        # ✅ ADD THIS AFTER THE COMMENTED SECTION:
+        # Add empty placeholders for categories (will be filled by keyword classifier later)
+        result["category_classifications"] = []
+        result["primary_classification"] = {
+            "broad_category": "",
+            "sub_category": "",
+            "confidence": 0.0
+        }
 
         # NEW: Handle location analysis
         llm_location = llm_json.get("incident_location_analysis", {})
@@ -964,6 +1113,13 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
 
         return result
 
+    """
+    Fixed NER Extractor - extract() and extract_batch() now consistent
+    Both methods include:
+    - Temporal extraction
+    - Advanced sentiment analysis
+    """
+
     def extract(self, text: str, max_tokens: int = 1500, temperature: float = 0.1) -> Dict[str, Any]:
         """Enhanced extraction with better error handling"""
         if not text or not text.strip():
@@ -973,8 +1129,7 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
         start_time = time.time()
 
         try:
-            # Step 1: Enhanced regex-based extractions
-            # Step 1: Enhanced regex-based extractions (include original text for analysis)
+            # ========== STEP 1: Regex Extractions ==========
             regex_extractions = {
                 "hashtags": self._find_hashtags(text),
                 "mention_ids": self._find_mentions(text),
@@ -982,10 +1137,12 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                 "thana_names": self._find_thana(text),
                 "caste_names": self._find_keywords(text, self.castes),
                 "religion_names": self._find_keywords(text, self.religions),
-                "original_text": text  # Store original text for analysis
+                "original_text": text
             }
 
-            # Step 2: LLM-based extraction
+            logger.debug("🔍 STEP 1 COMPLETED - Regex extractions done")
+
+            # ========== STEP 2: LLM Extraction ==========
             llm_json = {}
 
             if self._model_loaded and self.model is not None:
@@ -994,7 +1151,7 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                 try:
                     raw_response = ""
 
-                    # Generation based on loading method
+                    # vLLM
                     if self._loading_method == 'vllm' and VLLM_AVAILABLE:
                         try:
                             sampling_params = SamplingParams(
@@ -1005,14 +1162,13 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                                 frequency_penalty=0.1,
                                 presence_penalty=0.1
                             )
-
                             outputs = self.model.generate([prompt], sampling_params)
                             raw_response = outputs[0].outputs[0].text.strip()
                             logger.debug("Used vLLM generation")
-
                         except Exception as e:
                             logger.warning(f"vLLM generation failed: {e}")
 
+                    # MLX
                     elif self._loading_method == 'mlx' and MLX_AVAILABLE:
                         try:
                             raw_response = mlx_generate(
@@ -1027,6 +1183,7 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                         except Exception as e:
                             logger.warning(f"MLX generation failed: {e}")
 
+                    # Transformers
                     elif self._loading_method == 'transformers' and TRANSFORMERS_AVAILABLE:
                         try:
                             inputs = self.tokenizer(
@@ -1055,14 +1212,13 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                             full_response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
                             raw_response = full_response[len(prompt):].strip()
                             logger.debug("Used Transformers generation")
-
                         except Exception as e:
                             logger.warning(f"Transformers generation failed: {e}")
 
                     if raw_response:
                         llm_json = self._safe_json_parse(raw_response)
                         if llm_json:
-                            logger.info("LLM extraction successful")
+                            logger.info("✅ STEP 2 COMPLETED - LLM extraction successful")
                         else:
                             logger.warning("LLM returned empty or invalid JSON")
                     else:
@@ -1071,27 +1227,46 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                 except Exception as e:
                     logger.error(f"LLM generation failed: {e}")
 
-            # Step 3: Merge results
-            # Step 3: Enhanced merge with new fields
+            # ========== STEP 3: Merge Results ==========
             final_result = self._merge_results(llm_json, regex_extractions)
+            logger.debug("✅ STEP 3 COMPLETED - Results merged")
 
-            # Remove original_text from final result
-            if "original_text" in final_result:
-                del final_result["original_text"]
+            # ========== STEP 4: Temporal Extraction ==========
+            if 'temporal_info' not in final_result or not final_result.get('temporal_info', {}).get('incident_date'):
+                temporal_info = self._extract_temporal_info(text)
+                final_result['temporal_info'] = temporal_info
+
+            logger.info("✅ STEP 4 COMPLETED - Temporal extraction done")
+
+            # ========== STEP 5: Advanced Sentiment Analysis ==========
+            from sentiment_analyzer import AdvancedSentimentAnalyzer
+
+            sentiment_analyzer = AdvancedSentimentAnalyzer(
+                llm_model=self.model,
+                llm_tokenizer=self.tokenizer,
+                loading_method=self._loading_method
+            )
+
+            advanced_sentiment = sentiment_analyzer.analyze_advanced_sentiment(text, final_result)
+            final_result['advanced_sentiment'] = advanced_sentiment
+
+            logger.info("✅ STEP 5 COMPLETED - Advanced sentiment analysis done")
 
             processing_time = (time.time() - start_time) * 1000
-            logger.info(f"Enhanced NER extraction completed in {processing_time:.2f}ms")
+            logger.info(f"✅ EXTRACT COMPLETE in {processing_time:.2f}ms")
 
             return final_result
 
         except Exception as e:
+            logger.exception("NER extraction failed")
             logger.error(f"NER extraction failed: {e}")
             return dict(self.json_schema)
 
-    # ... (rest of the methods remain the same but can be enhanced similarly)
-
     def extract_batch(self, texts: List[str], max_tokens: int = 1500, temperature: float = 0.1) -> List[Dict[str, Any]]:
-        """Extract entities from multiple texts efficiently"""
+        """
+        ✅ FIXED: Extract entities from multiple texts with FULL pipeline
+        Now includes temporal extraction and sentiment analysis for each text
+        """
         if not self._model_loaded or self.model is None:
             logger.warning("Model not available for batch processing")
             return [dict(self.json_schema) for _ in texts]
@@ -1099,11 +1274,24 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
         results = []
         total_start = time.time()
 
-        # vLLM batch processing
+        # Import sentiment analyzer once
+        from sentiment_analyzer import AdvancedSentimentAnalyzer
+
+        sentiment_analyzer = AdvancedSentimentAnalyzer(
+            llm_model=self.model,
+            llm_tokenizer=self.tokenizer,
+            loading_method=self._loading_method
+        )
+
+        # ========== vLLM BATCH PROCESSING ==========
         if self._loading_method == 'vllm' and VLLM_AVAILABLE:
             try:
+                logger.info(f"🚀 Starting vLLM batch processing for {len(texts)} texts")
+
+                # STEP 1: Build prompts
                 prompts = [self._build_enhanced_instruction_prompt(text) for text in texts]
 
+                # STEP 2: Batch LLM generation
                 sampling_params = SamplingParams(
                     temperature=temperature,
                     max_tokens=max_tokens,
@@ -1114,13 +1302,15 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                 )
 
                 outputs = self.model.generate(prompts, sampling_params)
+                logger.info("✅ vLLM batch generation complete")
 
+                # STEP 3: Process each output with FULL pipeline
                 for i, output in enumerate(outputs):
                     try:
                         text = texts[i]
                         raw_response = output.outputs[0].text.strip()
 
-                        # Regex extractions
+                        # 3.1: Regex extractions
                         regex_extractions = {
                             "hashtags": self._find_hashtags(text),
                             "mention_ids": self._find_mentions(text),
@@ -1130,27 +1320,45 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                             "religion_names": self._find_keywords(text, self.religions),
                         }
 
-                        # Parse LLM response
+                        # 3.2: Parse LLM response
                         llm_json = self._safe_json_parse(raw_response) if raw_response else {}
 
-                        # Merge and add result
+                        # 3.3: Merge results
                         final_result = self._merge_results(llm_json, regex_extractions)
+
+                        # ✅ 3.4: Temporal extraction (ADDED)
+                        if 'temporal_info' not in final_result or not final_result.get('temporal_info', {}).get(
+                                'incident_date'):
+                            temporal_info = self._extract_temporal_info(text)
+                            final_result['temporal_info'] = temporal_info
+
+                        # ✅ 3.5: Advanced sentiment analysis (ADDED)
+                        advanced_sentiment = sentiment_analyzer.analyze_advanced_sentiment(text, final_result)
+                        final_result['advanced_sentiment'] = advanced_sentiment
+
                         results.append(final_result)
+
+                        if (i + 1) % 10 == 0:
+                            logger.info(f"  Processed {i + 1}/{len(texts)} texts")
 
                     except Exception as e:
                         logger.error(f"Failed to process batch item {i}: {e}")
                         results.append(dict(self.json_schema))
 
                 total_time = time.time() - total_start
-                logger.info(f"vLLM batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
+                logger.info(f"✅ vLLM batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
                 return results
 
             except Exception as e:
                 logger.error(f"vLLM batch processing failed: {e}")
+                # Fall through to sequential processing
 
-        # Sequential processing for MLX and Transformers
+        # ========== SEQUENTIAL PROCESSING (MLX/Transformers) ==========
+        logger.info(f"🚀 Starting sequential batch processing for {len(texts)} texts")
+
         for i, text in enumerate(texts):
             try:
+                # Call extract() which has the full pipeline
                 result = self.extract(text, max_tokens, temperature)
                 results.append(result)
 
@@ -1158,15 +1366,95 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                     elapsed = time.time() - total_start
                     avg_time = elapsed / (i + 1)
                     eta = avg_time * (len(texts) - i - 1)
-                    logger.info(f"Processed {i + 1}/{len(texts)} texts in {elapsed:.2f}s (ETA: {eta:.2f}s)")
+                    logger.info(f"  Processed {i + 1}/{len(texts)} texts in {elapsed:.2f}s (ETA: {eta:.2f}s)")
 
             except Exception as e:
                 logger.error(f"Failed to process text {i + 1}: {e}")
                 results.append(dict(self.json_schema))
 
         total_time = time.time() - total_start
-        logger.info(f"Sequential batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
+        logger.info(f"✅ Sequential batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
         return results
+
+    # ... (rest of the methods remain the same but can be enhanced similarly)
+
+    # def extract_batch(self, texts: List[str], max_tokens: int = 1500, temperature: float = 0.1) -> List[Dict[str, Any]]:
+    #     """Extract entities from multiple texts efficiently"""
+    #     if not self._model_loaded or self.model is None:
+    #         logger.warning("Model not available for batch processing")
+    #         return [dict(self.json_schema) for _ in texts]
+    #
+    #     results = []
+    #     total_start = time.time()
+    #
+    #     # vLLM batch processing
+    #     if self._loading_method == 'vllm' and VLLM_AVAILABLE:
+    #         try:
+    #             prompts = [self._build_enhanced_instruction_prompt(text) for text in texts]
+    #
+    #             sampling_params = SamplingParams(
+    #                 temperature=temperature,
+    #                 max_tokens=max_tokens,
+    #                 stop=[self.tokenizer.eos_token] if hasattr(self.tokenizer, 'eos_token') else None,
+    #                 top_p=0.95,
+    #                 frequency_penalty=0.1,
+    #                 presence_penalty=0.1
+    #             )
+    #
+    #             outputs = self.model.generate(prompts, sampling_params)
+    #
+    #             for i, output in enumerate(outputs):
+    #                 try:
+    #                     text = texts[i]
+    #                     raw_response = output.outputs[0].text.strip()
+    #
+    #                     # Regex extractions
+    #                     regex_extractions = {
+    #                         "hashtags": self._find_hashtags(text),
+    #                         "mention_ids": self._find_mentions(text),
+    #                         "district_names": self._find_districts(text),
+    #                         "thana_names": self._find_thana(text),
+    #                         "caste_names": self._find_keywords(text, self.castes),
+    #                         "religion_names": self._find_keywords(text, self.religions),
+    #                     }
+    #
+    #                     # Parse LLM response
+    #                     llm_json = self._safe_json_parse(raw_response) if raw_response else {}
+    #
+    #                     # Merge and add result
+    #                     final_result = self._merge_results(llm_json, regex_extractions)
+    #                     results.append(final_result)
+    #
+    #                 except Exception as e:
+    #                     logger.error(f"Failed to process batch item {i}: {e}")
+    #                     results.append(dict(self.json_schema))
+    #
+    #             total_time = time.time() - total_start
+    #             logger.info(f"vLLM batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
+    #             return results
+    #
+    #         except Exception as e:
+    #             logger.error(f"vLLM batch processing failed: {e}")
+    #
+    #     # Sequential processing for MLX and Transformers
+    #     for i, text in enumerate(texts):
+    #         try:
+    #             result = self.extract(text, max_tokens, temperature)
+    #             results.append(result)
+    #
+    #             if (i + 1) % 10 == 0:
+    #                 elapsed = time.time() - total_start
+    #                 avg_time = elapsed / (i + 1)
+    #                 eta = avg_time * (len(texts) - i - 1)
+    #                 logger.info(f"Processed {i + 1}/{len(texts)} texts in {elapsed:.2f}s (ETA: {eta:.2f}s)")
+    #
+    #         except Exception as e:
+    #             logger.error(f"Failed to process text {i + 1}: {e}")
+    #             results.append(dict(self.json_schema))
+    #
+    #     total_time = time.time() - total_start
+    #     logger.info(f"Sequential batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
+    #     return results
 
     def get_model_info(self) -> Dict[str, Any]:
         """Get information about the loaded model"""

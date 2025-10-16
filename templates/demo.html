@@ -437,7 +437,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <pre id="exportContent" class="bg-light p-3" style="max-height: 400px; overflow-y: auto;"></pre>
+                <pre id="exportContent" class="bg-light p-3" style="max-height: 800px; overflow-y: auto;"></pre>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -539,6 +539,7 @@ document.getElementById('clusteringForm').addEventListener('submit', async funct
         });
 
         const result = await response.json();
+        console.log(result);
         const endTime = Date.now();
 
         if (response.ok) {
@@ -1222,7 +1223,17 @@ function showToast(message, type) {
 function exportResults() {
     const modalContent = document.getElementById('exportContent');
     const dataToExport = lastBatchResult || lastResult;
-    modalContent.textContent = JSON.stringify(dataToExport, null, 2);
+
+    // ✅ Use full JSON.stringify without truncation
+    const fullJson = JSON.stringify(dataToExport, null, 2);
+
+    // ✅ Display complete JSON
+    modalContent.textContent = fullJson;
+
+    // ✅ Optional: Add line count info
+    const lineCount = fullJson.split('\n').length;
+    console.log(`Exported ${lineCount} lines of JSON`);
+
     new bootstrap.Modal(document.getElementById('exportModal')).show();
 }
 
