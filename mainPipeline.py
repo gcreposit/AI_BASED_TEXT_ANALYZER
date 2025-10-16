@@ -16,7 +16,7 @@ from typing import List, Dict, Any, Optional, Tuple
 from collections import deque
 
 import pymysql
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Float, Boolean, BigInteger, text
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Float, Boolean, BigInteger, Time, Date, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 from urllib.parse import quote_plus
@@ -94,9 +94,9 @@ class PostBank(Base):
     
     # NEW: Additional fields from MY_MODELS (using original field names)
     photo_attachment = Column(String(255))  # photo_attachment
-    post_date = Column(DateTime)  # post_date  
+    post_date = Column(Date)  # post_date (DATE type)
     post_id = Column(String(255))  # post_id
-    post_time = Column(DateTime)  # post_time
+    post_time = Column(Time)  # post_time (TIME type)
     video_attachment = Column(String(255))  # video_attachment
     quoted_or_reply_link = Column(String(255))  # quoted_or_reply_link
     rule_id = Column(String(255))  # rule_id
@@ -211,9 +211,9 @@ class AnalyzedData(Base):
     
     # NEW: Additional PostBank fields
     post_bank_photo_attachment = Column(String(255))  # photo_attachment from PostBank
-    post_bank_post_date = Column(DateTime)  # post_date from PostBank
+    post_bank_post_date = Column(Date)  # post_date from PostBank (DATE type)
     post_bank_post_id_new = Column(String(255))  # post_id from PostBank (new field)
-    post_bank_post_time = Column(DateTime)  # post_time from PostBank
+    post_bank_post_time = Column(Time)  # post_time from PostBank (TIME type)
     post_bank_video_attachment = Column(String(255))  # video_attachment from PostBank
     post_bank_quoted_or_reply_link = Column(String(255))  # quoted_or_reply_link from PostBank
     post_bank_rule_id = Column(String(255))  # rule_id from PostBank
