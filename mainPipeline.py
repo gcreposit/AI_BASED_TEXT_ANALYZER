@@ -502,19 +502,37 @@ class PipelineProcessor:
             logger.error(f"Error adding analysis_status column: {str(e)}")
 
     def get_unanalyzed_posts(self, limit: int = None) -> List[PostBank]:
-        """Get posts that haven't been analyzed yet"""
+        """Get posts that haven't been analyzed yet - TWITTER first, then others"""
         try:
-            query = self.session.query(PostBank).filter(
+            # First, check if there are any unanalyzed TWITTER posts
+            twitter_query = self.session.query(PostBank).filter(
                 PostBank.analysis_status == 'NOT_ANALYZED',
                 PostBank.core_source == 'TWITTER'
             ).order_by(PostBank.id.desc())
             
             if limit:
-                query = query.limit(limit)
+                twitter_query = twitter_query.limit(limit)
+            
+            twitter_posts = twitter_query.all()
+            
+            if twitter_posts:
+                # If TWITTER posts exist, return them
+                logger.info(f"Found {len(twitter_posts)} unanalyzed TWITTER posts (prioritizing TWITTER)")
+                return twitter_posts
+            else:
+                # If no TWITTER posts, get all other unanalyzed posts
+                logger.info("No unanalyzed TWITTER posts found. Processing other sources...")
                 
-            posts = query.all()
-            logger.info(f"Found {len(posts)} unanalyzed posts")
-            return posts
+                other_query = self.session.query(PostBank).filter(
+                    PostBank.analysis_status == 'NOT_ANALYZED'
+                ).order_by(PostBank.id.desc())
+                
+                if limit:
+                    other_query = other_query.limit(limit)
+                
+                other_posts = other_query.all()
+                logger.info(f"Found {len(other_posts)} unanalyzed posts from other sources")
+                return other_posts
             
         except Exception as e:
             logger.error(f"Error fetching unanalyzed posts: {str(e)}")
