@@ -162,7 +162,7 @@ async def process_text(text_input: TextInput, background_tasks: BackgroundTasks)
         logger.error(f"Text processing failed: {e}")
         raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
 
-
+# --------------------------------------------------- START NEW MODIDFIED WAALI H ------------------------------
 # 🔄 MODIFIED: Update batch processing
 @app.post("/api/process-batch", response_model=BatchProcessResponse)
 async def process_batch(batch_request: BatchProcessRequest, background_tasks: BackgroundTasks):
@@ -227,6 +227,8 @@ async def process_batch(batch_request: BatchProcessRequest, background_tasks: Ba
     except Exception as e:
         logger.error(f"Batch processing failed: {e}")
         raise HTTPException(status_code=500, detail=f"Batch processing failed: {str(e)}")
+
+# --------------------------------------------------- END NEW MODIDFIED WAALI H ------------------------------
 
 
 @app.get("/api/topics/{topic_id}", response_model=TopicInfo)
