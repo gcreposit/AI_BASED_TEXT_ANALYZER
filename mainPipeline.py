@@ -606,7 +606,8 @@ class PipelineProcessor:
         except Exception as e:
             logger.error(f"Unexpected error in API call: {str(e)}")
             return None
-            
+
+    #----------------------------------------------------------------------------------START YE TOPIC SAVING H----------------------------------------------------------------
     def get_or_create_topic(self, topic_data: Dict[str, Any]) -> Optional[int]:
         """Get existing topic or create new one based on unique_topic_id from API response"""
         try:
@@ -630,9 +631,9 @@ class PipelineProcessor:
             
             # Extract topic fields from API response for new topic creation
             entities = topic_data.get('extracted_entities', {})
-            incident_location = entities.get('incident_location_analysis', {})
-            category_classifications = entities.get('category_classifications', [])
-            primary_classification = entities.get('primary_classification', {})
+            incident_location = topic_data.get('incident_location_analysis', {})  # FIXED: Get from root level
+            category_classifications = topic_data.get('category_classifications', [])  # FIXED: Get from root level
+            primary_classification = topic_data.get('primary_classification', {})  # FIXED: Get from root level
             
             # Extract primary location data
             primary_districts = []
@@ -764,6 +765,7 @@ class PipelineProcessor:
         except Exception as e:
             logger.error(f"Error in get_or_create_topic: {str(e)}")
             return None
+        # ----------------------------------------------------------------------------------END YE TOPIC SAVING H----------------------------------------------------------------
 
     def get_common_attachment_id(self, post_bank_id: int) -> Optional[int]:
         """Get common_attachment_id from common_attachments table based on post_bank_id"""
@@ -792,6 +794,8 @@ class PipelineProcessor:
         except Exception as e:
             logger.error(f"Error getting post_user_id for post_bank_id {post_bank_id}: {str(e)}")
             return None
+
+    #----------------------------------------------------------------------------------START YE ADVANCE SENTIMENT SAVING H----------------------------------------------------------------
 
     def save_sentiment_entities(self, analyzed_data_id: int, advanced_sentiment: Dict[str, Any]) -> bool:
         """Save sentiment entities to sentiment_entities table"""
@@ -827,6 +831,10 @@ class PipelineProcessor:
             logger.error(f"Error saving sentiment entities for analyzed_data_id {analyzed_data_id}: {str(e)}")
             return False
 
+    #----------------------------------------------------------------------------------END YE ADVANCE SENTIMENT SAVING H----------------------------------------------------------------
+
+    #----------------------------------------------------------------------------------START YE ANALYZED_DATA_ID ka updation Reply,Retweet,Common_attachments mein ho raha  H----------------------------------------------------------------
+
     def update_related_tables_with_analyzed_data_id(self, post_bank_id: int, analyzed_data_id: int) -> bool:
         """Update related tables with analyzed_data_id"""
         try:
@@ -854,6 +862,10 @@ class PipelineProcessor:
         except Exception as e:
             logger.error(f"Error updating related tables: {str(e)}")
             return False
+
+        # ----------------------------------------------------------------------------------END YE ANALYZED_DATA_ID ka updation Reply,Retweet,Common_attachments mein ho raha  H----------------------------------------------------------------
+
+    #----------------------------------------------------------------------------------START YE BATCH ANALYZED DATA KA  SAVING H----------------------------------------------------------------
 
     def save_batch_analyzed_data(self, posts: List[PostBank], api_response: Dict[str, Any]) -> bool:
         """
@@ -898,10 +910,10 @@ class PipelineProcessor:
                     # Extract advanced sentiment - NEW
                     advanced_sentiment = result.get('advanced_sentiment', {})
                     
-                    # Extract category classifications and location analysis
-                    category_classifications = entities.get('category_classifications', [])
-                    primary_classification = entities.get('primary_classification', {})
-                    incident_location_analysis = entities.get('incident_location_analysis', {})
+                    # Extract category classifications and location analysis - FIXED: Get from root level
+                    category_classifications = result.get('category_classifications', [])
+                    primary_classification = result.get('primary_classification', {})
+                    incident_location_analysis = result.get('incident_location_analysis', {})
                     
                     # Extract location data from incident_location_analysis
                     primary_districts = []
@@ -1159,6 +1171,8 @@ class PipelineProcessor:
             logger.error(f"Error saving batch analyzed data: {str(e)}")
             self.session.rollback()
             return False
+
+    #----------------------------------------------------------------------------------END YE BATCH ANALYZED DATA KA  SAVING H----------------------------------------------------------------
 
     def save_analyzed_data(self, post_id: int, api_response: Dict[str, Any]) -> bool:
         """Save API response to analyzed_data table - UPDATED for new format"""
