@@ -1159,12 +1159,33 @@ class PipelineProcessor:
             
             self.session.commit()
             logger.info(f"Successfully saved {len(successfully_processed_post_ids)} analyzed records and updated status")
-            
-            # Log information about unprocessed posts
+
+            #-----------------------------STRT INIFINITE LOOP se bachne ke liye case lagaya h-----------------------------------------------------
+            # Mark unprocessed posts as INSUFFICIENT_CONTENT to prevent reprocessing
+
             unprocessed_count = len(posts) - len(successfully_processed_post_ids)
             if unprocessed_count > 0:
                 logger.warning(f"{unprocessed_count} posts were not processed due to missing or invalid results")
-            
+                
+                # Get IDs of posts that were not processed
+                unprocessed_post_ids = []
+                for post in posts:
+                    if post.id not in successfully_processed_post_ids:
+                        unprocessed_post_ids.append(post.id)
+                
+                # Mark them as INSUFFICIENT_CONTENT to prevent infinite reprocessing
+                if unprocessed_post_ids:
+                    updated_count = self.session.query(PostBank).filter(
+                        PostBank.id.in_(unprocessed_post_ids)
+                    ).update(
+                        {PostBank.analysis_status: 'INSUFFICIENT_CONTENT'}, 
+                        synchronize_session=False
+                    )
+                    self.session.commit()
+                    logger.info(f"Marked {updated_count} failed posts as INSUFFICIENT_CONTENT to prevent reprocessing")
+
+            # -----------------------------END INIFINITE LOOP se bachne ke liye case lagaya h-----------------------------------------------------
+
             return len(successfully_processed_post_ids) > 0  # Return True if at least one post was processed
             
         except Exception as e:
