@@ -1518,7 +1518,8 @@ class PipelineProcessor:
                 
                 if not posts:
                     logger.info("No more unanalyzed posts found. Pipeline completed.")
-                    break
+                    time.sleep(600)  # 10 minutes = 600 seconds
+                    continue
                     
                 logger.info(f"Processing batch of {len(posts)} posts")
                 
