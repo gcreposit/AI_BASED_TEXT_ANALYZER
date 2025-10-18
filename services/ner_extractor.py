@@ -939,23 +939,42 @@ TEMPORAL EXAMPLES:
 ✅ "दिनांक 08.09.2025 को" → {{"temporal_phrase": "08.09.2025", "temporal_type": "absolute", "incident_date": "2025-09-08", "days_ago": ...}}
 ✅ "बीती रात" → {{"temporal_phrase": "बीती रात", "temporal_type": "relative", "days_ago": 1}}
 
-advanced_sentiment:
-- overall_stance: "pro", "against", or "neutral"
-- overall_confidence: 0.0-1.0
-- pro_towards: {{"castes": [], "religions": [], "organisations": [], "political_parties": [], "other_aspects": []}}
-- against_towards: {{"castes": [], "religions": [], "organisations": [], "political_parties": [], "other_aspects": []}}
-- reasoning: Brief explanation of sentiment analysis
+ADVANCED SENTIMENT ANALYSIS (Pro/Against/Neutral):
 
-SENTIMENT ANALYSIS RULES:
-- Identify if text is supportive (PRO), opposed (AGAINST), or neutral towards entities
-- Look for keywords: समर्थन, पक्ष (pro) vs विरोध, खिलाफ (against)
-- Check context around caste/religion/organization mentions
-- Political parties: BJP, Congress, SP, BSP, etc.
+Analyze the entire text to determine the **overall stance** towards entities/groups, considering the **context** and **nuance** of the message. For **each entity or aspect**, assess the **overall sentiment** by interpreting how the entity is presented in the text. Ensure you understand whether the text is:
+- **Supporting** (Pro),
+- **Opposing** (Against),
+- **Factual reporting or neutral stance** (Neutral).
 
-SENTIMENT EXAMPLES:
-✅ "दलितों के साथ अन्याय हुआ" → against_towards.castes: ["दलित"]
-✅ "मुस्लिम समुदाय का समर्थन" → pro_towards.religions: ["मुस्लिम"]
-✅ "सरकार की आलोचना" → against_towards.other_aspects: ["सरकार"]
+### Guidelines:
+1. For **each entity/aspect**, determine the **overall sentiment** based on the **context**:
+   - **PRO**: Support, praise, defense, positive action, or highlighting an issue to improve the condition.
+   - **AGAINST**: Opposition, criticism, complaints, or highlighting a problem without suggesting solutions.
+   - **NEUTRAL**: Neutral tone, factual reporting, or descriptive statements without implied support or opposition.
+
+2. **Categorize the sentiment**:
+   - **castes** (e.g., Dalits, Upper Castes)
+   - **religions** (e.g., Hindu, Muslim, Sikh)
+   - **organisations** (e.g., police, government agencies, NGOs)
+   - **political_parties** (e.g., BJP, Congress, AAP)
+   - **other_aspects** (e.g., general social issues, events, individuals)
+
+### Important Notes:
+- Consider **contextual clues** like **actions**, **intentions**, and **descriptions** rather than only individual words or phrases.
+- Focus on the **big picture** of the statement, i.e., is it an overall **supportive action**, a **criticism**, or just **factual reporting**?
+
+### Format for output:
+{{
+    "name": "entity",
+    "stance": "pro/against/neutral",
+    "confidence": 0.85,
+    "reasoning": "Provide the reasoning behind the stance. Consider how the entity is framed in the overall text."
+}}
+
+#### EXAMPLES:
+- "दलितों के साथ अन्याय" → **against_towards.castes**: Despite the word "other" or "against", the context shows an ongoing issue or mistreatment, categorizing the overall sentiment as **Against** Dalits.
+- "पुलिस की सराहनीय कार्रवाई" → **pro_towards.organisations**: The police action is praised for being commendable, thus it is categorized as **Pro** towards police.
+- "BJP की आलोचना" → **against_towards.political_parties**: The text criticizes BJP, implying **opposition** and categorizing as **Against** the political party.
 
 TEXT TO PROCESS:
 {text.strip()}
@@ -1022,7 +1041,7 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                 return {}
 
     def _merge_results(self, llm_json: Dict[str, Any], regex_extractions: Dict[str, Any]) -> Dict[str, Any]:
-        """Enhanced merging with better validation"""
+        """Enhanced merging with better validation - INCLUDING advanced_sentiment"""
         result = dict(self.json_schema)
 
         list_fields = [
@@ -1047,7 +1066,7 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
 
             result[field] = self._dedupe(combined_values)
 
-        # Handle sentiment with validation
+        # Handle basic sentiment with validation
         sentiment = llm_json.get("sentiment", {})
         if isinstance(sentiment, dict):
             label = sentiment.get("label", "neutral")
@@ -1073,23 +1092,35 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
             # Fallback: create basic context from extracted entities
             result["contextual_understanding"] = "दी गई जानकारी से मुख्य घटनाओं और व्यक्तियों का विवरण मिलता है।"
 
-        # NEW: Handle multiple category classifications
-        # llm_classifications = llm_json.get("category_classifications", [])
-        # llm_primary = llm_json.get("primary_classification", {})
-        #
-        # if isinstance(llm_classifications, list) and llm_classifications:
-        #     # Use LLM classifications if available
-        #     result["category_classifications"] = llm_classifications
-        #     result["primary_classification"] = llm_primary if llm_primary else llm_classifications[0]
-        # else:
-        #     # Fallback: use rule-based multi-classification
-        #     multi_classification = self._classify_multiple_categories(
-        #         regex_extractions.get("original_text", ""), result
-        #     )
-        #     result["category_classifications"] = multi_classification["category_classifications"]
-        #     result["primary_classification"] = multi_classification["primary_classification"]
+        # ============================================
+        # ✅ FIX: Handle ADVANCED SENTIMENT from LLM
+        # ============================================
+        llm_advanced_sentiment = llm_json.get("advanced_sentiment", {})
 
-        # ✅ ADD THIS AFTER THE COMMENTED SECTION:
+        if isinstance(llm_advanced_sentiment, dict) and llm_advanced_sentiment.get('overall_stance'):
+            # ✅ LLM successfully extracted sentiment - use it!
+            logger.info("✅ Using LLM-extracted advanced sentiment")
+            result["advanced_sentiment"] = llm_advanced_sentiment
+        else:
+            # LLM didn't extract sentiment - leave empty for fallback
+            logger.warning("⚠️ LLM advanced_sentiment empty or invalid in merge")
+            result["advanced_sentiment"] = {}
+
+        # ============================================
+        # Handle TEMPORAL INFO from LLM
+        # ============================================
+        llm_temporal = llm_json.get("temporal_info", {})
+
+        if isinstance(llm_temporal, dict) and llm_temporal.get('incident_date'):
+            # LLM successfully extracted temporal info
+            result["temporal_info"] = llm_temporal
+        else:
+            # Leave empty - will be filled by fallback later
+            result["temporal_info"] = {}
+
+        # ============================================
+        # Handle CATEGORY CLASSIFICATIONS
+        # ============================================
         # Add empty placeholders for categories (will be filled by keyword classifier later)
         result["category_classifications"] = []
         result["primary_classification"] = {
@@ -1098,7 +1129,9 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
             "confidence": 0.0
         }
 
-        # NEW: Handle location analysis
+        # ============================================
+        # Handle LOCATION ANALYSIS
+        # ============================================
         llm_location = llm_json.get("incident_location_analysis", {})
         if isinstance(llm_location, dict) and (
                 llm_location.get("incident_districts") or llm_location.get("incident_thanas")):
@@ -1113,17 +1146,12 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
 
         return result
 
-    """
-    Fixed NER Extractor - extract() and extract_batch() now consistent
-    Both methods include:
-    - Temporal extraction
-    - Advanced sentiment analysis
-    """
-
-    def extract(self, text: str, max_tokens: int = 1500, temperature: float = 0.1) -> Dict[str, Any]:
-        """Enhanced extraction with better error handling"""
+    def extract(self, text: str, max_tokens: int = 16000, temperature: float = 0.1) -> Dict[str, Any]:
+        """
+        ✅ OPTIMIZED: Extract entities AND sentiment in SINGLE LLM call
+        """
         if not text or not text.strip():
-            logger.warning("Empty text provided for extraction")
+            logger.warning("Empty text provided")
             return dict(self.json_schema)
 
         start_time = time.time()
@@ -1140,177 +1168,97 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                 "original_text": text
             }
 
-            logger.debug("🔍 STEP 1 COMPLETED - Regex extractions done")
-
-            # ========== STEP 2: LLM Extraction ==========
+            # ========== STEP 2: UNIFIED LLM Call (NER + Sentiment) ==========
             llm_json = {}
 
             if self._model_loaded and self.model is not None:
                 prompt = self._build_enhanced_instruction_prompt(text)
 
                 try:
-                    raw_response = ""
-
-                    # vLLM
-                    if self._loading_method == 'vllm' and VLLM_AVAILABLE:
-                        try:
-                            sampling_params = SamplingParams(
-                                temperature=temperature,
-                                max_tokens=max_tokens,
-                                stop=[self.tokenizer.eos_token] if hasattr(self.tokenizer, 'eos_token') else None,
-                                top_p=0.95,
-                                frequency_penalty=0.1,
-                                presence_penalty=0.1
-                            )
-                            outputs = self.model.generate([prompt], sampling_params)
-                            raw_response = outputs[0].outputs[0].text.strip()
-                            logger.debug("Used vLLM generation")
-                        except Exception as e:
-                            logger.warning(f"vLLM generation failed: {e}")
-
-                    # MLX
-                    elif self._loading_method == 'mlx' and MLX_AVAILABLE:
-                        try:
-                            raw_response = mlx_generate(
-                                self.model,
-                                self.tokenizer,
-                                prompt=prompt,
-                                max_tokens=max_tokens,
-                                temp=temperature,
-                                verbose=False
-                            )
-                            logger.debug("Used MLX generation")
-                        except Exception as e:
-                            logger.warning(f"MLX generation failed: {e}")
-
-                    # Transformers
-                    elif self._loading_method == 'transformers' and TRANSFORMERS_AVAILABLE:
-                        try:
-                            inputs = self.tokenizer(
-                                prompt,
-                                return_tensors="pt",
-                                truncation=True,
-                                max_length=4096,
-                                padding=True
-                            )
-
-                            if hasattr(self.model, 'device'):
-                                inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
-
-                            with torch.no_grad():
-                                outputs = self.model.generate(
-                                    **inputs,
-                                    max_new_tokens=max_tokens,
-                                    temperature=temperature,
-                                    do_sample=True if temperature > 0 else False,
-                                    pad_token_id=self.tokenizer.pad_token_id,
-                                    eos_token_id=self.tokenizer.eos_token_id,
-                                    attention_mask=inputs.get('attention_mask'),
-                                    repetition_penalty=1.1
-                                )
-
-                            full_response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-                            raw_response = full_response[len(prompt):].strip()
-                            logger.debug("Used Transformers generation")
-                        except Exception as e:
-                            logger.warning(f"Transformers generation failed: {e}")
+                    raw_response = self._call_llm_unified(prompt, max_tokens, temperature)
 
                     if raw_response:
                         llm_json = self._safe_json_parse(raw_response)
-                        if llm_json:
-                            logger.info("✅ STEP 2 COMPLETED - LLM extraction successful")
+
+                        # ✅ Log the LLM JSON Response in a readable format
+                        logger.info(
+                            f"NER DATA AFTER ALL ACTIVITY Response: {json.dumps(llm_json, indent=2, ensure_ascii=False)}")
+
+                        # ✅ Validate that sentiment was extracted
+                        if 'advanced_sentiment' in llm_json:
+                            logger.info("✅ Extracted NER + Sentiment in single call")
                         else:
-                            logger.warning("LLM returned empty or invalid JSON")
-                    else:
-                        logger.info("No LLM response available")
+                            logger.warning("⚠️ LLM didn't return sentiment, using fallback")
+                            llm_json['advanced_sentiment'] = self._fallback_sentiment_analysis(text, llm_json)
 
                 except Exception as e:
-                    logger.error(f"LLM generation failed: {e}")
+                    logger.error(f"Unified LLM call failed: {e}")
 
             # ========== STEP 3: Merge Results ==========
             final_result = self._merge_results(llm_json, regex_extractions)
-            logger.debug("✅ STEP 3 COMPLETED - Results merged")
 
-            # ========== STEP 4: Temporal Extraction ==========
+            logger.info(
+                f"LLM + REGEX RESPONSE Response: {json.dumps(llm_json, indent=2, ensure_ascii=False)}")
+
+            # ========== STEP 4: Temporal Extraction (if missing) ==========
             if 'temporal_info' not in final_result or not final_result.get('temporal_info', {}).get('incident_date'):
                 temporal_info = self._extract_temporal_info(text)
                 final_result['temporal_info'] = temporal_info
 
-            logger.info("✅ STEP 4 COMPLETED - Temporal extraction done")
-
-            # ========== STEP 5: Advanced Sentiment Analysis ==========
-            from sentiment_analyzer import AdvancedSentimentAnalyzer
-
-            sentiment_analyzer = AdvancedSentimentAnalyzer(
-                llm_model=self.model,
-                llm_tokenizer=self.tokenizer,
-                loading_method=self._loading_method
-            )
-
-            advanced_sentiment = sentiment_analyzer.analyze_advanced_sentiment(text, final_result)
-            final_result['advanced_sentiment'] = advanced_sentiment
-
-            logger.info("✅ STEP 5 COMPLETED - Advanced sentiment analysis done")
+            # ========== STEP 5: Validate Advanced Sentiment ==========
+            if 'advanced_sentiment' not in final_result or not final_result['advanced_sentiment'].get('overall_stance'):
+                logger.info("Using fallback sentiment analysis")
+                final_result['advanced_sentiment'] = self._fallback_sentiment_analysis(text, final_result)
 
             processing_time = (time.time() - start_time) * 1000
-            logger.info(f"✅ EXTRACT COMPLETE in {processing_time:.2f}ms")
+            logger.info(f"✅ Unified extraction complete in {processing_time:.2f}ms")
 
             return final_result
 
         except Exception as e:
-            logger.exception("NER extraction failed")
-            logger.error(f"NER extraction failed: {e}")
+            logger.exception("Extraction failed")
             return dict(self.json_schema)
 
-    def extract_batch(self, texts: List[str], max_tokens: int = 1500, temperature: float = 0.1) -> List[Dict[str, Any]]:
+    def extract_batch(self, texts: List[str], max_tokens: int = 16000, temperature: float = 0.1) -> List[Dict[str, Any]]:
         """
-        ✅ FIXED: Extract entities from multiple texts with FULL pipeline
-        Now includes temporal extraction and sentiment analysis for each text
+        ✅ OPTIMIZED: Batch extraction with unified NER + Sentiment
+        No separate sentiment calls needed!
         """
         if not self._model_loaded or self.model is None:
-            logger.warning("Model not available for batch processing")
+            logger.warning("Model not available")
             return [dict(self.json_schema) for _ in texts]
 
         results = []
         total_start = time.time()
 
-        # Import sentiment analyzer once
-        from sentiment_analyzer import AdvancedSentimentAnalyzer
-
-        sentiment_analyzer = AdvancedSentimentAnalyzer(
-            llm_model=self.model,
-            llm_tokenizer=self.tokenizer,
-            loading_method=self._loading_method
-        )
-
         # ========== vLLM BATCH PROCESSING ==========
         if self._loading_method == 'vllm' and VLLM_AVAILABLE:
             try:
-                logger.info(f"🚀 Starting vLLM batch processing for {len(texts)} texts")
+                logger.info(f"🚀 Unified batch processing: {len(texts)} texts")
 
-                # STEP 1: Build prompts
+                # Build prompts
                 prompts = [self._build_enhanced_instruction_prompt(text) for text in texts]
 
-                # STEP 2: Batch LLM generation
+                # Single batch LLM call for ALL NER + Sentiment
+                from vllm import SamplingParams
                 sampling_params = SamplingParams(
                     temperature=temperature,
                     max_tokens=max_tokens,
-                    stop=[self.tokenizer.eos_token] if hasattr(self.tokenizer, 'eos_token') else None,
                     top_p=0.95,
                     frequency_penalty=0.1,
                     presence_penalty=0.1
                 )
 
                 outputs = self.model.generate(prompts, sampling_params)
-                logger.info("✅ vLLM batch generation complete")
+                logger.info("✅ Single batch call extracted NER + Sentiment for all texts")
 
-                # STEP 3: Process each output with FULL pipeline
+                # Process outputs
                 for i, output in enumerate(outputs):
                     try:
                         text = texts[i]
                         raw_response = output.outputs[0].text.strip()
 
-                        # 3.1: Regex extractions
+                        # Regex extractions
                         regex_extractions = {
                             "hashtags": self._find_hashtags(text),
                             "mention_ids": self._find_mentions(text),
@@ -1320,141 +1268,131 @@ IMPORTANT: Return ONLY the JSON object. No explanations, code blocks, or additio
                             "religion_names": self._find_keywords(text, self.religions),
                         }
 
-                        # 3.2: Parse LLM response
+                        # Parse LLM response
                         llm_json = self._safe_json_parse(raw_response) if raw_response else {}
 
-                        # 3.3: Merge results
+                        # Merge
                         final_result = self._merge_results(llm_json, regex_extractions)
 
-                        # ✅ 3.4: Temporal extraction (ADDED)
+                        # Temporal check
                         if 'temporal_info' not in final_result or not final_result.get('temporal_info', {}).get(
                                 'incident_date'):
-                            temporal_info = self._extract_temporal_info(text)
-                            final_result['temporal_info'] = temporal_info
+                            final_result['temporal_info'] = self._extract_temporal_info(text)
 
-                        # ✅ 3.5: Advanced sentiment analysis (ADDED)
-                        advanced_sentiment = sentiment_analyzer.analyze_advanced_sentiment(text, final_result)
-                        final_result['advanced_sentiment'] = advanced_sentiment
+                        # ✅ Sentiment already included - no separate call needed!
+                        if 'advanced_sentiment' not in final_result:
+                            final_result['advanced_sentiment'] = self._fallback_sentiment_analysis(text, final_result)
 
                         results.append(final_result)
 
-                        if (i + 1) % 10 == 0:
-                            logger.info(f"  Processed {i + 1}/{len(texts)} texts")
-
                     except Exception as e:
-                        logger.error(f"Failed to process batch item {i}: {e}")
+                        logger.error(f"Failed batch item {i}: {e}")
                         results.append(dict(self.json_schema))
 
                 total_time = time.time() - total_start
-                logger.info(f"✅ vLLM batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
+                logger.info(f"✅ Unified batch complete: {len(texts)} texts in {total_time:.2f}s")
+                logger.info(f"   Saved ~{len(texts)} additional LLM calls by unifying NER + Sentiment!")
                 return results
 
             except Exception as e:
-                logger.error(f"vLLM batch processing failed: {e}")
-                # Fall through to sequential processing
+                logger.error(f"Batch processing failed: {e}")
 
-        # ========== SEQUENTIAL PROCESSING (MLX/Transformers) ==========
-        logger.info(f"🚀 Starting sequential batch processing for {len(texts)} texts")
+        # ========== SEQUENTIAL PROCESSING ==========
+        logger.info(f"🚀 Sequential unified processing: {len(texts)} texts")
 
         for i, text in enumerate(texts):
             try:
-                # Call extract() which has the full pipeline
                 result = self.extract(text, max_tokens, temperature)
                 results.append(result)
 
                 if (i + 1) % 10 == 0:
-                    elapsed = time.time() - total_start
-                    avg_time = elapsed / (i + 1)
-                    eta = avg_time * (len(texts) - i - 1)
-                    logger.info(f"  Processed {i + 1}/{len(texts)} texts in {elapsed:.2f}s (ETA: {eta:.2f}s)")
+                    logger.info(f"  Processed {i + 1}/{len(texts)} texts")
 
             except Exception as e:
-                logger.error(f"Failed to process text {i + 1}: {e}")
+                logger.error(f"Failed text {i + 1}: {e}")
                 results.append(dict(self.json_schema))
 
         total_time = time.time() - total_start
-        logger.info(f"✅ Sequential batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
+        logger.info(f"✅ Sequential unified complete: {len(texts)} texts in {total_time:.2f}s")
         return results
 
-    # ... (rest of the methods remain the same but can be enhanced similarly)
+    def _call_llm_unified(self, prompt: str, max_tokens: int, temperature: float) -> str:
+        """
+        Call LLM for unified NER + Sentiment extraction
+        Increased max_tokens to accommodate both tasks
+        """
+        try:
+            if self._loading_method == 'vllm':
+                from vllm import SamplingParams
+                sampling_params = SamplingParams(
+                    temperature=temperature,
+                    max_tokens=max_tokens,  # Increased for sentiment
+                    stop=[self.tokenizer.eos_token] if hasattr(self.tokenizer, 'eos_token') else None,
+                    top_p=0.95,
+                    frequency_penalty=0.1,
+                    presence_penalty=0.1
+                )
+                outputs = self.model.generate([prompt], sampling_params)
+                return outputs[0].outputs[0].text.strip()
 
-    # def extract_batch(self, texts: List[str], max_tokens: int = 1500, temperature: float = 0.1) -> List[Dict[str, Any]]:
-    #     """Extract entities from multiple texts efficiently"""
-    #     if not self._model_loaded or self.model is None:
-    #         logger.warning("Model not available for batch processing")
-    #         return [dict(self.json_schema) for _ in texts]
-    #
-    #     results = []
-    #     total_start = time.time()
-    #
-    #     # vLLM batch processing
-    #     if self._loading_method == 'vllm' and VLLM_AVAILABLE:
-    #         try:
-    #             prompts = [self._build_enhanced_instruction_prompt(text) for text in texts]
-    #
-    #             sampling_params = SamplingParams(
-    #                 temperature=temperature,
-    #                 max_tokens=max_tokens,
-    #                 stop=[self.tokenizer.eos_token] if hasattr(self.tokenizer, 'eos_token') else None,
-    #                 top_p=0.95,
-    #                 frequency_penalty=0.1,
-    #                 presence_penalty=0.1
-    #             )
-    #
-    #             outputs = self.model.generate(prompts, sampling_params)
-    #
-    #             for i, output in enumerate(outputs):
-    #                 try:
-    #                     text = texts[i]
-    #                     raw_response = output.outputs[0].text.strip()
-    #
-    #                     # Regex extractions
-    #                     regex_extractions = {
-    #                         "hashtags": self._find_hashtags(text),
-    #                         "mention_ids": self._find_mentions(text),
-    #                         "district_names": self._find_districts(text),
-    #                         "thana_names": self._find_thana(text),
-    #                         "caste_names": self._find_keywords(text, self.castes),
-    #                         "religion_names": self._find_keywords(text, self.religions),
-    #                     }
-    #
-    #                     # Parse LLM response
-    #                     llm_json = self._safe_json_parse(raw_response) if raw_response else {}
-    #
-    #                     # Merge and add result
-    #                     final_result = self._merge_results(llm_json, regex_extractions)
-    #                     results.append(final_result)
-    #
-    #                 except Exception as e:
-    #                     logger.error(f"Failed to process batch item {i}: {e}")
-    #                     results.append(dict(self.json_schema))
-    #
-    #             total_time = time.time() - total_start
-    #             logger.info(f"vLLM batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
-    #             return results
-    #
-    #         except Exception as e:
-    #             logger.error(f"vLLM batch processing failed: {e}")
-    #
-    #     # Sequential processing for MLX and Transformers
-    #     for i, text in enumerate(texts):
-    #         try:
-    #             result = self.extract(text, max_tokens, temperature)
-    #             results.append(result)
-    #
-    #             if (i + 1) % 10 == 0:
-    #                 elapsed = time.time() - total_start
-    #                 avg_time = elapsed / (i + 1)
-    #                 eta = avg_time * (len(texts) - i - 1)
-    #                 logger.info(f"Processed {i + 1}/{len(texts)} texts in {elapsed:.2f}s (ETA: {eta:.2f}s)")
-    #
-    #         except Exception as e:
-    #             logger.error(f"Failed to process text {i + 1}: {e}")
-    #             results.append(dict(self.json_schema))
-    #
-    #     total_time = time.time() - total_start
-    #     logger.info(f"Sequential batch extraction completed: {len(texts)} texts in {total_time:.2f}s")
-    #     return results
+            elif self._loading_method == 'mlx':
+                from mlx_lm import generate as mlx_generate
+                return mlx_generate(
+                    self.model,
+                    self.tokenizer,
+                    prompt=prompt,
+                    max_tokens=max_tokens,
+                    temp=temperature,
+                    verbose=False
+                )
+
+            else:  # transformers
+                import torch
+                inputs = self.tokenizer(
+                    prompt,
+                    return_tensors="pt",
+                    truncation=True,
+                    max_length=4096,
+                    padding=True
+                )
+
+                if hasattr(self.model, 'device'):
+                    inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
+
+                with torch.no_grad():
+                    outputs = self.model.generate(
+                        **inputs,
+                        max_new_tokens=max_tokens,
+                        temperature=temperature,
+                        do_sample=True if temperature > 0 else False,
+                        pad_token_id=self.tokenizer.pad_token_id,
+                        eos_token_id=self.tokenizer.eos_token_id,
+                        repetition_penalty=1.1
+                    )
+
+                full_response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+                return full_response[len(prompt):].strip()
+
+        except Exception as e:
+            logger.error(f"LLM call failed: {e}")
+            raise
+
+    def _fallback_sentiment_analysis(self, text: str, ner_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Minimal rule-based sentiment fallback if LLM fails
+        """
+        return {
+            'overall_stance': 'neutral',
+            'overall_confidence': 0.3,
+            'pro_towards': {'castes': [], 'religions': [], 'organisations': [], 'political_parties': [],
+                            'other_aspects': []},
+            'against_towards': {'castes': [], 'religions': [], 'organisations': [], 'political_parties': [],
+                                'other_aspects': []},
+            'neutral_towards': {'castes': [], 'religions': [], 'organisations': [], 'political_parties': [],
+                                'other_aspects': []},
+            'analysis_method': 'fallback_rule_based',
+            'reasoning': 'LLM sentiment extraction failed, using minimal analysis'
+        }
 
     def get_model_info(self) -> Dict[str, Any]:
         """Get information about the loaded model"""

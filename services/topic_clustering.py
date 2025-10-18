@@ -12,6 +12,7 @@ import re
 from datetime import datetime, timedelta  # ✅ ADD THIS LINE
 from services.keyword_classifier import KeywordCategoryClassifier
 from services.text_cleaner import AITextCleaner
+from sklearn.metrics.pairwise import cosine_similarity
 
 from district_normalizer import DistrictNormalizer
 
@@ -221,6 +222,8 @@ class TopicClusteringService:
             # ========== STEP 3: NER Extraction (includes temporal & sentiment) ==========
             ner_data = self.ner_extractor.extract(text)
 
+            # ✅ Log the LLM JSON Response in a readable format
+            logger.info(f"NER DATA EXTRACT Response: {json.dumps(ner_data, indent=2, ensure_ascii=False)}")
             logger.info(f"STEP 3 COMPLETED - NER complete - Districts: {ner_data.get('district_names', [])}")
 
             # ========== STEP 4: District Normalization ==========
@@ -333,16 +336,25 @@ class TopicClusteringService:
                 }
 
             # ========== STEP 11: Filter Low Confidence Data ==========
-            ner_data = self.filter_low_confidence_data(ner_data, min_confidence=0.6)
+            # ner_data = self.filter_low_confidence_data(ner_data, min_confidence=0.5)
 
             # ========== STEP 12: Build Result (SIMPLIFIED OUTPUT) ==========
             processing_time = (time.time() - start_time) * 1000
+
+            # ✅ Log the LLM JSON Response in a readable format
+            logger.info(f"NER DATA AFTER ALL ACTIVITY Response: {json.dumps(ner_data, indent=2, ensure_ascii=False)}")
 
             # ✅ Clean up NER data to avoid duplication
             cleaned_entities = {k: v for k, v in ner_data.items() if k not in [
                 'temporal_info', 'advanced_sentiment', 'category_classifications',
                 'primary_classification', 'incident_location_analysis'
             ]}
+
+            # ✅ Log the LLM JSON Response in a readable format
+            logger.info(f"CLEANED AFTER ALL ACTIVITY Response: {json.dumps(cleaned_entities, indent=2, ensure_ascii=False)}")
+
+            # ✅ Log the LLM JSON Response in a readable format
+            logger.info(f"NER DATA AFTER CLEANING Response: {json.dumps(ner_data, indent=2, ensure_ascii=False)}")
 
             result = {
                 "input_text": text,  # ✅ SINGLE CLEANED TEXT (no processed/enhanced variants)
@@ -402,6 +414,412 @@ class TopicClusteringService:
                 "processing_time_ms": int(processing_time),
                 "timestamp": time.time()
             }
+
+    async def process_text_batch(self,
+                                 texts: List[str],
+                                 source_type: str = "unknown",
+                                 user_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        ✅ FIXED: Batch processing with COMPLETE pipeline matching process_text_complete
+
+        Pipeline Steps:
+        0. Text Cleaning
+        1. Validation
+        2. Language & Preprocessing
+        3. NER Extraction (includes temporal & sentiment)
+        4. District Normalization
+        5. Temporal Info Check
+        6. Category Classification
+        7. Enhanced Text Creation
+        8. Generate Embedding
+        9. Three-Phase Matching
+        10. Topic Assignment
+        11. Filter Low Confidence
+        12. Build Result
+        """
+        start_time = time.time()
+        results = []
+
+        try:
+            logger.info(f"🚀 Starting batch processing for {len(texts)} texts")
+
+            # ========== STEP 0: CLEAN ALL TEXTS ==========
+            logger.info("📝 STEP 0: Text cleaning...")
+            cleaned_data = []
+
+            for i, text in enumerate(texts):
+                if not text or len(text.strip()) < 3:
+                    cleaned_data.append({
+                        "error": "Invalid text",
+                        "original_text": text
+                    })
+                    continue
+
+                # Clean text based on source
+                cleaning_result = self.text_cleaner.clean_text(
+                    text,
+                    source_type=source_type,
+                    use_ai=True
+                )
+
+                cleaned_text = cleaning_result["cleaned_text"]
+
+                if not cleaned_text or len(cleaned_text) < 10:
+                    cleaned_data.append({
+                        "error": "Text too short after cleaning",
+                        "original_text": text
+                    })
+                    continue
+
+                cleaned_data.append({
+                    "original_text": text,
+                    "cleaned_text": cleaned_text,
+                    "cleaning_metadata": cleaning_result
+                })
+
+            valid_items = [item for item in cleaned_data if "error" not in item]
+            logger.info(f"✅ STEP 0 COMPLETE: Cleaned {len(valid_items)}/{len(texts)} texts")
+
+            if not valid_items:
+                logger.warning("No valid texts after cleaning")
+                return [{
+                    "input_text": item["original_text"],
+                    "error": item.get("error", "Unknown error"),
+                    "action": "error",
+                    "timestamp": time.time()
+                } for item in cleaned_data]
+
+            # ========== STEP 1: VALIDATION (already done in STEP 0) ==========
+            logger.info("✅ STEP 1 COMPLETE: Validation done during cleaning")
+
+            # ========== STEP 2: LANGUAGE & PREPROCESSING ==========
+            logger.info("🌍 STEP 2: Language detection and preprocessing...")
+
+            for item in valid_items:
+                cleaned_text = item["cleaned_text"]
+
+                # Detect language
+                detected_language, lang_confidence = self.embedding_service.detect_language(cleaned_text)
+                item["detected_language"] = detected_language
+                item["language_confidence"] = lang_confidence
+
+                # Preprocess
+                processed_text = self.embedding_service.preprocess_text(cleaned_text)
+                item["processed_text"] = processed_text
+
+            logger.info(f"✅ STEP 2 COMPLETE: Language detection done")
+
+            # ========== STEP 3: BATCH NER EXTRACTION ==========
+            logger.info("🤖 STEP 3: Batch NER extraction (includes temporal & sentiment)...")
+
+            batch_ner_results = self.ner_extractor.extract_batch(
+                [item["cleaned_text"] for item in valid_items],
+                max_tokens=16000,
+                temperature=0.1
+            )
+
+            # If you want even more validation, use this version:
+
+            for i, item in enumerate(valid_items):
+                if i < len(batch_ner_results):
+                    ner_data = batch_ner_results[i]
+
+                    # ✅ Validate temporal_info structure
+                    temporal_info = ner_data.get('temporal_info', {})
+
+                    # Check if temporal info is missing or incomplete
+                    needs_extraction = (
+                            not temporal_info or
+                            not isinstance(temporal_info, dict) or
+                            not temporal_info.get('incident_date') or
+                            temporal_info.get('incident_date') == "" or
+                            temporal_info.get('temporal_type') == "not_provided"
+                    )
+
+                    if needs_extraction:
+                        logger.debug(f"Text {i + 1}: Extracting temporal info (LLM didn't provide)")
+                        ner_data['temporal_info'] = self.ner_extractor._extract_temporal_info(
+                            item["cleaned_text"]
+                        )
+                    else:
+                        logger.debug(
+                            f"Text {i + 1}: Temporal valid - "
+                            f"{temporal_info.get('temporal_phrase')} "
+                            f"({temporal_info.get('days_ago')} days ago)"
+                        )
+
+                    item["ner_data"] = ner_data
+                else:
+                    logger.warning(f"Text {i + 1}: No NER result, using empty data")
+                    item["ner_data"] = {
+                        'temporal_info': self.ner_extractor._extract_temporal_info(item["cleaned_text"])
+                    }
+
+            logger.info(f"✅ STEP 3 COMPLETE: NER extraction with validated temporal info")
+
+            # ========== STEP 4: DISTRICT NORMALIZATION (OPTIMIZED) ==========
+            logger.info("🗺️ STEP 4: District normalization...")
+
+            # ✅ VECTORIZED: Process all districts at once
+            all_districts = []
+            district_map = {}  # Track which item each district belongs to
+
+            for i, item in enumerate(valid_items):
+                ner_data = item["ner_data"]
+                districts = ner_data.get('district_names', [])
+
+                for district in districts:
+                    all_districts.append(district)
+                    if district not in district_map:
+                        district_map[district] = []
+                    district_map[district].append(i)
+
+            # Single normalization call for all unique districts
+            if all_districts:
+                normalized_districts = DistrictNormalizer.normalize_list(list(set(all_districts)))
+
+                # Create normalization mapping
+                norm_map = {}
+                for orig, norm in zip(set(all_districts), normalized_districts):
+                    norm_map[orig] = norm
+
+                # Apply back to items
+                for i, item in enumerate(valid_items):
+                    ner_data = item["ner_data"]
+                    ner_data['district_names'] = [
+                        norm_map.get(d, d) for d in ner_data.get('district_names', [])
+                    ]
+
+                    # Also normalize location analysis
+                    if 'incident_location_analysis' in ner_data:
+                        loc = ner_data['incident_location_analysis']
+                        loc['incident_districts'] = [
+                            norm_map.get(d, d) for d in loc.get('incident_districts', [])
+                        ]
+                        loc['related_districts'] = [
+                            norm_map.get(d, d) for d in loc.get('related_districts', [])
+                        ]
+
+            logger.info(f"✅ STEP 4 COMPLETE: Normalized {len(all_districts)} districts across {len(valid_items)} texts")
+
+            # ========== STEP 5: TEMPORAL INFO CHECK ==========
+            logger.info("⏰ STEP 5: Temporal info validation...")
+
+            for item in valid_items:
+                ner_data = item["ner_data"]
+
+                # Ensure temporal info exists
+                if 'temporal_info' not in ner_data or not ner_data['temporal_info'].get('incident_date'):
+                    ner_data['temporal_info'] = self.ner_extractor._extract_temporal_info(item["cleaned_text"])
+
+            logger.info("✅ STEP 5 COMPLETE: Temporal info validated")
+
+            # ========== STEP 6: CATEGORY CLASSIFICATION ==========
+            logger.info("📂 STEP 6: Category classification...")
+
+            for item in valid_items:
+                cleaned_text = item["cleaned_text"]
+                ner_data = item["ner_data"]
+
+                classification_result = self.keyword_classifier.classify(cleaned_text, ner_data)
+                ner_data['category_classifications'] = classification_result['category_classifications']
+                ner_data['primary_classification'] = classification_result['primary_classification']
+
+            logger.info("✅ STEP 6 COMPLETE: Category classification done")
+
+            # ========== STEP 7: ENHANCED TEXT CREATION ==========
+            logger.info("✨ STEP 7: Enhanced text creation...")
+
+            for item in valid_items:
+                processed_text = item["processed_text"]
+                ner_data = item["ner_data"]
+
+                enhanced_text = self.embedding_service.create_enhanced_text(processed_text, ner_data)
+                item["enhanced_text"] = enhanced_text
+
+            logger.info("✅ STEP 7 COMPLETE: Enhanced text created")
+
+            # ========== STEP 8: GENERATE EMBEDDINGS ==========
+            logger.info("🧮 STEP 8: Generating embeddings...")
+
+            # Batch embedding generation
+            enhanced_texts = [item["enhanced_text"] for item in valid_items]
+            embeddings = self.embedding_service.generate_embeddings(enhanced_texts)
+
+            for i, item in enumerate(valid_items):
+                item["query_embedding"] = embeddings[i]
+
+            logger.info("✅ STEP 8 COMPLETE: Embeddings generated")
+
+            # ========== STEP 9-12: PROCESS EACH TEXT ==========
+            logger.info("🔄 STEPS 9-12: Topic matching and assignment...")
+
+            for i, item in enumerate(cleaned_data):
+                try:
+                    # Handle error items
+                    if "error" in item:
+                        results.append({
+                            "input_text": item["original_text"],
+                            "error": item["error"],
+                            "action": "error",
+                            "processing_time_ms": 0,
+                            "timestamp": time.time()
+                        })
+                        continue
+
+                    cleaned_text = item["cleaned_text"]
+                    ner_data = item["ner_data"]
+                    query_embedding = item["query_embedding"]
+                    detected_language = item["detected_language"]
+                    lang_confidence = item["language_confidence"]
+
+                    # ========== STEP 9: THREE-PHASE MATCHING ==========
+                    similar_topics = self._find_similar_topics_three_phase(
+                        query_embedding, ner_data, detected_language, source_type
+                    )
+
+                    # ========== STEP 10: TOPIC ASSIGNMENT ==========
+                    has_location = bool(ner_data.get('district_names'))
+                    has_incident = bool(ner_data.get('incidents') or ner_data.get('events'))
+
+                    information_score = (
+                            (1.0 if has_location else 0.0) +
+                            (1.0 if has_incident else 0.0) +
+                            (0.5 if len(ner_data.get('contextual_understanding', '')) > 50 else 0.0)
+                    )
+
+                    if information_score < 1.5:
+                        # Insufficient information - assign to unassigned
+                        topic_result = self.assign_to_unassigned_topic(
+                            cleaned_text, ner_data,
+                            reason=f"Insufficient information (score: {information_score:.1f})",
+                            user_id=user_id
+                        )
+
+                    elif similar_topics:
+                        # Group with existing topic
+                        best_match = similar_topics[0]
+                        topic_id = best_match['topic_id']
+
+                        self._update_existing_topic(topic_id, cleaned_text, ner_data, user_id)
+
+                        topic_result = {
+                            "action": "grouped",
+                            "topic_id": topic_id,
+                            "topic_title": best_match['metadata'].get('topic_title'),
+                            "similarity_score": best_match['enhanced_similarity'],
+                            "confidence": self._calculate_confidence(best_match['enhanced_similarity']),
+                            "boost_reasons": best_match.get('boost_reasons', []),
+                            "temporal_distance_days": best_match.get('temporal_distance_days'),
+                            "incident_match_score": best_match.get('incident_match_score')
+                        }
+
+                    else:
+                        # Create new topic
+                        topic_id = str(uuid.uuid4())
+                        topic_title = self._generate_topic_title_with_llm_hindi(ner_data, cleaned_text)
+
+                        self._create_new_topic_with_temporal(
+                            topic_id, topic_title, cleaned_text, item["processed_text"],
+                            item["enhanced_text"], query_embedding, ner_data,
+                            detected_language, lang_confidence, source_type, user_id
+                        )
+
+                        topic_result = {
+                            "action": "new_topic_created",
+                            "topic_id": topic_id,
+                            "topic_title": topic_title,
+                            "similarity_score": 0.0,
+                            "confidence": "high",
+                            "boost_reasons": []
+                        }
+
+                    # ========== STEP 11: FILTER LOW CONFIDENCE ==========
+                    ner_data = self.filter_low_confidence_data(ner_data, min_confidence=0.6)
+
+                    # ========== STEP 12: BUILD RESULT ==========
+                    # Clean up NER data to avoid duplication
+                    cleaned_entities = {k: v for k, v in ner_data.items() if k not in [
+                        'temporal_info', 'advanced_sentiment', 'category_classifications',
+                        'primary_classification', 'incident_location_analysis'
+                    ]}
+
+                    result = {
+                        "input_text": item["original_text"],
+                        "cleaned_text": cleaned_text,
+                        "detected_language": detected_language,
+                        "language_confidence": lang_confidence,
+                        "action": topic_result["action"],
+                        "topic_title": topic_result.get("topic_title", ""),
+                        "topic_id": topic_result["topic_id"],
+                        "similarity_score": topic_result["similarity_score"],
+                        "confidence": topic_result["confidence"],
+                        "source_type": source_type,
+                        "embedding_model": "BAAI/bge-m3",
+                        "processing_time_ms": 0,  # Updated below
+
+                        # Root level fields
+                        "temporal_info": ner_data.get('temporal_info', {}),
+                        "advanced_sentiment": ner_data.get('advanced_sentiment', {}),
+                        "category_classifications": ner_data.get('category_classifications', []),
+                        "primary_classification": ner_data.get('primary_classification', {}),
+                        "incident_location_analysis": ner_data.get('incident_location_analysis', {}),
+
+                        # Cleaned entities
+                        "extracted_entities": cleaned_entities,
+
+                        "boost_reasons": topic_result.get("boost_reasons", []),
+                        "temporal_distance_days": topic_result.get("temporal_distance_days"),
+                        "incident_match_score": topic_result.get("incident_match_score"),
+                        "can_reassign": topic_result.get("user_can_reassign", False),
+
+                        # Cleaning metadata
+                        "text_cleaning": {
+                            "applied": item["cleaning_metadata"]["cleaning_applied"],
+                            "reduction_pct": item["cleaning_metadata"]["reduction_percentage"]
+                        } if item["cleaning_metadata"]["cleaning_applied"] else None,
+
+                        "timestamp": time.time()
+                    }
+
+                    results.append(result)
+
+                    if (i + 1) % 10 == 0:
+                        logger.info(f"  Processed {i + 1}/{len(valid_items)} texts")
+
+                except Exception as e:
+                    logger.error(f"Failed to process batch item {i}: {e}", exc_info=True)
+                    results.append({
+                        "input_text": item.get("original_text", ""),
+                        "error": str(e),
+                        "action": "error",
+                        "processing_time_ms": 0,
+                        "timestamp": time.time()
+                    })
+
+            # Update processing time
+            total_time = (time.time() - start_time) * 1000
+            avg_time = total_time / len(results) if results else 0
+
+            for result in results:
+                if "error" not in result:
+                    result["processing_time_ms"] = int(avg_time)
+
+            logger.info(f"✅ STEPS 9-12 COMPLETE")
+            logger.info(f"✅ BATCH PROCESSING COMPLETE: {len(results)} texts in {total_time:.2f}ms")
+
+            return results
+
+        except Exception as e:
+            logger.error(f"Batch processing failed: {e}", exc_info=True)
+            return [{
+                "input_text": text,
+                "error": str(e),
+                "action": "error",
+                "processing_time_ms": 0,
+                "timestamp": time.time()
+            } for text in texts]
+
 
     def _find_similar_topics_three_phase(self,
                                          query_embedding: np.ndarray,
@@ -552,7 +970,10 @@ class TopicClusteringService:
 
             logger.info(f"🔍 DEBUG - Incident match score: {incident_match_score:.2f}")
 
-            if incident_match_score < 0.5:
+            # ✅ Semantic matching is more accurate, use higher threshold
+            incident_threshold = 0.6  # Was 0.3 for fuzzy matching
+
+            if incident_match_score < incident_threshold:
                 logger.debug(f"⏭️  Skipping - Low incident match: {incident_match_score:.2f}")
                 continue
 
@@ -613,41 +1034,27 @@ class TopicClusteringService:
         return filtered_matches
 
     def _extract_incident_signatures(self, ner_data: Dict[str, Any]) -> List[str]:
-        """Extract incident type signatures for WHAT matching"""
+        """
+        ✅ ENHANCED: Extract incident signatures with better structure
+        Now returns clean, focused incident descriptions
+        """
         signatures = []
 
-        # From primary classification
+        # 1. Get primary classification (most reliable)
         primary = ner_data.get('primary_classification', {})
         if primary.get('sub_category'):
-            sub_cat = primary['sub_category'].lower()
-            signatures.append(sub_cat)
-            logger.debug(f"   📌 From primary classification: {sub_cat}")
+            signatures.append(primary['sub_category'].lower())
 
-        if primary.get('broad_category'):
-            broad_cat = primary['broad_category'].lower()
-            signatures.append(broad_cat)
-            logger.debug(f"   📌 From broad category: {broad_cat}")
+        # 2. Get incidents (full descriptions)
+        incidents = ner_data.get('incidents', [])
+        for incident in incidents[:3]:  # Limit to top 3
+            if len(incident.strip()) > 5:  # Skip very short
+                signatures.append(incident.lower().strip())
 
-        # From incidents - extract key terms
-        for incident in ner_data.get('incidents', [])[:3]:
-            # Keep full incident text
-            signatures.append(incident.lower())
-
-            # Also extract individual words (3+ chars)
-            incident_clean = re.sub(r'[^\w\s]', ' ', incident.lower())
-            key_terms = [w for w in incident_clean.split() if len(w) > 3]
-            signatures.extend(key_terms)
-            logger.debug(f"   📌 From incident: {incident} → {key_terms}")
-
-        # From category keywords
-        for cat in ner_data.get('category_classifications', [])[:2]:
-            if cat.get('matched_keywords'):
-                keywords = [kw.lower() for kw in cat['matched_keywords'][:3]]
-                signatures.extend(keywords)
-                logger.debug(f"   📌 From category keywords: {keywords}")
-
-        signatures = list(set(signatures))  # Remove duplicates
-        logger.info(f"   🎯 Final signatures: {signatures}")
+        # 3. Get contextual understanding (key summary)
+        context = ner_data.get('contextual_understanding', '')
+        if context and len(context) > 20:
+            signatures.append(context.lower().strip())
 
         return signatures
 
@@ -683,10 +1090,52 @@ class TopicClusteringService:
         return signatures
 
     def _calculate_incident_similarity(self, current_sigs: List[str], candidate_sigs: List[str]) -> float:
-        """Calculate similarity between incident signatures using fuzzy matching"""
+        """
+        🚀 UNIVERSAL SEMANTIC MATCHING using BGE-M3 embeddings
+
+        Works for:
+        - Any language (Hindi, English, Hinglish)
+        - Any incident type
+        - Different writing styles
+        - Paraphrased descriptions
+
+        Uses cosine similarity of embeddings instead of fuzzy matching
+        """
         if not current_sigs or not candidate_sigs:
             return 0.0
 
+        try:
+            # Generate embeddings for both sets using your existing embedding service
+            current_embeddings = self.embedding_service.generate_embeddings(current_sigs)
+            candidate_embeddings = self.embedding_service.generate_embeddings(candidate_sigs)
+
+            # Calculate pairwise cosine similarities
+            similarities = cosine_similarity(current_embeddings, candidate_embeddings)
+
+            # Strategy: For each current signature, find best match in candidates
+            best_matches = []
+            for i in range(len(current_sigs)):
+                best_match = np.max(similarities[i])
+                best_matches.append(best_match)
+
+            # Return average of best matches
+            final_score = np.mean(best_matches)
+
+            logger.info(f"   🎯 Semantic incident match: {final_score:.3f}")
+            logger.debug(f"      Current: {current_sigs[:2]}")
+            logger.debug(f"      Candidate: {candidate_sigs[:2]}")
+
+            return float(final_score)
+
+        except Exception as e:
+            logger.error(f"Semantic matching failed, using fallback: {e}")
+            # Fallback to simple fuzzy matching
+            return self._fallback_fuzzy_matching(current_sigs, candidate_sigs)
+
+    def _fallback_fuzzy_matching(self, current_sigs: List[str], candidate_sigs: List[str]) -> float:
+        """
+        Fallback method if semantic matching fails
+        """
         from difflib import SequenceMatcher
 
         match_scores = []
@@ -698,6 +1147,30 @@ class TopicClusteringService:
             match_scores.append(best_match)
 
         return sum(match_scores) / len(match_scores) if match_scores else 0.0
+
+    def _extract_incident_signatures_from_metadata(self, metadata: Dict[str, Any]) -> List[str]:
+        """
+        ✅ ENHANCED: Extract signatures from stored metadata
+        """
+        signatures = []
+
+        # 1. Primary classification
+        primary = self._safe_get_dict(metadata, 'primary_classification')
+        if primary.get('sub_category'):
+            signatures.append(primary['sub_category'].lower())
+
+        # 2. Incidents
+        incidents = self._safe_get_list(metadata, 'incidents')
+        for incident in incidents[:3]:
+            if len(incident.strip()) > 5:
+                signatures.append(incident.lower().strip())
+
+        # 3. Contextual understanding
+        context = metadata.get('contextual_understanding', '')
+        if isinstance(context, str) and len(context) > 20:
+            signatures.append(context.lower().strip())
+
+        return signatures
 
     def _safe_get_list(self, data: Dict, key: str) -> List:
         """Safely get list from dict, handling JSON strings"""
@@ -721,52 +1194,48 @@ class TopicClusteringService:
                 return {}
         return value if isinstance(value, dict) else {}
 
+    # FOR DEBUUGING WHAT IS AND WHAT IS NOT BEING MATCHED IN PROICDED TEXT
+    def analyze_incident_similarity(self, text1: str, text2: str) -> Dict[str, Any]:
+        """
+        🔍 DEBUG TOOL: Analyze why two texts match or don't match
+        Use this to understand matching behavior
+        """
+        # Extract NER for both
+        ner1 = self.ner_extractor.extract(text1)
+        ner2 = self.ner_extractor.extract(text2)
 
-    # def validate_and_correct_categories(self, category_classifications: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    #     """Validate categories against allowed list"""
-    #     validated = []
-    #
-    #     for classification in category_classifications:
-    #         broad_cat = classification.get('broad_category', '').upper()
-    #         sub_cat = classification.get('sub_category', '').upper()
-    #
-    #         if broad_cat not in ALLOWED_CATEGORIES:
-    #             logger.warning(f"❌ Invalid broad category: '{broad_cat}'")
-    #             broad_cat = self._find_closest_category(broad_cat, ALLOWED_CATEGORIES.keys())
-    #             if not broad_cat:
-    #                 continue
-    #
-    #         if sub_cat not in ALLOWED_CATEGORIES[broad_cat]:
-    #             logger.warning(f"❌ Invalid sub category: '{sub_cat}' under '{broad_cat}'")
-    #             sub_cat = self._find_closest_category(sub_cat, ALLOWED_CATEGORIES[broad_cat])
-    #             if not sub_cat:
-    #                 continue
-    #
-    #         classification['broad_category'] = broad_cat
-    #         classification['sub_category'] = sub_cat
-    #         validated.append(classification)
-    #
-    #         logger.info(f"✅ Validated: {broad_cat} > {sub_cat}")
-    #
-    #     if not validated:
-    #         validated.append({
-    #             'broad_category': 'UNCATEGORIZED',
-    #             'sub_category': 'GENERAL',
-    #             'confidence': 0.0,
-    #             'matched_keywords': [],
-    #             'reasoning': 'No categories matched allowed list'
-    #         })
-    #
-    #     return validated
-    #
-    # def _find_closest_category(self, input_cat: str, allowed_cats) -> Optional[str]:
-    #         """Find closest matching category using fuzzy matching"""
-    #         from difflib import get_close_matches
-    #
-    #         allowed_list = list(allowed_cats)
-    #         matches = get_close_matches(input_cat, allowed_list, n=1, cutoff=0.75)
-    #
-    #         return matches[0] if matches else None
+        # Get signatures
+        sigs1 = self._extract_incident_signatures(ner1)
+        sigs2 = self._extract_incident_signatures(ner2)
+
+        # Get semantic similarity
+        semantic_score = self._calculate_incident_similarity(sigs1, sigs2)
+
+        # Get fuzzy similarity (for comparison)
+        fuzzy_score = self._fallback_fuzzy_matching(sigs1, sigs2)
+
+        # Get location overlap
+        loc1 = set(ner1.get('district_names', []))
+        loc2 = set(ner2.get('district_names', []))
+        location_overlap = loc1 & loc2
+
+        return {
+            "text1_preview": text1[:100],
+            "text2_preview": text2[:100],
+            "signatures1": sigs1,
+            "signatures2": sigs2,
+            "semantic_similarity": round(semantic_score, 3),
+            "fuzzy_similarity": round(fuzzy_score, 3),
+            "improvement": round(semantic_score - fuzzy_score, 3),
+            "location_overlap": list(location_overlap),
+            "districts1": list(loc1),
+            "districts2": list(loc2),
+            "would_match_at_0.4": semantic_score >= 0.4,
+            "would_match_at_0.3": semantic_score >= 0.3,
+            "recommendation": "MATCH" if semantic_score >= 0.4 else "SEPARATE"
+        }
+
+
 
     def get_or_create_unassigned_topic(self) -> str:
         """Get or create the special 'Unassigned Posts' topic"""
@@ -1171,358 +1640,6 @@ class TopicClusteringService:
 
     # REPLACE the process_text_batch method
 
-    async def process_text_batch(self,
-                                 texts: List[str],
-                                 source_type: str = "unknown",
-                                 user_id: Optional[str] = None) -> List[Dict[str, Any]]:
-        """
-        ✅ FIXED: Batch processing with COMPLETE pipeline matching process_text_complete
-
-        Pipeline Steps:
-        0. Text Cleaning
-        1. Validation
-        2. Language & Preprocessing
-        3. NER Extraction (includes temporal & sentiment)
-        4. District Normalization
-        5. Temporal Info Check
-        6. Category Classification
-        7. Enhanced Text Creation
-        8. Generate Embedding
-        9. Three-Phase Matching
-        10. Topic Assignment
-        11. Filter Low Confidence
-        12. Build Result
-        """
-        start_time = time.time()
-        results = []
-
-        try:
-            logger.info(f"🚀 Starting batch processing for {len(texts)} texts")
-
-            # ========== STEP 0: CLEAN ALL TEXTS ==========
-            logger.info("📝 STEP 0: Text cleaning...")
-            cleaned_data = []
-
-            for i, text in enumerate(texts):
-                if not text or len(text.strip()) < 3:
-                    cleaned_data.append({
-                        "error": "Invalid text",
-                        "original_text": text
-                    })
-                    continue
-
-                # Clean text based on source
-                cleaning_result = self.text_cleaner.clean_text(
-                    text,
-                    source_type=source_type,
-                    use_ai=True
-                )
-
-                cleaned_text = cleaning_result["cleaned_text"]
-
-                if not cleaned_text or len(cleaned_text) < 10:
-                    cleaned_data.append({
-                        "error": "Text too short after cleaning",
-                        "original_text": text
-                    })
-                    continue
-
-                cleaned_data.append({
-                    "original_text": text,
-                    "cleaned_text": cleaned_text,
-                    "cleaning_metadata": cleaning_result
-                })
-
-            valid_items = [item for item in cleaned_data if "error" not in item]
-            logger.info(f"✅ STEP 0 COMPLETE: Cleaned {len(valid_items)}/{len(texts)} texts")
-
-            if not valid_items:
-                logger.warning("No valid texts after cleaning")
-                return [{
-                    "input_text": item["original_text"],
-                    "error": item.get("error", "Unknown error"),
-                    "action": "error",
-                    "timestamp": time.time()
-                } for item in cleaned_data]
-
-            # ========== STEP 1: VALIDATION (already done in STEP 0) ==========
-            logger.info("✅ STEP 1 COMPLETE: Validation done during cleaning")
-
-            # ========== STEP 2: LANGUAGE & PREPROCESSING ==========
-            logger.info("🌍 STEP 2: Language detection and preprocessing...")
-
-            for item in valid_items:
-                cleaned_text = item["cleaned_text"]
-
-                # Detect language
-                detected_language, lang_confidence = self.embedding_service.detect_language(cleaned_text)
-                item["detected_language"] = detected_language
-                item["language_confidence"] = lang_confidence
-
-                # Preprocess
-                processed_text = self.embedding_service.preprocess_text(cleaned_text)
-                item["processed_text"] = processed_text
-
-            logger.info(f"✅ STEP 2 COMPLETE: Language detection done")
-
-            # ========== STEP 3: BATCH NER EXTRACTION ==========
-            logger.info("🤖 STEP 3: Batch NER extraction (includes temporal & sentiment)...")
-
-            batch_ner_results = self.ner_extractor.extract_batch(
-                [item["cleaned_text"] for item in valid_items],
-                max_tokens=1500,
-                temperature=0.1
-            )
-
-            # Add NER to items
-            for i, item in enumerate(valid_items):
-                if i < len(batch_ner_results):
-                    item["ner_data"] = batch_ner_results[i]
-                else:
-                    item["ner_data"] = {}
-
-            logger.info(f"✅ STEP 3 COMPLETE: NER extraction done (includes temporal & sentiment)")
-
-            # ========== STEP 4: DISTRICT NORMALIZATION ==========
-            logger.info("🗺️ STEP 4: District normalization...")
-
-            for item in valid_items:
-                ner_data = item["ner_data"]
-
-                # Normalize districts
-                ner_data['district_names'] = DistrictNormalizer.normalize_list(
-                    ner_data.get('district_names', [])
-                )
-
-                # Normalize in location analysis
-                if 'incident_location_analysis' in ner_data:
-                    loc_analysis = ner_data['incident_location_analysis']
-                    loc_analysis['incident_districts'] = DistrictNormalizer.normalize_list(
-                        loc_analysis.get('incident_districts', [])
-                    )
-                    loc_analysis['related_districts'] = DistrictNormalizer.normalize_list(
-                        loc_analysis.get('related_districts', [])
-                    )
-
-            logger.info("✅ STEP 4 COMPLETE: District normalization done")
-
-            # ========== STEP 5: TEMPORAL INFO CHECK ==========
-            logger.info("⏰ STEP 5: Temporal info validation...")
-
-            for item in valid_items:
-                ner_data = item["ner_data"]
-
-                # Ensure temporal info exists
-                if 'temporal_info' not in ner_data or not ner_data['temporal_info'].get('incident_date'):
-                    ner_data['temporal_info'] = self.ner_extractor._extract_temporal_info(item["cleaned_text"])
-
-            logger.info("✅ STEP 5 COMPLETE: Temporal info validated")
-
-            # ========== STEP 6: CATEGORY CLASSIFICATION ==========
-            logger.info("📂 STEP 6: Category classification...")
-
-            for item in valid_items:
-                cleaned_text = item["cleaned_text"]
-                ner_data = item["ner_data"]
-
-                classification_result = self.keyword_classifier.classify(cleaned_text, ner_data)
-                ner_data['category_classifications'] = classification_result['category_classifications']
-                ner_data['primary_classification'] = classification_result['primary_classification']
-
-            logger.info("✅ STEP 6 COMPLETE: Category classification done")
-
-            # ========== STEP 7: ENHANCED TEXT CREATION ==========
-            logger.info("✨ STEP 7: Enhanced text creation...")
-
-            for item in valid_items:
-                processed_text = item["processed_text"]
-                ner_data = item["ner_data"]
-
-                enhanced_text = self.embedding_service.create_enhanced_text(processed_text, ner_data)
-                item["enhanced_text"] = enhanced_text
-
-            logger.info("✅ STEP 7 COMPLETE: Enhanced text created")
-
-            # ========== STEP 8: GENERATE EMBEDDINGS ==========
-            logger.info("🧮 STEP 8: Generating embeddings...")
-
-            # Batch embedding generation
-            enhanced_texts = [item["enhanced_text"] for item in valid_items]
-            embeddings = self.embedding_service.generate_embeddings(enhanced_texts)
-
-            for i, item in enumerate(valid_items):
-                item["query_embedding"] = embeddings[i]
-
-            logger.info("✅ STEP 8 COMPLETE: Embeddings generated")
-
-            # ========== STEP 9-12: PROCESS EACH TEXT ==========
-            logger.info("🔄 STEPS 9-12: Topic matching and assignment...")
-
-            for i, item in enumerate(cleaned_data):
-                try:
-                    # Handle error items
-                    if "error" in item:
-                        results.append({
-                            "input_text": item["original_text"],
-                            "error": item["error"],
-                            "action": "error",
-                            "processing_time_ms": 0,
-                            "timestamp": time.time()
-                        })
-                        continue
-
-                    cleaned_text = item["cleaned_text"]
-                    ner_data = item["ner_data"]
-                    query_embedding = item["query_embedding"]
-                    detected_language = item["detected_language"]
-                    lang_confidence = item["language_confidence"]
-
-                    # ========== STEP 9: THREE-PHASE MATCHING ==========
-                    similar_topics = self._find_similar_topics_three_phase(
-                        query_embedding, ner_data, detected_language, source_type
-                    )
-
-                    # ========== STEP 10: TOPIC ASSIGNMENT ==========
-                    has_location = bool(ner_data.get('district_names'))
-                    has_incident = bool(ner_data.get('incidents') or ner_data.get('events'))
-
-                    information_score = (
-                            (1.0 if has_location else 0.0) +
-                            (1.0 if has_incident else 0.0) +
-                            (0.5 if len(ner_data.get('contextual_understanding', '')) > 50 else 0.0)
-                    )
-
-                    if information_score < 1.5:
-                        # Insufficient information - assign to unassigned
-                        topic_result = self.assign_to_unassigned_topic(
-                            cleaned_text, ner_data,
-                            reason=f"Insufficient information (score: {information_score:.1f})",
-                            user_id=user_id
-                        )
-
-                    elif similar_topics:
-                        # Group with existing topic
-                        best_match = similar_topics[0]
-                        topic_id = best_match['topic_id']
-
-                        self._update_existing_topic(topic_id, cleaned_text, ner_data, user_id)
-
-                        topic_result = {
-                            "action": "grouped",
-                            "topic_id": topic_id,
-                            "topic_title": best_match['metadata'].get('topic_title'),
-                            "similarity_score": best_match['enhanced_similarity'],
-                            "confidence": self._calculate_confidence(best_match['enhanced_similarity']),
-                            "boost_reasons": best_match.get('boost_reasons', []),
-                            "temporal_distance_days": best_match.get('temporal_distance_days'),
-                            "incident_match_score": best_match.get('incident_match_score')
-                        }
-
-                    else:
-                        # Create new topic
-                        topic_id = str(uuid.uuid4())
-                        topic_title = self._generate_topic_title_with_llm_hindi(ner_data, cleaned_text)
-
-                        self._create_new_topic_with_temporal(
-                            topic_id, topic_title, cleaned_text, item["processed_text"],
-                            item["enhanced_text"], query_embedding, ner_data,
-                            detected_language, lang_confidence, source_type, user_id
-                        )
-
-                        topic_result = {
-                            "action": "new_topic_created",
-                            "topic_id": topic_id,
-                            "topic_title": topic_title,
-                            "similarity_score": 0.0,
-                            "confidence": "high",
-                            "boost_reasons": []
-                        }
-
-                    # ========== STEP 11: FILTER LOW CONFIDENCE ==========
-                    ner_data = self.filter_low_confidence_data(ner_data, min_confidence=0.6)
-
-                    # ========== STEP 12: BUILD RESULT ==========
-                    # Clean up NER data to avoid duplication
-                    cleaned_entities = {k: v for k, v in ner_data.items() if k not in [
-                        'temporal_info', 'advanced_sentiment', 'category_classifications',
-                        'primary_classification', 'incident_location_analysis'
-                    ]}
-
-                    result = {
-                        "input_text": item["original_text"],
-                        "cleaned_text": cleaned_text,
-                        "detected_language": detected_language,
-                        "language_confidence": lang_confidence,
-                        "action": topic_result["action"],
-                        "topic_title": topic_result.get("topic_title", ""),
-                        "topic_id": topic_result["topic_id"],
-                        "similarity_score": topic_result["similarity_score"],
-                        "confidence": topic_result["confidence"],
-                        "source_type": source_type,
-                        "embedding_model": "BAAI/bge-m3",
-                        "processing_time_ms": 0,  # Updated below
-
-                        # Root level fields
-                        "temporal_info": ner_data.get('temporal_info', {}),
-                        "advanced_sentiment": ner_data.get('advanced_sentiment', {}),
-                        "category_classifications": ner_data.get('category_classifications', []),
-                        "primary_classification": ner_data.get('primary_classification', {}),
-                        "incident_location_analysis": ner_data.get('incident_location_analysis', {}),
-
-                        # Cleaned entities
-                        "extracted_entities": cleaned_entities,
-
-                        "boost_reasons": topic_result.get("boost_reasons", []),
-                        "temporal_distance_days": topic_result.get("temporal_distance_days"),
-                        "incident_match_score": topic_result.get("incident_match_score"),
-                        "can_reassign": topic_result.get("user_can_reassign", False),
-
-                        # Cleaning metadata
-                        "text_cleaning": {
-                            "applied": item["cleaning_metadata"]["cleaning_applied"],
-                            "reduction_pct": item["cleaning_metadata"]["reduction_percentage"]
-                        } if item["cleaning_metadata"]["cleaning_applied"] else None,
-
-                        "timestamp": time.time()
-                    }
-
-                    results.append(result)
-
-                    if (i + 1) % 10 == 0:
-                        logger.info(f"  Processed {i + 1}/{len(valid_items)} texts")
-
-                except Exception as e:
-                    logger.error(f"Failed to process batch item {i}: {e}", exc_info=True)
-                    results.append({
-                        "input_text": item.get("original_text", ""),
-                        "error": str(e),
-                        "action": "error",
-                        "processing_time_ms": 0,
-                        "timestamp": time.time()
-                    })
-
-            # Update processing time
-            total_time = (time.time() - start_time) * 1000
-            avg_time = total_time / len(results) if results else 0
-
-            for result in results:
-                if "error" not in result:
-                    result["processing_time_ms"] = int(avg_time)
-
-            logger.info(f"✅ STEPS 9-12 COMPLETE")
-            logger.info(f"✅ BATCH PROCESSING COMPLETE: {len(results)} texts in {total_time:.2f}ms")
-
-            return results
-
-        except Exception as e:
-            logger.error(f"Batch processing failed: {e}", exc_info=True)
-            return [{
-                "input_text": text,
-                "error": str(e),
-                "action": "error",
-                "processing_time_ms": 0,
-                "timestamp": time.time()
-            } for text in texts]
 
 
 
