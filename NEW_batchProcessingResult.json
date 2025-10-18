@@ -1,0 +1,366 @@
+{
+  "total_processed": 2,
+  "successful": 2,
+  "failed": 0,
+  "processing_time_ms": 77607,
+  "results": [
+    {
+      "input_text": "लखनऊ से एक चौंकाने वाला मामला सामने आया है, जहाँ गोमती नगर थाने में पुलिस कदाचार की शिकायत दर्ज की गई है। आरोप है कि थाने में मौजूद कुछ पुलिसकर्मियों ने राम शर्मा नामक व्यक्ति के साथ दुर्व्यवहार और अत्याचार किया। इस घटना के बाद स्थानीय लोगों में आक्रोश फैल गया है, और न्याय की मांग करते हुए लोगों ने सोशल मीडिया पर #यूपीपुलिस और #न्याय जैसे हैशटैग के साथ अपनी नाराज़गी जताई है। उधर, वरिष्ठ पुलिस अधिकारियों ने मामले की गंभीरता को देखते हुए जांच के लिए एक विशेष टीम गठित कर दी है और कहा है कि दोषियों पर सख्त कार्रवाई की जाएगी।",
+      "detected_language": "hindi",
+      "language_confidence": 0.9,
+      "action": "grouped",
+      "topic_title": "लखनऊ - पुलिस कदाचार की शिकायत",
+      "topic_id": "006f129b-4ae5-4d18-bff5-456c6cdab98a",
+      "similarity_score": 1,
+      "confidence": "high",
+      "source_type": "social_media",
+      "embedding_model": "BAAI/bge-m3",
+      "processing_time_ms": 38803,
+      "timestamp": 1760619354.4922173,
+      "temporal_info": {
+        "incident_date": "",
+        "incident_time": "",
+        "temporal_phrase": "",
+        "temporal_type": "not_provided",
+        "confidence": 0,
+        "days_ago": null
+      },
+      "advanced_sentiment": {
+        "overall_stance": "against",
+        "overall_confidence": 0.92,
+        "pro_towards": {
+          "castes": [],
+          "religions": [],
+          "organisations": [],
+          "political_parties": [],
+          "other_aspects": []
+        },
+        "against_towards": {
+          "castes": [],
+          "religions": [],
+          "organisations": [
+            {
+              "name": "उत्तर प्रदेश पुलिस",
+              "stance": "against",
+              "confidence": 0.9,
+              "reasoning": "The text mentions police misconduct and public outrage, using hashtags like #यूपीपुलिस to express dissatisfaction.",
+              "source": "llm"
+            }
+          ],
+          "political_parties": [],
+          "other_aspects": [
+            {
+              "name": "पुलिस कदाचार",
+              "stance": "against",
+              "confidence": 0.95,
+              "reasoning": "Police misconduct is explicitly mentioned and criticized, leading to public outrage and demands for justice.",
+              "source": "llm"
+            }
+          ]
+        },
+        "neutral_towards": {
+          "castes": [],
+          "religions": [],
+          "organisations": [],
+          "political_parties": [],
+          "other_aspects": [
+            {
+              "name": "राम शर्मा",
+              "stance": "neutral",
+              "confidence": 0.8,
+              "reasoning": "Ram Sharma is mentioned as the victim of police misconduct, but no specific stance is taken towards him.",
+              "source": "llm"
+            },
+            {
+              "name": "लखनऊ",
+              "stance": "neutral",
+              "confidence": 0.9,
+              "reasoning": "Lucknow is mentioned as the location of the incident without any positive or negative connotation.",
+              "source": "llm"
+            },
+            {
+              "name": "गोमती नगर",
+              "stance": "neutral",
+              "confidence": 0.9,
+              "reasoning": "Gomti Nagar is mentioned as the specific location of the police station without any positive or negative connotation.",
+              "source": "llm"
+            }
+          ]
+        },
+        "analysis_method": "llm_primary",
+        "reasoning": "The text primarily focuses on police misconduct and public dissatisfaction, indicating an overall negative stance towards the incident and those involved."
+      },
+      "category_classifications": [
+        {
+          "broad_category": "POLICE MISCONDUCT",
+          "sub_category": "MISCONDUCT",
+          "confidence": 0.6,
+          "matched_keywords": [
+            "कदाचार",
+            "पुलिस कदाचार",
+            "अत्याचार"
+          ],
+          "reasoning": "Matched 3 keywords: कदाचार, पुलिस कदाचार, अत्याचार"
+        }
+      ],
+      "primary_classification": {
+        "broad_category": "POLICE MISCONDUCT",
+        "sub_category": "MISCONDUCT",
+        "confidence": 0.6
+      },
+      "incident_location_analysis": {
+        "incident_districts": [
+          "Lucknow"
+        ],
+        "related_districts": [],
+        "incident_thanas": [
+          "गोमती नगर"
+        ],
+        "related_thanas": [],
+        "primary_location": {
+          "district": "लखनऊ",
+          "thana": "गोमती नगर",
+          "specific_location": ""
+        }
+      },
+      "extracted_entities": {
+        "person_names": [
+          "राम शर्मा"
+        ],
+        "organisation_names": [
+          "उत्तर प्रदेश पुलिस"
+        ],
+        "location_names": [
+          "लखनऊ",
+          "गोमती नगर"
+        ],
+        "district_names": [
+          "Lucknow"
+        ],
+        "thana_names": [
+          "गोमती नगर"
+        ],
+        "incidents": [
+          "पुलिस कदाचार"
+        ],
+        "caste_names": [],
+        "religion_names": [],
+        "hashtags": [
+          "#यूपीपुलिस",
+          "#न्याय"
+        ],
+        "mention_ids": [],
+        "events": [],
+        "sentiment": {
+          "label": "negative",
+          "confidence": 0.8
+        },
+        "contextual_understanding": "लखनऊ से एक चौंकाने वाला मामला सामने आया है, जहाँ गोमती नगर थाने में पुलिस कदाचार की शिकायत दर्ज की गई है। राम शर्मा नामक व्यक्ति के साथ दुर्व्यवहार और अत्याचार की शिकायत है। इस घटना के बाद स्थानीय लोगों में आक्रोश फैल गया है, और न्याय की मांग करते हुए लोगों ने सोशल मीडिया पर #यूपीपुलिस और #न्याय जैसे हैशटैग के साथ अपनी नाराज़गी जताई है। वरिष्ठ पुलिस अधिकारियों ने मामले की गंभीरता को देखते हुए जांच के लिए एक विशेष टीम गठित कर दी है।",
+        "category_classifications": [],
+        "primary_classification": {
+          "broad_category": "",
+          "sub_category": "",
+          "confidence": 0
+        },
+        "incident_location_analysis": {
+          "incident_districts": [],
+          "related_districts": [],
+          "incident_thanas": [],
+          "related_thanas": [],
+          "primary_location": {}
+        }
+      },
+      "boost_reasons": [
+        "location_match (0.30)",
+        "incident_match (0.19)",
+        "temporal_proximity (0.07)"
+      ],
+      "temporal_distance_days": 0,
+      "incident_match_score": 0.9481481481481481,
+      "can_reassign": false
+    },
+    {
+      "input_text": "आगरा में जातिगत भेदभाव का एक गंभीर मामला सामने आया है, जहाँ एक दलित परिवार ने स्थानीय पुलिस थाने में उत्पीड़न और सामाजिक बहिष्कार की शिकायत दर्ज कराई है। परिवार का कहना है कि गाँव के कुछ लोगों ने उन्हें सामाजिक रूप से अलग-थलग करने का प्रयास किया और धमकियां दीं। मामला सामने आने के बाद सामाजिक न्याय विभाग ने जांच शुरू कर दी है, जबकि जिला प्रशासन ने संबंधित परिवार को सुरक्षा उपलब्ध कराई है। यह घटना मानवाधिकार संगठनों के बीच चिंता का विषय बन गई है और राज्य सरकार से निष्पक्ष जांच व सख्त कार्रवाई की मांग की जा रही है।",
+      "detected_language": "hindi",
+      "language_confidence": 0.9,
+      "action": "grouped",
+      "topic_title": "आगरा - जातिगत भेदभाव का मामला",
+      "topic_id": "f1a45360-34f8-49a1-8d84-9ccef6685c92",
+      "similarity_score": 1,
+      "confidence": "high",
+      "source_type": "social_media",
+      "embedding_model": "BAAI/bge-m3",
+      "processing_time_ms": 38803,
+      "timestamp": 1760619354.5195863,
+      "temporal_info": {
+        "incident_date": "2025-10-15",
+        "incident_time": "",
+        "temporal_phrase": "गत",
+        "temporal_type": "relative",
+        "confidence": 0.8,
+        "days_ago": 1
+      },
+      "advanced_sentiment": {
+        "overall_stance": "against",
+        "overall_confidence": 0.9,
+        "pro_towards": {
+          "castes": [],
+          "religions": [],
+          "organisations": [],
+          "political_parties": [],
+          "other_aspects": []
+        },
+        "against_towards": {
+          "castes": [
+            {
+              "name": "दलित",
+              "stance": "against",
+              "confidence": 0.9,
+              "reasoning": "The text describes a Dalit family facing social exclusion and threats, indicating a negative stance towards their treatment.",
+              "source": "llm"
+            }
+          ],
+          "religions": [],
+          "organisations": [
+            {
+              "name": "राज्य सरकार",
+              "stance": "against",
+              "confidence": 0.8,
+              "reasoning": "There is a demand for an impartial investigation and strict action from the state government, indicating a negative stance due to implied criticism.",
+              "source": "llm"
+            }
+          ],
+          "political_parties": [],
+          "other_aspects": [
+            {
+              "name": "जातिगत भेदभाव",
+              "stance": "against",
+              "confidence": 0.95,
+              "reasoning": "The text describes a serious case of caste discrimination, clearly indicating a negative stance towards this aspect.",
+              "source": "llm"
+            },
+            {
+              "name": "सामाजिक बहिष्कार",
+              "stance": "against",
+              "confidence": 0.95,
+              "reasoning": "Social exclusion is described as a problem faced by the Dalit family, indicating a negative stance towards this aspect.",
+              "source": "llm"
+            },
+            {
+              "name": "धमकियां दीं",
+              "stance": "against",
+              "confidence": 0.95,
+              "reasoning": "Threats are mentioned as part of the problems faced by the Dalit family, indicating a negative stance towards this aspect.",
+              "source": "llm"
+            }
+          ]
+        },
+        "neutral_towards": {
+          "castes": [],
+          "religions": [],
+          "organisations": [
+            {
+              "name": "सामाजिक न्याय विभाग",
+              "stance": "neutral",
+              "confidence": 0.85,
+              "reasoning": "The text mentions that the Social Justice Department has started an investigation, but there is no clear positive or negative sentiment expressed towards them.",
+              "source": "llm"
+            },
+            {
+              "name": "जिला प्रशासन",
+              "stance": "neutral",
+              "confidence": 0.85,
+              "reasoning": "The text states that the district administration has provided security to the affected family, but there is no clear positive or negative sentiment expressed towards them.",
+              "source": "llm"
+            },
+            {
+              "name": "मानवाधिकार संगठनों",
+              "stance": "neutral",
+              "confidence": 0.85,
+              "reasoning": "Human rights organizations are mentioned as being concerned, but there is no clear positive or negative sentiment expressed towards them.",
+              "source": "llm"
+            }
+          ],
+          "political_parties": [],
+          "other_aspects": []
+        },
+        "analysis_method": "llm_primary",
+        "reasoning": "The text primarily focuses on negative aspects such as caste discrimination, social exclusion, and threats, indicating an overall negative stance."
+      },
+      "category_classifications": [],
+      "primary_classification": {
+        "broad_category": "CRIME",
+        "sub_category": "CASTEISM",
+        "confidence": 0.26666666666666666
+      },
+      "incident_location_analysis": {
+        "incident_districts": [
+          "Agra"
+        ],
+        "related_districts": [],
+        "incident_thanas": [],
+        "related_thanas": [],
+        "primary_location": {
+          "district": "आगरा",
+          "thana": "",
+          "specific_location": ""
+        }
+      },
+      "extracted_entities": {
+        "person_names": [],
+        "organisation_names": [
+          "सामाजिक न्याय विभाग",
+          "जिला प्रशासन",
+          "मानवाधिकार संगठनों",
+          "राज्य सरकार"
+        ],
+        "location_names": [
+          "आगरा"
+        ],
+        "district_names": [
+          "Agra"
+        ],
+        "thana_names": [],
+        "incidents": [
+          "जातिगत भेदभाव का मामला",
+          "सामाजिक बहिष्कार",
+          "धमकियां दीं"
+        ],
+        "caste_names": [
+          "दलित"
+        ],
+        "religion_names": [],
+        "hashtags": [],
+        "mention_ids": [],
+        "events": [],
+        "sentiment": {
+          "label": "negative",
+          "confidence": 0.8
+        },
+        "contextual_understanding": "आगरा में एक दलित परिवार ने स्थानीय पुलिस थाने में शिकायत दर्ज कराई कि गाँव के कुछ लोगों ने उन्हें सामाजिक रूप से अलग-थलग करने का प्रयास किया और धमकियां दीं। सामाजिक न्याय विभाग ने जांच शुरू कर दी है और जिला प्रशासन ने परिवार को सुरक्षा उपलब्ध कराई है। मानवाधिकार संगठनों ने राज्य सरकार से निष्पक्ष जांच व सख्त कार्रवाई की मांग की है।",
+        "category_classifications": [],
+        "primary_classification": {
+          "broad_category": "",
+          "sub_category": "",
+          "confidence": 0
+        },
+        "incident_location_analysis": {
+          "incident_districts": [],
+          "related_districts": [],
+          "incident_thanas": [],
+          "related_thanas": [],
+          "primary_location": {}
+        }
+      },
+      "boost_reasons": [
+        "location_match (0.30)",
+        "incident_match (0.14)",
+        "temporal_proximity (0.15)"
+      ],
+      "temporal_distance_days": 0,
+      "incident_match_score": 0.6786454286454285,
+      "can_reassign": false
+    }
+  ],
+  "errors": []
+}
