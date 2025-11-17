@@ -611,10 +611,11 @@ class PipelineProcessor:
     def get_or_create_topic(self, topic_data: Dict[str, Any]) -> Optional[int]:
         """Get existing topic or create new one based on unique_topic_id from API response"""
         try:
-            # Extract unique_topic_id and topic_title from API response
+            # Extract unique_topic_id, topic_title, and entities from API response
             unique_topic_id = topic_data.get('topic_id', '')
             topic_title = topic_data.get('topic_title', '')
-            
+            entities = topic_data.get('extracted_entities', {})
+
             # First check if topic exists by unique_topic_id
             if unique_topic_id:
                 existing_topic = self.session.query(Topic).filter(
@@ -625,12 +626,34 @@ class PipelineProcessor:
                     # Update counts for existing topic
                     existing_topic.unread_count += 1
                     existing_topic.total_no_of_post += 1
+
+                    # Merge mention IDs into topic.mention_id_extraction (preserve existing order, append new)
+                    try:
+                        new_mentions = entities.get('mention_ids', []) or []
+                        existing_mentions = []
+                        if existing_topic.mention_id_extraction:
+                            try:
+                                existing_mentions = json.loads(existing_topic.mention_id_extraction) or []
+                            except Exception:
+                                # If stored value is not valid JSON, treat as empty
+                                existing_mentions = []
+
+                        # Append only unseen mentions to preserve order
+                        to_add = [m for m in new_mentions if m and m not in existing_mentions]
+                        if to_add:
+                            existing_mentions.extend(to_add)
+                            existing_topic.mention_id_extraction = json.dumps(existing_mentions, ensure_ascii=False)
+                            logger.info(
+                                f"Topic {existing_topic.id}: added {len(to_add)} new mention IDs (total {len(existing_mentions)})"
+                            )
+                    except Exception as e:
+                        logger.warning(f"Failed merging mention IDs for topic {existing_topic.id}: {str(e)}")
+
                     self.session.commit()
                     logger.info(f"Updated existing topic {existing_topic.id} with unique_topic_id {unique_topic_id} - unread_count: {existing_topic.unread_count}, total_posts: {existing_topic.total_no_of_post}")
                     return existing_topic.id
             
             # Extract topic fields from API response for new topic creation
-            entities = topic_data.get('extracted_entities', {})
             incident_location = topic_data.get('incident_location_analysis', {})  # FIXED: Get from root level
             category_classifications = topic_data.get('category_classifications', [])  # FIXED: Get from root level
             primary_classification = topic_data.get('primary_classification', {})  # FIXED: Get from root level
